@@ -1,0 +1,199 @@
+{
+	"info": {
+		"_postman_id": "51f97b76-456b-4efe-85b6-7d3868917dd6",
+		"name": "CUSTOMER",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "29279654"
+	},
+	"item": [
+		{
+			"name": "LISTAR",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://ideal-parakeet-pjg4g56474gr3rwrg-8085.app.github.dev/v1/api/customer",
+					"protocol": "https",
+					"host": [
+						"ideal-parakeet-pjg4g56474gr3rwrg-8085",
+						"app",
+						"github",
+						"dev"
+					],
+					"path": [
+						"v1",
+						"api",
+						"customer"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "LISTAR X ID",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://ideal-parakeet-pjg4g56474gr3rwrg-8085.app.github.dev/v1/api/customer/1",
+					"protocol": "https",
+					"host": [
+						"ideal-parakeet-pjg4g56474gr3rwrg-8085",
+						"app",
+						"github",
+						"dev"
+					],
+					"path": [
+						"v1",
+						"api",
+						"customer",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "LISTAR POR ESTADO",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://ideal-parakeet-pjg4g56474gr3rwrg-8085.app.github.dev/v1/api/customer/status/I",
+					"protocol": "https",
+					"host": [
+						"ideal-parakeet-pjg4g56474gr3rwrg-8085",
+						"app",
+						"github",
+						"dev"
+					],
+					"path": [
+						"v1",
+						"api",
+						"customer",
+						"status",
+						"I"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "CREAR",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "   {\r\n        \"documentType\": \"DNI\",\r\n        \"documentNumber\": \"12345698\",\r\n        \"names\": \"Duban\",\r\n        \"surnames\": \"Salas\",\r\n        \"gmail\": \"duban.salas@gmail.com\",\r\n        \"cellphone\": \"933588966\"\r\n    }",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://ideal-parakeet-pjg4g56474gr3rwrg-8085.app.github.dev/v1/api/customer/save",
+					"protocol": "https",
+					"host": [
+						"ideal-parakeet-pjg4g56474gr3rwrg-8085",
+						"app",
+						"github",
+						"dev"
+					],
+					"path": [
+						"v1",
+						"api",
+						"customer",
+						"save"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "EDITAR",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"documentType\": \"DNI\",\r\n    \"documentNumber\": \"12345698\",\r\n    \"names\": \" Prueba de actualziacion\",\r\n    \"surnames\": \"Salas\",\r\n    \"gmail\": \"duban.salas@gmail.com\",\r\n    \"cellphone\": \"933588966\",\r\n    \"status\": \"A\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://ideal-parakeet-pjg4g56474gr3rwrg-8085.app.github.dev/v1/api/customer/update/1",
+					"protocol": "https",
+					"host": [
+						"ideal-parakeet-pjg4g56474gr3rwrg-8085",
+						"app",
+						"github",
+						"dev"
+					],
+					"path": [
+						"v1",
+						"api",
+						"customer",
+						"update",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "ELIMINADO LOG.",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "https://ideal-parakeet-pjg4g56474gr3rwrg-8085.app.github.dev/v1/api/customer/delete/5",
+					"protocol": "https",
+					"host": [
+						"ideal-parakeet-pjg4g56474gr3rwrg-8085",
+						"app",
+						"github",
+						"dev"
+					],
+					"path": [
+						"v1",
+						"api",
+						"customer",
+						"delete",
+						"5"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "RESTAURAR",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "https://ideal-parakeet-pjg4g56474gr3rwrg-8085.app.github.dev/v1/api/customer/restore/6",
+					"protocol": "https",
+					"host": [
+						"ideal-parakeet-pjg4g56474gr3rwrg-8085",
+						"app",
+						"github",
+						"dev"
+					],
+					"path": [
+						"v1",
+						"api",
+						"customer",
+						"restore",
+						"6"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
