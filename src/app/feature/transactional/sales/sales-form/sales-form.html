@@ -1,0 +1,135 @@
+<div class="form-dialog">
+  <h2 class="form-title">Nuevo Venta</h2>
+
+  <form [formGroup]="form" class="form-content">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Cliente</label>
+        <select formControlName="cliente" class="form-select">
+          <option value="">Seleccionar...</option>
+          <option *ngFor="let cliente of clientes" [value]="cliente">
+            {{ cliente }}
+          </option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Empleado</label>
+        <select formControlName="empleado" class="form-select">
+          <option value="">Seleccionar...</option>
+          <option *ngFor="let empleado of empleados" [value]="empleado">
+            {{ empleado }}
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Método de Pago</label>
+        <select formControlName="metodoPago" class="form-select">
+          <option value="">Seleccionar...</option>
+          <option *ngFor="let metodo of metodosPago" [value]="metodo">
+            {{ metodo }}
+          </option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Estado</label>
+        <select formControlName="estado" class="form-select">
+          <option value="">Seleccionar...</option>
+          <option *ngFor="let estado of estados" [value]="estado">
+            {{ estado }}
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <div class="productos-section">
+      <div class="section-header">
+        <label>Producto</label>
+        <button type="button" class="add-btn" (click)="addProducto()">
+          <mat-icon>add_circle</mat-icon>
+          Agregar Producto
+        </button>
+      </div>
+
+      <div class="productos-table">
+        <div class="table-header">
+          <div class="col-producto">Producto*</div>
+          <div class="col-cantidad">Cantidad*</div>
+          <div class="col-precio">Precio*</div>
+          <div class="col-subtotal">Subtotal*</div>
+          <div class="col-action"></div>
+        </div>
+
+        <div
+          *ngFor="let producto of productosArray.controls; let i = index"
+          [formGroupName]="i"
+          class="table-row"
+        >
+          <div class="col-producto">
+            <select formControlName="producto" class="form-select">
+              <option value="">Seleccionar...</option>
+              <option *ngFor="let prod of productos" [value]="prod">
+                {{ prod }}
+              </option>
+            </select>
+          </div>
+          <div class="col-cantidad">
+            <input
+              type="number"
+              formControlName="cantidad"
+              min="1"
+              (change)="calculateTotal()"
+            />
+          </div>
+          <div class="col-precio">
+            <input
+              type="number"
+              formControlName="precio"
+              step="0.01"
+              (change)="calculateTotal()"
+            />
+          </div>
+          <div class="col-subtotal">
+            S/.
+            {{
+              (productosArray.at(i).get('cantidad')?.value || 0) *
+                (productosArray.at(i).get('precio')?.value || 0)
+              | number: '1.2-2'
+            }}
+          </div>
+          <div class="col-action">
+            <button
+              type="button"
+              mat-icon-button
+              (click)="removeProducto(i)"
+              class="delete-btn"
+            >
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="total-section">
+      <span>Total: S/. {{ totalVenta | number: '1.2-2' }}</span>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" mat-stroked-button (click)="onCancel()">
+        Cancelar
+      </button>
+      <button
+        type="button"
+        mat-raised-button
+        color="warn"
+        (click)="onSubmit()"
+        [disabled]="!form.valid"
+      >
+        Crear Venta
+      </button>
+    </div>
+  </form>
+</div>

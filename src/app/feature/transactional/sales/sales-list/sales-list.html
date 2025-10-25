@@ -1,0 +1,142 @@
+<!-- src/app/feature/transactional/sales/sales-list/sales-list.component.html -->
+<div class="sales-container">
+  <div class="header">
+    <div>
+      <h1>Gestión de Ventas</h1>
+      <p>Registro completo de transacciones y ventas</p>
+    </div>
+    <button mat-raised-button color="primary">
+      <mat-icon>download</mat-icon>
+      Exportar
+    </button>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-content">
+        <span class="stat-label">Ventas Totales</span>
+        <span class="stat-value">S/. {{ stats.ventasTotales | number: '1.2-2' }}</span>
+        <span class="stat-sublabel">4 transacciones</span>
+      </div>
+      <mat-icon class="stat-icon">trending_up</mat-icon>
+    </div>
+    <div class="stat-card">
+      <div class="stat-content">
+        <span class="stat-label">Ventas Hoy</span>
+        <span class="stat-value">S/. {{ stats.ventasHoy | number: '1.2-2' }}</span>
+        <span class="stat-sublabel">0 ventas</span>
+      </div>
+      <mat-icon class="stat-icon">calendar_today</mat-icon>
+    </div>
+    <div class="stat-card">
+      <div class="stat-content">
+        <span class="stat-label">Completadas</span>
+        <span class="stat-value">{{ stats.completadas }}</span>
+        <span class="stat-sublabel">Ventas exitosas</span>
+      </div>
+      <mat-icon class="stat-icon success">check_circle</mat-icon>
+    </div>
+    <div class="stat-card">
+      <div class="stat-content">
+        <span class="stat-label">Pendientes</span>
+        <span class="stat-value">{{ stats.pendientes }}</span>
+        <span class="stat-sublabel">Por procesar</span>
+      </div>
+      <mat-icon class="stat-icon warning">schedule</mat-icon>
+    </div>
+  </div>
+
+  <div class="filters-section">
+    <div class="search-box">
+      <mat-icon>search</mat-icon>
+      <input type="text" placeholder="Buscar por nombre....." />
+    </div>
+    <select class="filter-select">
+      <option>Todos los Estados</option>
+    </select>
+    <select class="filter-select">
+      <option>Método de Pago</option>
+    </select>
+    <input type="date" class="filter-date" />
+    <div class="view-toggle">
+      <button [class.active]="viewMode === 'list'" (click)="toggleViewMode('list')">
+        <mat-icon>view_list</mat-icon>
+      </button>
+      <button [class.active]="viewMode === 'grid'" (click)="toggleViewMode('grid')">
+        <mat-icon>grid_view</mat-icon>
+      </button>
+    </div>
+    <button mat-raised-button color="warn" class="new-btn" (click)="openSaleForm()">
+      <mat-icon>add</mat-icon>
+      Nuevo Venta
+    </button>
+  </div>
+
+  <div class="table-container">
+    <table mat-table [dataSource]="sales" class="sales-table">
+      <ng-container matColumnDef="idVenta">
+        <th mat-header-cell *matHeaderCellDef>ID VENTAS</th>
+        <td mat-cell *matCellDef="let element">
+          <div class="id-cell">
+            <mat-icon>shopping_bag</mat-icon>
+            {{ element.id }}
+          </div>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="cliente">
+        <th mat-header-cell *matHeaderCellDef>CLIENTE</th>
+        <td mat-cell *matCellDef="let element">{{ element.cliente }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="empleado">
+        <th mat-header-cell *matHeaderCellDef>EMPLEADO</th>
+        <td mat-cell *matCellDef="let element">{{ element.empleado }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="fecha">
+        <th mat-header-cell *matHeaderCellDef>FECHA</th>
+        <td mat-cell *matCellDef="let element">{{ element.fecha }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="metodoPago">
+        <th mat-header-cell *matHeaderCellDef>MÉTODO DE PAGO</th>
+        <td mat-cell *matCellDef="let element">{{ element.metodoPago }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="total">
+        <th mat-header-cell *matHeaderCellDef>TOTAL</th>
+        <td mat-cell *matCellDef="let element">
+          S/. {{ element.total | number: '1.2-2' }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="estado">
+        <th mat-header-cell *matHeaderCellDef>ESTADO</th>
+        <td mat-cell *matCellDef="let element">
+          <span [ngClass]="'status-' + element.estado.toLowerCase()">
+            {{ element.estado }}
+          </span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="acciones">
+        <th mat-header-cell *matHeaderCellDef>ACCIONES</th>
+        <td mat-cell *matCellDef="let element" class="actions-cell">
+          <button mat-icon-button (click)="editSale(element)" matTooltip="Editar">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button (click)="viewSale(element.id)" matTooltip="Ver">
+            <mat-icon>visibility</mat-icon>
+          </button>
+          <button mat-icon-button (click)="deleteSale(element.id)" matTooltip="Eliminar">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+    </table>
+  </div>
+</div>

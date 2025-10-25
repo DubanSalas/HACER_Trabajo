@@ -1,0 +1,190 @@
+<div class="employees-container">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-info">
+      <h1>Gestión de Empleados</h1>
+      <p>Administración completa del personal</p>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-content">
+        <span class="stat-label">Total Empleados</span>
+        <span class="stat-value">{{ stats.total }}</span>
+      </div>
+      <div class="stat-icon blue">
+        <mat-icon>people</mat-icon>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-content">
+        <span class="stat-label">Activos</span>
+        <span class="stat-value">{{ stats.activos }}</span>
+      </div>
+      <div class="stat-icon green">
+        <mat-icon>check_circle</mat-icon>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-content">
+        <span class="stat-label">Inactivos</span>
+        <span class="stat-value">{{ stats.inactivos }}</span>
+      </div>
+      <div class="stat-icon red">
+        <mat-icon>cancel</mat-icon>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-content">
+        <span class="stat-label">Salario Promedio</span>
+        <span class="stat-value">S/ {{ stats.salarioPromedio }}</span>
+      </div>
+      <div class="stat-icon yellow">
+        <mat-icon>attach_money</mat-icon>
+      </div>
+    </div>
+  </div>
+
+  <!-- Position Distribution Section -->
+  <div class="distribution-section">
+    <h2>Distribución por Cargos</h2>
+    <div class="distribution-grid">
+      <div *ngFor="let position of positionDistribution" class="distribution-card">
+        <div class="distribution-icon">
+          <mat-icon>person</mat-icon>
+        </div>
+        <div class="distribution-info">
+          <span class="distribution-count">{{ position.count }}</span>
+          <span class="distribution-name">{{ position.name }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters Section -->
+  <div class="filters-section">
+    <div class="search-box">
+      <mat-icon>search</mat-icon>
+      <input 
+        type="text" 
+        placeholder="Buscar por nombre, apellido, cargo....." 
+        [(ngModel)]="searchTerm"
+        (input)="applyFilters()"
+      />
+    </div>
+    <select class="filter-select" [(ngModel)]="selectedStatus" (change)="applyFilters()">
+      <option value="">Todos los Activos</option>
+      <option value="A">Activos</option>
+      <option value="I">Inactivos</option>
+    </select>
+    <button
+      mat-raised-button
+      class="new-employee-btn"
+      (click)="openEmployeeForm()"
+    >
+      <mat-icon>add_circle</mat-icon>
+      Nuevo Empleado
+    </button>
+  </div>
+
+  <!-- Table -->
+  <div class="table-container">
+    <table mat-table [dataSource]="filteredEmployees" class="employees-table">
+      <ng-container matColumnDef="empleado">
+        <th mat-header-cell *matHeaderCellDef>EMPLEADO</th>
+        <td mat-cell *matCellDef="let element">
+          <div class="empleado-cell">
+            <div class="avatar">
+              <mat-icon>person</mat-icon>
+            </div>
+            <div class="empleado-info">
+              <div class="empleado-name">{{ element.Name }} {{ element.Surname }}</div>
+              <div class="empleado-id">ID: EMP{{ element.id_Employee?.toString().padStart(3, '0') }}</div>
+            </div>
+          </div>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="documento">
+        <th mat-header-cell *matHeaderCellDef>DOCUMENTO</th>
+        <td mat-cell *matCellDef="let element">
+          <div class="documento-cell">
+            <div class="documento-type">{{ element.Document_Type }}</div>
+            <div class="documento-number">{{ element.Document_Number }}</div>
+          </div>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="cargo">
+        <th mat-header-cell *matHeaderCellDef>CARGO</th>
+        <td mat-cell *matCellDef="let element">
+          <span class="cargo-badge">{{ getPositionName(element.id_Position) }}</span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="contacto">
+        <th mat-header-cell *matHeaderCellDef>CONTACTO</th>
+        <td mat-cell *matCellDef="let element">
+          <div class="contacto-cell">
+            <div class="phone">{{ element.Phone }}</div>
+            <div class="email">{{ element.Email }}</div>
+          </div>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="salario">
+        <th mat-header-cell *matHeaderCellDef>SALARIO</th>
+        <td mat-cell *matCellDef="let element">
+          <div class="salario-cell">
+            <div class="salario-amount">S/ {{ element.Salary.toLocaleString() }}</div>
+            <div class="salario-period">mensual</div>
+          </div>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="estado">
+        <th mat-header-cell *matHeaderCellDef>ESTADO</th>
+        <td mat-cell *matCellDef="let element">
+          <span class="status-badge" [ngClass]="getStatusClass(element.Status)">
+            {{ getStatusText(element.Status) }}
+          </span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="acciones">
+        <th mat-header-cell *matHeaderCellDef>ACCIONES</th>
+        <td mat-cell *matCellDef="let element" class="actions-cell">
+          <button
+            mat-icon-button
+            class="action-btn edit-btn"
+            (click)="editEmployee(element)"
+            matTooltip="Editar"
+          >
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button
+            mat-icon-button
+            class="action-btn view-btn"
+            (click)="viewEmployee(element)"
+            matTooltip="Ver"
+          >
+            <mat-icon>visibility</mat-icon>
+          </button>
+          <button
+            mat-icon-button
+            class="action-btn delete-btn"
+            (click)="deleteEmployee(element)"
+            matTooltip="Eliminar"
+          >
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+    </table>
+  </div>
+</div>

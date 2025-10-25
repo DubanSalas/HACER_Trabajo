@@ -1,0 +1,200 @@
+<div class="modal-overlay" (click)="onCancel()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>{{ isEditMode ? 'Editar Cliente' : 'Nuevo Cliente' }}</h2>
+      <button mat-icon-button (click)="onCancel()" class="close-btn">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <form [formGroup]="customerForm" (ngSubmit)="onSubmit()" class="customer-form">
+      <div class="form-content">
+        <!-- Basic Information -->
+        <div class="form-section">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="clientCode">Código Cliente <span class="required">*</span></label>
+              <input 
+                matInput 
+                type="text" 
+                formControlName="clientCode"
+                (blur)="onClientCodeChange()"
+                [class.error]="isFieldInvalid('clientCode')"
+                readonly>
+              <div *ngIf="isFieldInvalid('clientCode')" class="error-message">
+                {{ getFieldError('clientCode') }}
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="documentType">Tipo de Documento <span class="required">*</span></label>
+              <mat-select 
+                formControlName="documentType" 
+                [class.error]="isFieldInvalid('documentType')">
+                <mat-option *ngFor="let type of documentTypes" [value]="type.value">
+                  {{ type.label }}
+                </mat-option>
+              </mat-select>
+              <div *ngIf="isFieldInvalid('documentType')" class="error-message">
+                {{ getFieldError('documentType') }}
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="documentNumber">Número de Documento <span class="required">*</span></label>
+              <input 
+                matInput 
+                type="text" 
+                formControlName="documentNumber"
+                (blur)="onDocumentNumberChange()"
+                [class.error]="isFieldInvalid('documentNumber')">
+              <div *ngIf="isFieldInvalid('documentNumber')" class="error-message">
+                {{ getFieldError('documentNumber') }}
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="dateBirth">Fecha de Nacimiento <span class="required">*</span></label>
+              <input 
+                matInput 
+                type="date" 
+                formControlName="dateBirth"
+                [class.error]="isFieldInvalid('dateBirth')">
+              <div *ngIf="isFieldInvalid('dateBirth')" class="error-message">
+                {{ getFieldError('dateBirth') }}
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="name">Nombre <span class="required">*</span></label>
+              <input 
+                matInput 
+                type="text" 
+                formControlName="name"
+                [class.error]="isFieldInvalid('name')">
+              <div *ngIf="isFieldInvalid('name')" class="error-message">
+                {{ getFieldError('name') }}
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="surname">Apellido <span class="required">*</span></label>
+              <input 
+                matInput 
+                type="text" 
+                formControlName="surname"
+                [class.error]="isFieldInvalid('surname')">
+              <div *ngIf="isFieldInvalid('surname')" class="error-message">
+                {{ getFieldError('surname') }}
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="phone">Teléfono <span class="required">*</span></label>
+              <input 
+                matInput 
+                type="tel" 
+                formControlName="phone"
+                placeholder="987654321"
+                [class.error]="isFieldInvalid('phone')">
+              <div *ngIf="isFieldInvalid('phone')" class="error-message">
+                {{ getFieldError('phone') }}
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="email">Email <span class="required">*</span></label>
+              <input 
+                matInput 
+                type="email" 
+                formControlName="email"
+                (blur)="onEmailChange()"
+                [class.error]="isFieldInvalid('email')">
+              <div *ngIf="isFieldInvalid('email')" class="error-message">
+                {{ getFieldError('email') }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Location Information -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="department">Departamento <span class="required">*</span></label>
+              <input 
+                matInput 
+                type="text" 
+                formControlName="department"
+                placeholder="Lima"
+                [class.error]="isFieldInvalid('department')">
+              <div *ngIf="isFieldInvalid('department')" class="error-message">
+                {{ getFieldError('department') }}
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="province">Provincia <span class="required">*</span></label>
+              <input 
+                matInput 
+                type="text" 
+                formControlName="province"
+                placeholder="Lima"
+                [class.error]="isFieldInvalid('province')">
+              <div *ngIf="isFieldInvalid('province')" class="error-message">
+                {{ getFieldError('province') }}
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="district">Distrito <span class="required">*</span></label>
+              <input 
+                matInput 
+                type="text" 
+                formControlName="district"
+                placeholder="San Vicente"
+                [class.error]="isFieldInvalid('district')">
+              <div *ngIf="isFieldInvalid('district')" class="error-message">
+                {{ getFieldError('district') }}
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="locationAddress">Dirección <span class="required">*</span></label>
+              <input 
+                matInput 
+                type="text" 
+                formControlName="locationAddress"
+                placeholder="Av. Principal 123"
+                [class.error]="isFieldInvalid('locationAddress')">
+              <div *ngIf="isFieldInvalid('locationAddress')" class="error-message">
+                {{ getFieldError('locationAddress') }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <button type="button" mat-button (click)="onCancel()" class="cancel-btn">
+          Cancelar
+        </button>
+        <button 
+          type="submit" 
+          mat-raised-button 
+          [disabled]="!customerForm.valid || loading"
+          class="submit-btn">
+          <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
+          <span *ngIf="!loading">{{ isEditMode ? 'Actualizar Cliente' : 'Crear Cliente' }}</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

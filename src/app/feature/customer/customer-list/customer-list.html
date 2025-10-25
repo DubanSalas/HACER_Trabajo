@@ -1,0 +1,244 @@
+<div class="customers-container">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-content">
+      <h1>Gestión de Clientes</h1>
+      <p class="subtitle">Gestiona la información de tus clientes</p>
+    </div>
+    <div class="header-actions">
+      <button mat-raised-button class="report-btn" (click)="generateReport()">
+        <mat-icon>description</mat-icon>
+        Reporte
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <div class="stat-card total">
+      <div class="stat-content">
+        <div class="stat-info">
+          <h3>Total Clientes</h3>
+          <p class="stat-value">{{ stats.totalCustomers }}</p>
+          <p class="stat-subtitle">5 de hoy</p>
+        </div>
+        <div class="stat-icon">
+          <mat-icon>person</mat-icon>
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-card active">
+      <div class="stat-content">
+        <div class="stat-info">
+          <h3>Activos</h3>
+          <p class="stat-value">{{ stats.activeCustomers }}</p>
+          <p class="stat-subtitle">+45% del total</p>
+        </div>
+        <div class="stat-icon">
+          <mat-icon>check_circle</mat-icon>
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-card inactive">
+      <div class="stat-content">
+        <div class="stat-info">
+          <h3>Inactivos</h3>
+          <p class="stat-value">{{ stats.inactiveCustomers }}</p>
+          <p class="stat-subtitle">2 de hoy</p>
+        </div>
+        <div class="stat-icon">
+          <mat-icon>cancel</mat-icon>
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-card new">
+      <div class="stat-content">
+        <div class="stat-info">
+          <h3>Nuevos Este Mes</h3>
+          <p class="stat-value">{{ stats.newThisMonth }}</p>
+          <p class="stat-subtitle">+15% del total</p>
+        </div>
+        <div class="stat-icon">
+          <mat-icon>person_add</mat-icon>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters Section -->
+  <div class="filters-section">
+    <!-- Search Bar -->
+    <div class="search-container">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input 
+        type="text" 
+        placeholder="Buscar por nombre..." 
+        [(ngModel)]="searchTerm"
+        (input)="onSearch()"
+        class="search-input">
+    </div>
+
+    <!-- Location Filters -->
+    <div class="location-filters">
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Departamento</mat-label>
+        <mat-select [(value)]="filters.department" (selectionChange)="onFilterChange()">
+          <mat-option value="">Todos</mat-option>
+          <mat-option *ngFor="let dept of departments" [value]="dept">
+            {{ dept }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Provincia</mat-label>
+        <mat-select [(value)]="filters.province" (selectionChange)="onFilterChange()">
+          <mat-option value="">Todos</mat-option>
+          <mat-option *ngFor="let prov of provinces" [value]="prov">
+            {{ prov }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Distrito</mat-label>
+        <mat-select [(value)]="filters.district" (selectionChange)="onFilterChange()">
+          <mat-option value="">Todos</mat-option>
+          <mat-option *ngFor="let dist of districts" [value]="dist">
+            {{ dist }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Status Filter Buttons -->
+      <div class="status-filter-buttons">
+        <button 
+          class="status-filter-btn"
+          [class.active]="filters.status === ''"
+          (click)="filters.status = ''; onFilterChange()">
+          Todos
+        </button>
+        <button 
+          class="status-filter-btn"
+          [class.active]="filters.status === 'A'"
+          (click)="filters.status = 'A'; onFilterChange()">
+          Activos
+        </button>
+        <button 
+          class="status-filter-btn"
+          [class.active]="filters.status === 'I'"
+          (click)="filters.status = 'I'; onFilterChange()">
+          Inactivos
+        </button>
+      </div>
+
+      <!-- New Customer Button -->
+      <button mat-raised-button class="new-customer-btn" (click)="openCreateForm()">
+        <mat-icon>add_circle</mat-icon>
+        Nuevo Cliente
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Cargando clientes...</p>
+  </div>
+
+  <!-- Customers Table -->
+  <div *ngIf="!loading" class="table-container">
+    <table class="customers-table">
+      <thead>
+        <tr>
+          <th>CLIENTE</th>
+          <th>DOCUMENTO</th>
+          <th>CONTACTO</th>
+          <th>UBICACIÓN</th>
+          <th>ESTADO</th>
+          <th>ACCIONES</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let customer of filteredCustomers" class="customer-row">
+          <td>
+            <div class="customer-info">
+              <div class="customer-avatar">
+                <mat-icon>person</mat-icon>
+              </div>
+              <div class="customer-details">
+                <span class="customer-name">{{ getFullName(customer) }}</span>
+                <span class="customer-code">ID: {{ customer.clientCode }}</span>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="document-info">
+              <span class="document-type">{{ customer.documentType }}</span>
+              <span class="document-number">{{ customer.documentNumber }}</span>
+            </div>
+          </td>
+          <td>
+            <div class="contact-info">
+              <span class="email">{{ customer.email }}</span>
+              <span class="phone">{{ customer.phone }}</span>
+            </div>
+          </td>
+          <td>{{ getLocationInfo(customer) }}</td>
+          <td>
+            <span class="status-badge" [ngClass]="getStatusClass(customer.status)">
+              {{ getStatusLabel(customer.status) }}
+            </span>
+          </td>
+          <td>
+            <div class="action-buttons">
+              <button mat-icon-button (click)="openEditForm(customer)" class="edit-btn" title="Editar">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button (click)="viewCustomer(customer)" class="view-btn" title="Ver">
+                <mat-icon>visibility</mat-icon>
+              </button>
+              <button 
+                *ngIf="customer.status === 'A'" 
+                mat-icon-button 
+                (click)="deleteCustomer(customer)" 
+                class="delete-btn" 
+                title="Eliminar">
+                <mat-icon>delete</mat-icon>
+              </button>
+              <button 
+                *ngIf="customer.status === 'I'" 
+                mat-icon-button 
+                (click)="restoreCustomer(customer)" 
+                class="restore-btn" 
+                title="Restaurar">
+                <mat-icon>restore</mat-icon>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Empty State -->
+    <div *ngIf="filteredCustomers.length === 0" class="empty-state">
+      <mat-icon>person_off</mat-icon>
+      <h3>No se encontraron clientes</h3>
+      <p>No hay clientes que coincidan con los filtros aplicados</p>
+      <button mat-raised-button color="primary" (click)="clearFilters()">
+        Limpiar Filtros
+      </button>
+    </div>
+  </div>
+
+  <!-- Customer Form Modal -->
+  <app-customer-form
+    *ngIf="showForm"
+    [customer]="selectedCustomer"
+    (close)="onFormClose()"
+    (success)="onFormSuccess()">
+  </app-customer-form>
+</div>

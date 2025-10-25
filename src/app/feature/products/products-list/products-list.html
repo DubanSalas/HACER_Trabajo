@@ -1,0 +1,249 @@
+<div class="products-container">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-info">
+      <h1>Gestión de Productos</h1>
+      <p>Catálogo completo de productos y precios</p>
+    </div>
+    <div class="header-buttons">
+      <button mat-raised-button class="report-btn" (click)="exportReport()">
+        <mat-icon>description</mat-icon>
+        Reporte
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats Cards - Primera fila -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-content">
+        <span class="stat-label">Total Productos</span>
+        <span class="stat-value">{{ stats.total }}</span>
+        <span class="stat-subtitle">En catálogo</span>
+      </div>
+      <div class="stat-icon blue">
+        <mat-icon>inventory_2</mat-icon>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-content">
+        <span class="stat-label">Disponibles</span>
+        <span class="stat-value">{{ stats.disponibles }}</span>
+        <span class="stat-subtitle">Listos para venta</span>
+      </div>
+      <div class="stat-icon green">
+        <mat-icon>check_circle</mat-icon>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-content">
+        <span class="stat-label">Stock Bajo</span>
+        <span class="stat-value">{{ stats.stockBajo }}</span>
+        <span class="stat-subtitle">Reabastecer pronto</span>
+      </div>
+      <div class="stat-icon orange">
+        <mat-icon>warning</mat-icon>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-content">
+        <span class="stat-label">Sin Stock</span>
+        <span class="stat-value">{{ stats.sinStock }}</span>
+        <span class="stat-subtitle">Reabastecer pronto</span>
+      </div>
+      <div class="stat-icon red">
+        <mat-icon>shopping_cart</mat-icon>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Cards - Segunda fila -->
+  <div class="secondary-stats">
+    <div class="stat-card secondary">
+      <div class="stat-content">
+        <span class="stat-label">Valor Total</span>
+        <span class="stat-value">S/ {{ stats.valorTotal.toFixed(2) }}</span>
+        <span class="stat-subtitle">Inventario completo</span>
+      </div>
+      <div class="stat-icon purple">
+        <mat-icon>account_balance_wallet</mat-icon>
+      </div>
+    </div>
+    <div class="stat-card secondary">
+      <div class="stat-content">
+        <span class="stat-label">Precio Promedio</span>
+        <span class="stat-value">S/ {{ stats.precioPromedio.toFixed(2) }}</span>
+        <span class="stat-subtitle">Por producto</span>
+      </div>
+      <div class="stat-icon blue-light">
+        <mat-icon>trending_up</mat-icon>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Products Section -->
+  <div class="top-products-section">
+    <h2>Productos con Mayor Stock</h2>
+    <div class="products-carousel">
+      <div *ngFor="let product of topProducts" class="product-card">
+        <div class="product-number">#{{ product.id }}</div>
+        <div class="product-info">
+          <span class="product-name">{{ product.name }}</span>
+          <span class="product-stock">Stock: {{ product.stock }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters Section -->
+  <div class="filters-section">
+    <div class="search-box">
+      <mat-icon>search</mat-icon>
+      <input 
+        type="text" 
+        placeholder="Buscar por nombre............" 
+        [(ngModel)]="searchTerm"
+        (input)="applyFilters()"
+      />
+    </div>
+    <select class="filter-select" [(ngModel)]="selectedCategory" (change)="applyFilters()">
+      <option value="">Todas las Categorías</option>
+      <option *ngFor="let category of categories" [value]="category">
+        {{ category }}
+      </option>
+    </select>
+    <select class="filter-select" [(ngModel)]="selectedStatus" (change)="applyFilters()">
+      <option value="">Todos los Estados</option>
+      <option value="disponible">Disponibles</option>
+      <option value="stock-bajo">Stock Bajo</option>
+      <option value="sin-stock">Sin Stock</option>
+    </select>
+    <select class="filter-select" [(ngModel)]="sortBy" (change)="applyFilters()">
+      <option value="nombre">Orden por: Nombre</option>
+      <option value="precio">Orden por: Precio</option>
+      <option value="stock">Orden por: Stock</option>
+    </select>
+    <div class="view-toggle">
+      <button
+        mat-icon-button
+        [class.active]="viewMode === 'list'"
+        (click)="toggleViewMode('list')"
+        class="view-btn"
+      >
+        <mat-icon>view_list</mat-icon>
+      </button>
+      <button
+        mat-icon-button
+        [class.active]="viewMode === 'grid'"
+        (click)="toggleViewMode('grid')"
+        class="view-btn"
+      >
+        <mat-icon>grid_view</mat-icon>
+      </button>
+    </div>
+    <button
+      mat-raised-button
+      class="new-product-btn"
+      (click)="openProductForm()"
+    >
+      <mat-icon>add_circle</mat-icon>
+      Nuevo Producto
+    </button>
+  </div>
+
+  <!-- Table -->
+  <div class="table-container">
+    <table mat-table [dataSource]="filteredProducts" class="products-table">
+      <ng-container matColumnDef="producto">
+        <th mat-header-cell *matHeaderCellDef>PRODUCTO</th>
+        <td mat-cell *matCellDef="let element">
+          <div class="producto-cell">
+            <div class="product-image">
+              <mat-icon>image</mat-icon>
+            </div>
+            <div class="producto-info">
+              <div class="producto-name">{{ element.Product_Name }}</div>
+              <div class="producto-id">ID: {{ element.Product_Code }}</div>
+            </div>
+          </div>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="categoria">
+        <th mat-header-cell *matHeaderCellDef>CATEGORÍA</th>
+        <td mat-cell *matCellDef="let element">
+          <span class="categoria-badge">{{ element.Category }}</span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="precio">
+        <th mat-header-cell *matHeaderCellDef>PRECIO</th>
+        <td mat-cell *matCellDef="let element">
+          <div class="precio-cell">
+            S/ {{ element.Price.toFixed(2) }}
+          </div>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="stock">
+        <th mat-header-cell *matHeaderCellDef>STOCK</th>
+        <td mat-cell *matCellDef="let element">
+          <div class="stock-cell">
+            {{ element.Stock }}
+          </div>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="estado">
+        <th mat-header-cell *matHeaderCellDef>ESTADO</th>
+        <td mat-cell *matCellDef="let element">
+          <span class="status-badge" [ngClass]="getStatusClass(element)">
+            {{ getStatusText(element) }}
+          </span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="valorTotal">
+        <th mat-header-cell *matHeaderCellDef>VALOR TOTAL</th>
+        <td mat-cell *matCellDef="let element">
+          <div class="valor-total-cell">
+            S/ {{ getValueTotal(element).toFixed(2) }}
+          </div>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="acciones">
+        <th mat-header-cell *matHeaderCellDef>ACCIONES</th>
+        <td mat-cell *matCellDef="let element" class="actions-cell">
+          <button
+            mat-icon-button
+            class="action-btn edit-btn"
+            (click)="editProduct(element)"
+            matTooltip="Editar"
+          >
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button
+            mat-icon-button
+            class="action-btn view-btn"
+            (click)="viewProduct(element)"
+            matTooltip="Ver"
+          >
+            <mat-icon>visibility</mat-icon>
+          </button>
+          <button
+            mat-icon-button
+            class="action-btn delete-btn"
+            (click)="deleteProduct(element)"
+            matTooltip="Eliminar"
+          >
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+    </table>
+  </div>
+</div>

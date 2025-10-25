@@ -1,0 +1,120 @@
+<div class="form-dialog">
+  <div class="form-header">
+    <h2 class="form-title">{{ isEditMode ? 'Editar Producto' : 'Nuevo Producto' }}</h2>
+    <button mat-icon-button class="close-btn" (click)="onCancel()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <form [formGroup]="form" class="form-content">
+    <!-- Primera fila: Nombre del Producto y Categoría -->
+    <div class="form-row">
+      <div class="form-group">
+        <label>Nombre del Producto <span class="required">*</span></label>
+        <input
+          type="text"
+          formControlName="Product_Name"
+          class="form-input"
+          placeholder=""
+        />
+        <div class="error-message" *ngIf="form.get('Product_Name')?.invalid && form.get('Product_Name')?.touched">
+          El nombre del producto es requerido
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Categoría <span class="required">*</span></label>
+        <select formControlName="Category" class="form-select">
+          <option value="">Seleccionar...</option>
+          <option *ngFor="let cat of categories" [value]="cat">
+            {{ cat }}
+          </option>
+        </select>
+        <mat-icon class="select-arrow">keyboard_arrow_down</mat-icon>
+        <div class="error-message" *ngIf="form.get('Category')?.invalid && form.get('Category')?.touched">
+          La categoría es requerida
+        </div>
+      </div>
+    </div>
+
+    <!-- Segunda fila: Descripción (ancho completo) -->
+    <div class="form-row">
+      <div class="form-group full-width">
+        <label>Descripción <span class="required">*</span></label>
+        <textarea
+          formControlName="Description"
+          class="form-textarea"
+          placeholder="Describe las características principales del producto....."
+          rows="3"
+        ></textarea>
+        <div class="error-message" *ngIf="form.get('Description')?.invalid && form.get('Description')?.touched">
+          La descripción es requerida
+        </div>
+      </div>
+    </div>
+
+    <!-- Tercera fila: Precio y Stock Inicial -->
+    <div class="form-row">
+      <div class="form-group">
+        <label>Precio (S/) <span class="required">*</span></label>
+        <input
+          type="number"
+          formControlName="Price"
+          class="form-input"
+          placeholder="0.00"
+          step="0.01"
+          min="0"
+        />
+        <div class="error-message" *ngIf="form.get('Price')?.invalid && form.get('Price')?.touched">
+          <span *ngIf="form.get('Price')?.errors?.['required']">El precio es requerido</span>
+          <span *ngIf="form.get('Price')?.errors?.['min']">El precio debe ser mayor a 0</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Stock Inicial <span class="required">*</span></label>
+        <input
+          type="number"
+          formControlName="Initial_Stock"
+          class="form-input"
+          placeholder="0"
+          min="0"
+        />
+        <div class="error-message" *ngIf="form.get('Initial_Stock')?.invalid && form.get('Initial_Stock')?.touched">
+          <span *ngIf="form.get('Initial_Stock')?.errors?.['required']">El stock inicial es requerido</span>
+          <span *ngIf="form.get('Initial_Stock')?.errors?.['min']">El stock debe ser mayor o igual a 0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cuarta fila: Imagen y Valor Total del Stock -->
+    <div class="form-row">
+      <div class="form-group">
+        <label>Imagen</label>
+        <input
+          type="text"
+          formControlName="Image_Url"
+          class="form-input"
+          placeholder=""
+        />
+      </div>
+      <div class="form-group">
+        <label>Valor Total del Stock</label>
+        <div class="total-value">S/ {{ totalStockValue.toFixed(2) }}</div>
+      </div>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="form-actions">
+      <button type="button" class="cancel-btn" (click)="onCancel()">
+        Cancelar
+      </button>
+      <button
+        type="button"
+        class="submit-btn"
+        (click)="onSubmit()"
+        [disabled]="!form.valid"
+      >
+        {{ isEditMode ? 'Actualizar Producto' : 'Crear Producto' }}
+      </button>
+    </div>
+  </form>
+</div>

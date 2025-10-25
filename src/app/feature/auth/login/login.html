@@ -1,0 +1,85 @@
+<div class="login-container">
+  <!-- Background Image -->
+  <div class="login-background"></div>
+
+  <!-- Login Form Card -->
+  <div class="login-card">
+    <!-- Logo Section -->
+    <div class="logo-section">
+      <div class="logo-icon">
+        <mat-icon>bakery_dining</mat-icon>
+      </div>
+      <h1 class="logo-text">DeliPedidos</h1>
+    </div>
+
+    <!-- Form Section -->
+    <form [formGroup]="loginForm" (ngSubmit)="onLogin()" class="login-form">
+      <!-- Username Field -->
+      <div class="form-group">
+        <label for="username" class="form-label">Username:</label>
+        <div class="input-wrapper">
+          <mat-icon class="input-icon">person</mat-icon>
+          <input
+            id="username"
+            type="text"
+            formControlName="username"
+            placeholder="Ingresa tu nombre"
+            class="form-input"
+          />
+        </div>
+      </div>
+
+      <!-- Password Field -->
+      <div class="form-group">
+        <label for="password" class="form-label">Password:</label>
+        <div class="input-wrapper">
+          <mat-icon class="input-icon">lock</mat-icon>
+          <input
+            id="password"
+            [type]="hidePassword ? 'password' : 'text'"
+            formControlName="password"
+            placeholder="Ingresa tu contraseña"
+            class="form-input"
+          />
+          <button
+            type="button"
+            (click)="togglePasswordVisibility()"
+            class="toggle-password"
+            tabindex="-1"
+          >
+            <mat-icon>{{ hidePassword ? "visibility_off" : "visibility" }}</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Remember Me & Forgot Password -->
+      <div class="form-footer">
+        <div class="remember-me">
+          <input
+            id="rememberMe"
+            type="checkbox"
+            formControlName="rememberMe"
+            class="checkbox-input"
+          />
+          <label for="rememberMe" class="checkbox-label">Recuérdame</label>
+        </div>
+        <button type="button" (click)="onForgotPassword()" class="forgot-password-link">
+          ¿Olvidaste tu contraseña?
+        </button>
+      </div>
+
+      <!-- Login Button -->
+      <button
+        type="submit"
+        [disabled]="!loginForm.valid || isLoading"
+        class="login-button"
+      >
+        <span *ngIf="!isLoading">Iniciar Sesión</span>
+        <span *ngIf="isLoading">
+          <mat-icon class="spinner">hourglass_empty</mat-icon>
+          Cargando...
+        </span>
+      </button>
+    </form>
+  </div>
+</div>

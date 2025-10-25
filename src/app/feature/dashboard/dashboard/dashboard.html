@@ -1,0 +1,80 @@
+<div class="dashboard">
+  <div class="dashboard-header">
+    <div class="header-content">
+      <h1 class="dashboard-title">Dashboard Principal</h1>
+      <p class="dashboard-subtitle">Vista general de la negocio de panadería</p>
+    </div>
+    <div class="header-actions">
+      <button class="action-btn btn-secondary">Hoy</button>
+      <button class="action-btn btn-secondary">Esta Mes</button>
+      <button class="action-btn btn-primary">Este Año</button>
+    </div>
+  </div>
+
+  <!-- Stat Cards -->
+  <div class="stat-cards-grid">
+    <div *ngFor="let card of statCards" class="stat-card" [style.border-left-color]="card.color">
+      <div class="stat-icon" [style.background-color]="card.bgColor">
+        {{ card.icon }}
+      </div>
+      <div class="stat-content">
+        <p class="stat-label">{{ card.title }}</p>
+        <p class="stat-value">{{ card.value }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Sales and Top Products -->
+  <div class="dashboard-grid">
+    <div class="card">
+      <h2 class="card-title">Ventas Recientes</h2>
+      <div class="sales-list">
+        <div *ngFor="let sale of recentSales" class="sale-item">
+          <div class="sale-avatar">👤</div>
+          <div class="sale-info">
+            <p class="sale-name">{{ sale.name }}</p>
+            <p class="sale-products">{{ sale.products }} productos</p>
+          </div>
+          <div class="sale-amount-container">
+            <p class="sale-amount">{{ sale.amount }}</p>
+            <span class="sale-status">{{ sale.status }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="card-title">Productos Más Vendidos</h2>
+      <div class="products-list">
+        <div *ngFor="let product of topProducts" class="product-item">
+          <div class="product-avatar">🥖</div>
+          <div class="product-info">
+            <p class="product-name">{{ product.name }}</p>
+            <p class="product-sales">Stock: {{ product.sales }}</p>
+          </div>
+          <div class="product-count">{{ product.sales }}</div>
+          <span class="product-status">{{ product.status }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stock Alerts -->
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">Alertas de Stock</h2>
+      <span class="alert-badge">4</span>
+    </div>
+    <div class="alerts-grid">
+      <div *ngFor="let alert of stockAlerts" class="alert-item">
+        <div class="alert-icon">⚠️</div>
+        <div class="alert-content">
+          <p class="alert-name">{{ alert.name }}</p>
+          <p class="alert-status">Stock actual</p>
+        </div>
+        <div class="alert-value">{{ alert.current }}</div>
+        <span class="alert-unit">{{ alert.unit }}</span> 
+      </div>
+    </div>
+  </div>
+</div>

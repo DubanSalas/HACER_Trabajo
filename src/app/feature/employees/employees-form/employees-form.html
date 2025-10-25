@@ -1,0 +1,212 @@
+<div class="form-dialog">
+  <div class="form-header">
+    <h2 class="form-title">{{ isEditMode ? 'Editar Empleado' : 'Nuevo Empleado' }}</h2>
+    <button mat-icon-button class="close-btn" (click)="onCancel()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <form [formGroup]="form" class="form-content">
+    <!-- Primera fila: Código Empleado y Tipo de Documento -->
+    <div class="form-row">
+      <div class="form-group">
+        <label>Código Empleado <span class="required">*</span></label>
+        <input
+          type="text"
+          formControlName="Employee_Code"
+          class="form-input"
+          placeholder=""
+        />
+        <div class="error-message" *ngIf="form.get('Employee_Code')?.invalid && form.get('Employee_Code')?.touched">
+          El código del empleado es requerido
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Tipo de Documento <span class="required">*</span></label>
+        <select formControlName="Document_Type" class="form-select">
+          <option value="">Seleccionar...</option>
+          <option *ngFor="let type of documentTypes" [value]="type">
+            {{ type }}
+          </option>
+        </select>
+        <mat-icon class="select-arrow">keyboard_arrow_down</mat-icon>
+        <div class="error-message" *ngIf="form.get('Document_Type')?.invalid && form.get('Document_Type')?.touched">
+          El tipo de documento es requerido
+        </div>
+      </div>
+    </div>
+
+    <!-- Segunda fila: Número de Documento y Nombre -->
+    <div class="form-row">
+      <div class="form-group">
+        <label>Número de Documento <span class="required">*</span></label>
+        <input
+          type="text"
+          formControlName="Document_Number"
+          class="form-input"
+          placeholder=""
+        />
+        <div class="error-message" *ngIf="form.get('Document_Number')?.invalid && form.get('Document_Number')?.touched">
+          <span *ngIf="form.get('Document_Number')?.errors?.['required']">El número de documento es requerido</span>
+          <span *ngIf="form.get('Document_Number')?.errors?.['pattern']">El número de documento debe tener 8 dígitos</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Nombre <span class="required">*</span></label>
+        <input
+          type="text"
+          formControlName="Name"
+          class="form-input"
+          placeholder=""
+        />
+        <div class="error-message" *ngIf="form.get('Name')?.invalid && form.get('Name')?.touched">
+          El nombre es requerido
+        </div>
+      </div>
+    </div>
+
+    <!-- Tercera fila: Apellido y Fecha de Contratación -->
+    <div class="form-row">
+      <div class="form-group">
+        <label>Apellido <span class="required">*</span></label>
+        <input
+          type="text"
+          formControlName="Surname"
+          class="form-input"
+          placeholder=""
+        />
+        <div class="error-message" *ngIf="form.get('Surname')?.invalid && form.get('Surname')?.touched">
+          El apellido es requerido
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Fecha de Contratación <span class="required">*</span></label>
+        <input
+          matInput
+          [matDatepicker]="picker"
+          formControlName="Hire_Date"
+          class="form-input"
+          placeholder="dd/mm/aaaa"
+        />
+        <mat-datepicker-toggle matSuffix [for]="picker" class="date-toggle">
+          <mat-icon matDatepickerToggleIcon>calendar_today</mat-icon>
+        </mat-datepicker-toggle>
+        <mat-datepicker #picker></mat-datepicker>
+        <div class="error-message" *ngIf="form.get('Hire_Date')?.invalid && form.get('Hire_Date')?.touched">
+          La fecha de contratación es requerida
+        </div>
+      </div>
+    </div>
+
+    <!-- Cuarta fila: Teléfono y Departamento -->
+    <div class="form-row">
+      <div class="form-group">
+        <label>Teléfono <span class="required">*</span></label>
+        <input
+          type="text"
+          formControlName="Phone"
+          class="form-input"
+          placeholder=""
+        />
+        <div class="error-message" *ngIf="form.get('Phone')?.invalid && form.get('Phone')?.touched">
+          <span *ngIf="form.get('Phone')?.errors?.['required']">El teléfono es requerido</span>
+          <span *ngIf="form.get('Phone')?.errors?.['pattern']">El teléfono debe tener 9 dígitos</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Departamento <span class="required">*</span></label>
+        <select formControlName="id_Location" class="form-select">
+          <option value="">Seleccionar...</option>
+          <option *ngFor="let location of locations" [value]="location.identifier_Location">
+            {{ location.department }}
+          </option>
+        </select>
+        <mat-icon class="select-arrow">keyboard_arrow_down</mat-icon>
+        <div class="error-message" *ngIf="form.get('id_Location')?.invalid && form.get('id_Location')?.touched">
+          El departamento es requerido
+        </div>
+      </div>
+    </div>
+
+    <!-- Quinta fila: Provincia y Distrito -->
+    <div class="form-row">
+      <div class="form-group">
+        <label>Provincia</label>
+        <select class="form-select" disabled>
+          <option value="">Seleccionar...</option>
+        </select>
+        <mat-icon class="select-arrow">keyboard_arrow_down</mat-icon>
+      </div>
+      <div class="form-group">
+        <label>Distrito</label>
+        <select class="form-select" disabled>
+          <option value="">Seleccionar...</option>
+        </select>
+        <mat-icon class="select-arrow">keyboard_arrow_down</mat-icon>
+      </div>
+    </div>
+
+    <!-- Sexta fila: Salario y Cargo -->
+    <div class="form-row">
+      <div class="form-group">
+        <label>Salario <span class="required">*</span></label>
+        <input
+          type="number"
+          formControlName="Salary"
+          class="form-input"
+          min="0"
+          step="0.01"
+        />
+        <div class="error-message" *ngIf="form.get('Salary')?.invalid && form.get('Salary')?.touched">
+          <span *ngIf="form.get('Salary')?.errors?.['required']">El salario es requerido</span>
+          <span *ngIf="form.get('Salary')?.errors?.['min']">El salario debe ser mayor a 0</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Cargo <span class="required">*</span></label>
+        <select formControlName="id_Position" class="form-select">
+          <option value="">Seleccionar...</option>
+          <option *ngFor="let position of positions" [value]="position.id_Position">
+            {{ getPositionDisplay(position) }}
+          </option>
+        </select>
+        <mat-icon class="select-arrow">keyboard_arrow_down</mat-icon>
+        <div class="error-message" *ngIf="form.get('id_Position')?.invalid && form.get('id_Position')?.touched">
+          El cargo es requerido
+        </div>
+      </div>
+    </div>
+
+    <!-- Séptima fila: Email (ancho completo) -->
+    <div class="form-row">
+      <div class="form-group full-width">
+        <label>Email <span class="required">*</span></label>
+        <input
+          type="email"
+          formControlName="Email"
+          class="form-input"
+          placeholder=""
+        />
+        <div class="error-message" *ngIf="form.get('Email')?.invalid && form.get('Email')?.touched">
+          <span *ngIf="form.get('Email')?.errors?.['required']">El email es requerido</span>
+          <span *ngIf="form.get('Email')?.errors?.['email']">El email no es válido</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="form-actions">
+      <button type="button" class="cancel-btn" (click)="onCancel()">
+        Cancelar
+      </button>
+      <button
+        type="button"
+        class="submit-btn"
+        (click)="onSubmit()"
+        [disabled]="!form.valid"
+      >
+        {{ isEditMode ? 'Actualizar Empleado' : 'Crear Empleado' }}
+      </button>
+    </div>
+  </form>
+</div>

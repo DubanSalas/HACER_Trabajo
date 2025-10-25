@@ -1,0 +1,207 @@
+<div class="suppliers-container">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-info">
+      <h1>Gestión de Proveedores</h1>
+      <p>Gestiona tu red de proveedores y socios comerciales</p>
+    </div>
+    <div class="header-buttons">
+      <button mat-raised-button class="report-btn" (click)="exportReport()">
+        <mat-icon>description</mat-icon>
+        Reporte
+      </button>
+      <button mat-raised-button class="send-report-btn" (click)="sendReport()">
+        <mat-icon>send</mat-icon>
+        Enviar Reporte
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-content">
+        <span class="stat-label">Total Proveedores</span>
+        <span class="stat-value">{{ stats.total }}</span>
+      </div>
+      <div class="stat-icon blue">
+        <mat-icon>business</mat-icon>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-content">
+        <span class="stat-label">Activos</span>
+        <span class="stat-value">{{ stats.activos }}</span>
+      </div>
+      <div class="stat-icon green">
+        <mat-icon>check_circle</mat-icon>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-content">
+        <span class="stat-label">Inactivos</span>
+        <span class="stat-value">{{ stats.inactivos }}</span>
+      </div>
+      <div class="stat-icon red">
+        <mat-icon>cancel</mat-icon>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-content">
+        <span class="stat-label">Suspendidos</span>
+        <span class="stat-value">{{ stats.suspendidos }}</span>
+      </div>
+      <div class="stat-icon orange">
+        <mat-icon>pause_circle</mat-icon>
+      </div>
+    </div>
+  </div>
+
+  <!-- Categories Section -->
+  <div class="categories-section">
+    <h2>Principales Categorías de Proveedores</h2>
+    <div class="categories-grid">
+      <div *ngFor="let category of categories" class="category-card">
+        <div class="category-icon">
+          <mat-icon>inventory_2</mat-icon>
+        </div>
+        <div class="category-info">
+          <span class="category-count">{{ category.count }}</span>
+          <span class="category-name">{{ category.name }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters Section -->
+  <div class="filters-section">
+    <div class="search-box">
+      <mat-icon>search</mat-icon>
+      <input 
+        type="text" 
+        placeholder="Buscar por empresa, contacto, email....." 
+        [(ngModel)]="searchTerm"
+        (input)="applyFilters()"
+      />
+    </div>
+    <select class="filter-select" [(ngModel)]="selectedCategory" (change)="applyFilters()">
+      <option value="">Todas las Categoría</option>
+      <option *ngFor="let category of categories" [value]="category.name">
+        {{ category.name }}
+      </option>
+    </select>
+    <select class="filter-select" [(ngModel)]="selectedStatus" (change)="applyFilters()">
+      <option value="">Todos los Activos</option>
+      <option value="A">Activos</option>
+      <option value="I">Inactivos</option>
+      <option value="S">Suspendidos</option>
+    </select>
+    <button
+      mat-raised-button
+      class="new-supplier-btn"
+      (click)="openSupplierForm()"
+    >
+      <mat-icon>add_circle</mat-icon>
+      Nuevo Proveedor
+    </button>
+  </div>
+
+  <!-- Table -->
+  <div class="table-container">
+    <table mat-table [dataSource]="filteredSuppliers" class="suppliers-table">
+      <ng-container matColumnDef="empresa">
+        <th mat-header-cell *matHeaderCellDef>EMPRESA</th>
+        <td mat-cell *matCellDef="let element">
+          <div class="empresa-cell">
+            <div class="empresa-name">{{ element.Company_Name }}</div>
+            <div class="empresa-id">ID: P{{ element.id_Supplier?.toString().padStart(3, '0') }}</div>
+          </div>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="contacto">
+        <th mat-header-cell *matHeaderCellDef>CONTACTO</th>
+        <td mat-cell *matCellDef="let element">
+          <div class="contacto-cell">
+            <div class="contacto-name">{{ element.Contact_Name }}</div>
+            <div class="contacto-address">{{ element.Address }}</div>
+          </div>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="categoria">
+        <th mat-header-cell *matHeaderCellDef>CATEGORÍA</th>
+        <td mat-cell *matCellDef="let element">
+          <span class="category-badge">{{ element.Category }}</span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="comunicacion">
+        <th mat-header-cell *matHeaderCellDef>COMUNICACIÓN</th>
+        <td mat-cell *matCellDef="let element">
+          <div class="comunicacion-cell">
+            <div class="phone">{{ element.Phone }}</div>
+            <div class="email">{{ element.Email }}</div>
+          </div>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="terminos">
+        <th mat-header-cell *matHeaderCellDef>TÉRMINOS</th>
+        <td mat-cell *matCellDef="let element">{{ element.Payment_Terms }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="pedidos">
+        <th mat-header-cell *matHeaderCellDef>PEDIDOS</th>
+        <td mat-cell *matCellDef="let element">
+          <div class="pedidos-cell">
+            <div class="pedidos-count">45</div>
+            <div class="pedidos-amount">S/12,500</div>
+          </div>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="estado">
+        <th mat-header-cell *matHeaderCellDef>ESTADOS</th>
+        <td mat-cell *matCellDef="let element">
+          <span class="status-badge" [ngClass]="getStatusClass(element.Status)">
+            {{ getStatusText(element.Status) }}
+          </span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="acciones">
+        <th mat-header-cell *matHeaderCellDef>ACCIONES</th>
+        <td mat-cell *matCellDef="let element" class="actions-cell">
+          <button
+            mat-icon-button
+            class="action-btn edit-btn"
+            (click)="editSupplier(element)"
+            matTooltip="Editar"
+          >
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button
+            mat-icon-button
+            class="action-btn view-btn"
+            (click)="viewSupplier(element)"
+            matTooltip="Ver"
+          >
+            <mat-icon>visibility</mat-icon>
+          </button>
+          <button
+            mat-icon-button
+            class="action-btn delete-btn"
+            (click)="deleteSupplier(element)"
+            matTooltip="Eliminar"
+          >
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+    </table>
+  </div>
+</div>

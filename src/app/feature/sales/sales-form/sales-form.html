@@ -1,0 +1,188 @@
+<div class="modal-overlay" (click)="onCancel()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>{{ isEditMode ? 'Editar Venta' : 'Nueva Venta' }}</h2>
+      <button mat-icon-button (click)="onCancel()" class="close-btn">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <form [formGroup]="saleForm" (ngSubmit)="onSubmit()" class="sale-form">
+      <div class="form-content">
+        <!-- Basic Information -->
+        <div class="form-section">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="cliente">Cliente <span class="required">*</span></label>
+              <mat-select 
+                formControlName="id_cliente" 
+                placeholder="Seleccionar..."
+                [class.error]="isFieldInvalid('id_cliente')">
+                <mat-option *ngFor="let customer of customers" [value]="customer.idCustomer">
+                  {{ customer.name }} {{ customer.surname }}
+                </mat-option>
+              </mat-select>
+              <div *ngIf="isFieldInvalid('id_cliente')" class="error-message">
+                {{ getFieldError('id_cliente') }}
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="empleado">Empleado <span class="required">*</span></label>
+              <mat-select 
+                formControlName="id_empleado" 
+                placeholder="Seleccionar..."
+                [class.error]="isFieldInvalid('id_empleado')">
+                <mat-option *ngFor="let employee of employees" [value]="employee.id_Employee">
+                  {{ employee.Name }} {{ employee.Surname }}
+                </mat-option>
+              </mat-select>
+              <div *ngIf="isFieldInvalid('id_empleado')" class="error-message">
+                {{ getFieldError('id_empleado') }}
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="metodo_pago">Método de Pago <span class="required">*</span></label>
+              <mat-select 
+                formControlName="metodo_pago" 
+                placeholder="Seleccionar..."
+                [class.error]="isFieldInvalid('metodo_pago')">
+                <mat-option *ngFor="let metodo of metodosPago" [value]="metodo">
+                  {{ metodo }}
+                </mat-option>
+              </mat-select>
+              <div *ngIf="isFieldInvalid('metodo_pago')" class="error-message">
+                {{ getFieldError('metodo_pago') }}
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="estado">Estado <span class="required">*</span></label>
+              <mat-select 
+                formControlName="estado" 
+                placeholder="Seleccionar..."
+                [class.error]="isFieldInvalid('estado')">
+                <mat-option *ngFor="let estado of estados" [value]="estado">
+                  {{ estado }}
+                </mat-option>
+              </mat-select>
+              <div *ngIf="isFieldInvalid('estado')" class="error-message">
+                {{ getFieldError('estado') }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Products Section -->
+        <div class="products-section">
+          <div class="section-header">
+            <h3>Producto</h3>
+            <button type="button" mat-raised-button (click)="addProduct()" class="add-product-btn">
+              <mat-icon>add_circle</mat-icon>
+              Agregar Producto
+            </button>
+          </div>
+
+          <div class="products-table">
+            <div class="table-header">
+              <div class="col-product">Producto<span class="required">*</span></div>
+              <div class="col-quantity">Cantidad<span class="required">*</span></div>
+              <div class="col-price">Precio<span class="required">*</span></div>
+              <div class="col-subtotal">Subtotal<span class="required">*</span></div>
+              <div class="col-actions"></div>
+            </div>
+
+            <div formArrayName="detalles" class="table-body">
+              <div *ngFor="let detalle of detallesArray.controls; let i = index" 
+                   [formGroupName]="i" 
+                   class="table-row">
+                
+                <div class="col-product">
+                  <mat-select 
+                    formControlName="id_producto" 
+                    placeholder="Seleccionar..."
+                    (selectionChange)="onProductChange(i)"
+                    [class.error]="isDetalleFieldInvalid(i, 'id_producto')">
+                    <mat-option *ngFor="let product of products" [value]="product.id_Product">
+                      {{ product.Name }} (Stock: {{ product.Stock }})
+                    </mat-option>
+                  </mat-select>
+                  <div *ngIf="isDetalleFieldInvalid(i, 'id_producto')" class="error-message">
+                    {{ getDetalleFieldError(i, 'id_producto') }}
+                  </div>
+                </div>
+
+                <div class="col-quantity">
+                  <input 
+                    type="number" 
+                    formControlName="cantidad"
+                    min="1"
+                    (input)="onQuantityChange(i)"
+                    [class.error]="isDetalleFieldInvalid(i, 'cantidad')"
+                    class="quantity-input">
+                  <div *ngIf="isDetalleFieldInvalid(i, 'cantidad')" class="error-message">
+                    {{ getDetalleFieldError(i, 'cantidad') }}
+                  </div>
+                </div>
+
+                <div class="col-price">
+                  <input 
+                    type="number" 
+                    formControlName="precio_unitario"
+                    min="0"
+                    step="0.01"
+                    (input)="onPriceChange(i)"
+                    [class.error]="isDetalleFieldInvalid(i, 'precio_unitario')"
+                    class="price-input">
+                  <div *ngIf="isDetalleFieldInvalid(i, 'precio_unitario')" class="error-message">
+                    {{ getDetalleFieldError(i, 'precio_unitario') }}
+                  </div>
+                </div>
+
+                <div class="col-subtotal">
+                  <span class="subtotal-value">S/ {{ getSubtotal(i).toFixed(2) }}</span>
+                </div>
+
+                <div class="col-actions">
+                  <button 
+                    type="button" 
+                    mat-icon-button 
+                    (click)="removeProduct(i)"
+                    [disabled]="detallesArray.length === 1"
+                    class="remove-btn">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Total -->
+          <div class="total-section">
+            <div class="total-row">
+              <span class="total-label">Total: S/ {{ calculateTotal().toFixed(2) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <button type="button" mat-button (click)="onCancel()" class="cancel-btn">
+          Cancelar
+        </button>
+        <button 
+          type="submit" 
+          mat-raised-button 
+          [disabled]="loading || saleForm.invalid"
+          class="submit-btn">
+          <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
+          <span *ngIf="!loading">{{ isEditMode ? 'Actualizar' : 'Crear Venta' }}</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

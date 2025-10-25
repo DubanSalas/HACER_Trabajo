@@ -1,0 +1,58 @@
+/* Estilo principal para el layout */
+.admin-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #f9fafb; /* Color de fondo para todo el layout */
+}
+
+/* Contenedor que contiene el sidebar y el contenido principal */
+.layout-container {
+  display: flex;
+  flex-grow: 1;
+  position: relative; /* Asegura que los elementos dentro del contenedor no se desborden */
+}
+
+/* Contenido principal */
+.main-content {
+  flex-grow: 1;
+  margin-left: 250px; /* Asegura que el contenido no se superponga con la barra lateral */
+  padding: 2rem;
+  overflow-y: auto;
+  background-color: #f9fafb; /* Color de fondo del contenido */
+}
+
+/* Barra lateral */
+app-sidebar {
+  width: 250px; /* Ancho fijo para la barra lateral */
+  position: fixed; /* Fija la barra lateral al lado izquierdo */
+  left: 0;
+  top: 0;
+  height: 100%;
+  background-color: #ffffff; /* Color de fondo de la barra lateral */
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); /* Sombra para dar profundidad */
+  z-index: 100; /* Asegura que la barra lateral quede por encima del contenido */
+}
+
+/* Estilos para evitar que la página se desborde */
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow-x: hidden; /* Evita que se haga scroll horizontal */
+}
+
+/* Estilos opcionales para los elementos dentro del sidebar */
+app-sidebar .sidebar-content {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto; /* Permite hacer scroll en caso de que haya más contenido del que cabe */
+}
+
+/* Asegura que el contenedor de las rutas no tenga espacio en blanco */
+router-outlet {
+  display: block;
+  flex-grow: 1; /* Ocupa el espacio restante dentro del contenedor */
+}

@@ -1,0 +1,188 @@
+<div class="modal-overlay" (click)="onCancel()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>{{ isEditMode ? 'Editar Producto' : 'Agregar Producto' }}</h2>
+      <button mat-icon-button (click)="onCancel()" class="close-btn">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <form [formGroup]="storeForm" (ngSubmit)="onSubmit()" class="store-form">
+      <div class="form-content">
+        <!-- Product Information -->
+        <div class="form-section">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="product">Nombre del Producto <span class="required">*</span></label>
+              <mat-select 
+                formControlName="id_Product" 
+                placeholder="Seleccionar producto..."
+                (selectionChange)="onProductChange()"
+                [class.error]="isFieldInvalid('id_Product')">
+                <mat-option *ngFor="let product of products" [value]="product.id_Product">
+                  {{ product.Product_Name }}
+                </mat-option>
+              </mat-select>
+              <div *ngIf="isFieldInvalid('id_Product')" class="error-message">
+                {{ getFieldError('id_Product') }}
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="category">Categoría</label>
+              <mat-select placeholder="Ingredientes Básicos" disabled>
+                <mat-option value="Ingredientes Básicos">Ingredientes Básicos</mat-option>
+              </mat-select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="current_stock">Stock Actual <span class="required">*</span></label>
+              <input 
+                matInput 
+                type="number" 
+                formControlName="current_stock"
+                min="0"
+                [class.error]="isFieldInvalid('current_stock')"
+                class="stock-input">
+              <div *ngIf="isFieldInvalid('current_stock')" class="error-message">
+                {{ getFieldError('current_stock') }}
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="min_stock">Stock Mínimo <span class="required">*</span></label>
+              <input 
+                matInput 
+                type="number" 
+                formControlName="min_stock"
+                min="0"
+                [class.error]="isFieldInvalid('min_stock')"
+                class="stock-input">
+              <div *ngIf="isFieldInvalid('min_stock')" class="error-message">
+                {{ getFieldError('min_stock') }}
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="unit">Unidad <span class="required">*</span></label>
+              <mat-select 
+                formControlName="unit" 
+                placeholder="kg"
+                [class.error]="isFieldInvalid('unit')">
+                <mat-option *ngFor="let unit of units" [value]="unit">
+                  {{ unit }}
+                </mat-option>
+              </mat-select>
+              <div *ngIf="isFieldInvalid('unit')" class="error-message">
+                {{ getFieldError('unit') }}
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="unit_price">Precio Unitario <span class="required">*</span></label>
+              <input 
+                matInput 
+                type="number" 
+                formControlName="unit_price"
+                min="0"
+                step="0.01"
+                [class.error]="isFieldInvalid('unit_price')"
+                class="price-input">
+              <div *ngIf="isFieldInvalid('unit_price')" class="error-message">
+                {{ getFieldError('unit_price') }}
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="supplier">Proveedor <span class="required">*</span></label>
+              <mat-select 
+                formControlName="id_Supplier" 
+                placeholder="Seleccionar proveedor..."
+                [class.error]="isFieldInvalid('id_Supplier')">
+                <mat-option *ngFor="let supplier of suppliers" [value]="supplier.id_Supplier">
+                  {{ supplier.Company_Name }}
+                </mat-option>
+              </mat-select>
+              <div *ngIf="isFieldInvalid('id_Supplier')" class="error-message">
+                {{ getFieldError('id_Supplier') }}
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group full-width">
+              <label for="expiry_date">Fecha de Vencimiento <span class="required">*</span></label>
+              <input 
+                matInput 
+                type="date" 
+                formControlName="expiry_date"
+                [class.error]="isFieldInvalid('expiry_date')"
+                class="date-input">
+              <div *ngIf="isFieldInvalid('expiry_date')" class="error-message">
+                {{ getFieldError('expiry_date') }}
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group full-width">
+              <label for="location">Ubicación <span class="required">*</span></label>
+              <input 
+                matInput 
+                type="text" 
+                formControlName="location"
+                placeholder="Ej: Estante A-1, Refrigerador 2, etc."
+                [class.error]="isFieldInvalid('location')"
+                class="location-input">
+              <div *ngIf="isFieldInvalid('location')" class="error-message">
+                {{ getFieldError('location') }}
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="status">Estado <span class="required">*</span></label>
+              <mat-select 
+                formControlName="status" 
+                [class.error]="isFieldInvalid('status')">
+                <mat-option *ngFor="let status of statuses" [value]="status">
+                  {{ status }}
+                </mat-option>
+              </mat-select>
+              <div *ngIf="isFieldInvalid('status')" class="error-message">
+                {{ getFieldError('status') }}
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Valor Total</label>
+              <div class="total-value">
+                S/ {{ calculateTotalValue().toFixed(2) }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <button type="button" mat-button (click)="onCancel()" class="cancel-btn">
+          Cancelar
+        </button>
+        <button 
+          type="submit" 
+          mat-raised-button 
+          [disabled]="loading || storeForm.invalid"
+          class="submit-btn">
+          <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
+          <span *ngIf="!loading">{{ isEditMode ? 'Actualizar' : 'Crear Producto' }}</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
