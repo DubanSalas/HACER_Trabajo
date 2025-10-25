@@ -1,0 +1,26 @@
+server:
+  port: 8085
+
+
+spring:
+  datasource:
+    url: jdbc:oracle:thin:@delipedidos_medium?TNS_ADMIN=Wallet_Delipedidos
+    username: DEVELOPER_01
+    password: Developer123
+    driver-class-name: oracle.jdbc.OracleDriver
+  jpa:
+    hibernate:
+      ddl-auto: none     # No modificar las tablas existentes
+    show-sql: true       # Activar para ver las consultas SQL
+  sql:
+    init:
+      mode: never        # No ejecutar data.sql
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.OracleDialect
+  main:
+    allow-bean-definition-overriding: true
+
+jwt:
+  secret: VGhpcy1pcy1hLXZlcnktc2VjdXJlLXNlY3JldC1rZXktZm9yLUpXVHMtMjAyNQ==  #Clave secreta: al menos 32 caracteres seguros (no uses palabras simples)
+  expiration: '3600000' # 1 hora en milisegundos
