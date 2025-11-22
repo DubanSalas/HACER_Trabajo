@@ -1,395 +1,458 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { Subject, takeUntil } from 'rxjs';
-import Swal from 'sweetalert2';
-
+import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
+import { Router } from '@angular/router';
+import { MaterialModule } from '../../../shared/material.module';
+import { Subject, debounceTime, distinctUntilChanged, takeUntil, startWith, combineLatest } from 'rxjs';
 import { CustomerService } from '../../../core/services/customer.service';
-import { Customer, CustomerSummary, CustomerFilters } from '../../../core/interfaces/customer-interfaces';
-import { CustomerFormComponent } from '../customer-form/customer-form';
+import { CustomerDTO, CustomerSummary } from '../../../core/interfaces/customer-interfaces';
+import { NotificationService } from '../../../core/services/notification.service';
+import { FilterService, FilterConfig } from '../../../core/services/filter.service';
+import { AdvancedFilterComponent } from '../../../shared/components/advanced-filter/advanced-filter.component';
+
+interface PaginationInfo {
+  currentPage: number;
+  itemsPerPage: number;
+  totalItems: number;
+  totalPages: number;
+  startIndex: number;
+  endIndex: number;
+}
 
 @Component({
   selector: 'app-customer-list',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    MatIconModule,
-    MatButtonModule,
-    MatInputModule,
-    MatSelectModule,
-    MatProgressSpinnerModule,
-    CustomerFormComponent
-  ],
+  imports: [CommonModule, ReactiveFormsModule, MaterialModule, AdvancedFilterComponent],
   templateUrl: './customer-list.html',
   styleUrls: ['./customer-list.scss']
 })
 export class CustomerListComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
-
-  customers: Customer[] = [];
-  filteredCustomers: Customer[] = [];
-  stats: CustomerSummary = {
-    totalCustomers: 0,
-    activeCustomers: 0,
-    inactiveCustomers: 0,
-    newThisMonth: 0
+  
+  // Data properties
+  customers: CustomerDTO[] = [];
+  filteredCustomers: CustomerDTO[] = [];
+  paginatedCustomers: CustomerDTO[] = [];
+  summary: CustomerSummary | null = null;
+  
+  // State properties
+  isLoading = false;
+  errorMessage = '';
+  
+  // Detail modal properties
+  showDetailModal = false;
+  selectedCustomer: CustomerDTO | null = null;
+  
+  // Form and filters
+  filtersForm: FormGroup;
+  filterConfig: FilterConfig;
+  
+  // Sorting
+  sortField = '';
+  sortDirection: 'asc' | 'desc' = 'asc';
+  
+  // Pagination
+  paginationInfo: PaginationInfo = {
+    currentPage: 1,
+    itemsPerPage: 25,
+    totalItems: 0,
+    totalPages: 0,
+    startIndex: 0,
+    endIndex: 0
   };
 
-  loading = false;
-  searchTerm = '';
-  showForm = false;
-  selectedCustomer: Customer | null = null;
-
-  // Filtros
-  filters: CustomerFilters = {
-    status: 'A', // Por defecto mostrar activos
-    department: '',
-    province: '',
-    district: ''
-  };
-
-  departments: string[] = [];
-  provinces: string[] = [];
-  districts: string[] = [];
-  statuses = [
-    { value: '', label: 'Todos' },
-    { value: 'A', label: 'Activos' },
-    { value: 'I', label: 'Inactivos' }
-  ];
-
-  constructor(private customerService: CustomerService) { }
-
-  ngOnInit(): void {
-    this.loadInitialData();
-    this.subscribeToServices();
+  constructor(
+    private customerService: CustomerService,
+    private fb: FormBuilder,
+    private router: Router,
+    private notificationService: NotificationService,
+    private filterService: FilterService
+  ) {
+    this.filtersForm = this.fb.group({
+      searchTerm: [''],
+      status: [''],
+      department: [''],
+      documentType: [''],
+      itemsPerPage: [25]
+    });
+    
+    // Inicializar configuración de filtros
+    this.filterConfig = this.filterService.getCustomerFilterConfig();
   }
 
-  ngOnDestroy(): void {
+  ngOnInit() {
+    this.setupFormSubscriptions();
+    this.loadData();
+  }
+
+  ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
   }
 
-  private loadInitialData(): void {
-    this.loadCustomers();
-    this.loadSummary();
+  private setupFormSubscriptions() {
+    // Search term with debounce
+    this.filtersForm.get('searchTerm')?.valueChanges.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
+      this.applyFilters();
+    });
+
+    // Other filters
+    combineLatest([
+      this.filtersForm.get('status')?.valueChanges.pipe(startWith('')) || [],
+      this.filtersForm.get('department')?.valueChanges.pipe(startWith('')) || [],
+      this.filtersForm.get('documentType')?.valueChanges.pipe(startWith('')) || [],
+      this.filtersForm.get('itemsPerPage')?.valueChanges.pipe(startWith(25)) || []
+    ]).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
+      this.paginationInfo.itemsPerPage = this.filtersForm.get('itemsPerPage')?.value || 25;
+      this.paginationInfo.currentPage = 1;
+      this.applyFilters();
+    });
   }
 
-  private subscribeToServices(): void {
-    this.customerService.customers$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(customers => {
+  loadData() {
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    // Load customers and summary in parallel
+    combineLatest([
+      this.customerService.getAll(),
+      this.customerService.getSummary()
+    ]).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: ([customers, summary]) => {
+        console.log('✅ Customers loaded:', customers.length);
+        console.log('✅ Summary loaded:', summary);
+        
         this.customers = customers;
-        this.updateLocationFilters();
+        this.summary = summary;
         this.applyFilters();
-      });
-
-    this.customerService.stats$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(stats => this.stats = stats);
-
-    this.customerService.loading$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(loading => this.loading = loading);
-  }
-
-  private loadCustomers(): void {
-    console.log('🔄 Loading customers from backend...');
-    this.customerService.getCustomers().subscribe({
-      next: (customers) => {
-        console.log('✅ Customers loaded from backend:', customers);
+        this.isLoading = false;
       },
       error: (error) => {
         console.error('❌ Error loading customers:', error);
-
-        let errorMessage = 'No se pudo conectar con el backend';
-        if (error.status === 403) {
-          errorMessage = 'Error 403: Acceso denegado. Verifica la configuración de seguridad en el backend.';
-        } else if (error.status === 404) {
-          errorMessage = 'Error 404: Endpoint no encontrado. Verifica que el backend esté corriendo.';
-        } else if (error.status === 0) {
-          errorMessage = 'Error de CORS: El backend no permite peticiones desde el frontend.';
-        }
-
-        Swal.fire({
-          title: 'Error de conexión',
-          text: errorMessage,
-          icon: 'error',
-          confirmButtonColor: '#7c1d3b'
-        });
+        this.errorMessage = 'Error al cargar los clientes. Verifica la conexión con el servidor.';
+        this.isLoading = false;
       }
     });
   }
 
+  applyFilters() {
+    // Usar el FilterService para aplicar filtros
+    this.filteredCustomers = this.filterService.applyFilters(this.customers, this.filterConfig);
+    this.updatePagination();
+  }
 
+  // Método para manejar cambios en filtros avanzados
+  onFiltersChanged(event: any): void {
+    this.paginationInfo.currentPage = 1;
+    this.applyFilters();
+  }
 
-  private loadSummary(): void {
-    console.log('🔄 Loading summary from backend...');
-    this.customerService.getSummary().subscribe({
-      next: (summary) => {
-        console.log('✅ Summary loaded from backend:', summary);
-      },
-      error: (error) => {
-        console.error('❌ Error loading summary:', error);
+  updatePagination() {
+    this.paginationInfo.totalItems = this.filteredCustomers.length;
+    this.paginationInfo.totalPages = Math.ceil(this.paginationInfo.totalItems / this.paginationInfo.itemsPerPage);
+    
+    // Ensure current page is valid
+    if (this.paginationInfo.currentPage > this.paginationInfo.totalPages) {
+      this.paginationInfo.currentPage = Math.max(1, this.paginationInfo.totalPages);
+    }
+    
+    this.paginationInfo.startIndex = (this.paginationInfo.currentPage - 1) * this.paginationInfo.itemsPerPage;
+    this.paginationInfo.endIndex = Math.min(
+      this.paginationInfo.startIndex + this.paginationInfo.itemsPerPage,
+      this.paginationInfo.totalItems
+    );
+    
+    // Apply sorting before pagination
+    this.applySorting();
+    
+    // Get paginated data
+    this.paginatedCustomers = this.filteredCustomers.slice(
+      this.paginationInfo.startIndex,
+      this.paginationInfo.endIndex
+    );
+  }
+
+  applySorting() {
+    if (this.sortField) {
+      this.filteredCustomers.sort((a, b) => {
+        let aValue = this.getNestedProperty(a, this.sortField);
+        let bValue = this.getNestedProperty(b, this.sortField);
+        
+        // Handle different data types
+        if (typeof aValue === 'string') {
+          aValue = aValue.toLowerCase();
+          bValue = bValue.toLowerCase();
+        }
+        
+        if (aValue < bValue) {
+          return this.sortDirection === 'asc' ? -1 : 1;
+        }
+        if (aValue > bValue) {
+          return this.sortDirection === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+  }
+
+  private getNestedProperty(obj: any, path: string): any {
+    return path.split('.').reduce((o, p) => o && o[p], obj) || '';
+  }
+
+  sortBy(field: string) {
+    if (this.sortField === field) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortField = field;
+      this.sortDirection = 'asc';
+    }
+    this.updatePagination();
+  }
+
+  getSortClass(field: string): string {
+    if (this.sortField === field) {
+      return this.sortDirection;
+    }
+    return '';
+  }
+
+  goToPage(page: number) {
+    if (page >= 1 && page <= this.paginationInfo.totalPages) {
+      this.paginationInfo.currentPage = page;
+      this.updatePagination();
+    }
+  }
+
+  getVisiblePages(): number[] {
+    const totalPages = this.paginationInfo.totalPages;
+    const currentPage = this.paginationInfo.currentPage;
+    const visiblePages: number[] = [];
+    
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) {
+        visiblePages.push(i);
       }
-    });
-  }
-
-  private updateLocationFilters(): void {
-    this.departments = this.customerService.getDepartments();
-    this.provinces = this.customerService.getProvinces();
-    this.districts = this.customerService.getDistricts();
-  }
-
-  applyFilters(): void {
-    let filtered = [...this.customers];
-
-    // Filtro por búsqueda
-    if (this.searchTerm.trim()) {
-      const term = this.searchTerm.toLowerCase();
-      filtered = filtered.filter(customer =>
-        customer.name.toLowerCase().includes(term) ||
-        customer.surname.toLowerCase().includes(term) ||
-        customer.clientCode.toLowerCase().includes(term) ||
-        customer.documentNumber.toLowerCase().includes(term) ||
-        customer.email.toLowerCase().includes(term)
-      );
-    }
-
-    // Filtros específicos
-    if (this.filters.status) {
-      filtered = filtered.filter(customer => customer.status === this.filters.status);
-    }
-
-    if (this.filters.department) {
-      filtered = filtered.filter(customer => customer.department === this.filters.department);
-    }
-
-    if (this.filters.province) {
-      filtered = filtered.filter(customer => customer.province === this.filters.province);
-    }
-
-    if (this.filters.district) {
-      filtered = filtered.filter(customer => customer.district === this.filters.district);
-    }
-
-    this.filteredCustomers = filtered;
-  }
-
-  onSearch(): void {
-    if (this.searchTerm.trim()) {
-      this.customerService.searchCustomers(this.searchTerm, this.filters.status || 'A').subscribe({
-        next: (customers) => {
-          this.customers = customers;
-          this.applyFilters();
-        },
-        error: (error) => {
-          console.error('Error searching customers:', error);
-          this.applyFilters();
-        }
-      });
     } else {
-      this.applyFilters();
-    }
-  }
-
-  onFilterChange(): void {
-    if (this.filters.status) {
-      this.customerService.getCustomersByStatus(this.filters.status).subscribe({
-        next: (customers) => {
-          this.customers = customers;
-          this.updateLocationFilters();
-          this.applyFilters();
-        },
-        error: (error) => {
-          console.error('Error filtering by status:', error);
-          this.applyFilters();
+      if (currentPage <= 4) {
+        for (let i = 1; i <= 5; i++) {
+          visiblePages.push(i);
         }
-      });
-    } else {
-      this.applyFilters();
+        visiblePages.push(-1); // Ellipsis
+        visiblePages.push(totalPages);
+      } else if (currentPage >= totalPages - 3) {
+        visiblePages.push(1);
+        visiblePages.push(-1); // Ellipsis
+        for (let i = totalPages - 4; i <= totalPages; i++) {
+          visiblePages.push(i);
+        }
+      } else {
+        visiblePages.push(1);
+        visiblePages.push(-1); // Ellipsis
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+          visiblePages.push(i);
+        }
+        visiblePages.push(-1); // Ellipsis
+        visiblePages.push(totalPages);
+      }
     }
+    
+    return visiblePages.filter(page => page !== -1);
   }
 
-  clearFilters(): void {
-    this.filters = {
-      status: 'A',
+  // Utility methods
+  clearSearch() {
+    this.filtersForm.patchValue({ searchTerm: '' });
+  }
+
+  clearFilters() {
+    this.filtersForm.reset({
+      searchTerm: '',
+      status: '',
       department: '',
-      province: '',
-      district: ''
-    };
-    this.searchTerm = '';
-    this.loadCustomers();
-  }
-
-  openCreateForm(): void {
-    this.selectedCustomer = null;
-    this.showForm = true;
-  }
-
-  openEditForm(customer: Customer): void {
-    this.selectedCustomer = customer;
-    this.showForm = true;
-  }
-
-  viewCustomer(customer: Customer): void {
-    Swal.fire({
-      title: `${customer.name} ${customer.surname}`,
-      html: `
-        <div class="customer-details">
-          <p><strong>Código Cliente:</strong> ${customer.clientCode}</p>
-          <p><strong>Documento:</strong> ${customer.documentType} - ${customer.documentNumber}</p>
-          <p><strong>Email:</strong> ${customer.email}</p>
-          <p><strong>Teléfono:</strong> ${customer.phone}</p>
-          <p><strong>Fecha de Nacimiento:</strong> ${this.formatDate(customer.dateBirth)}</p>
-          <p><strong>Ubicación:</strong> ${customer.locationAddress}</p>
-          <p><strong>Departamento:</strong> ${customer.department}</p>
-          <p><strong>Provincia:</strong> ${customer.province}</p>
-          <p><strong>Distrito:</strong> ${customer.district}</p>
-          <p><strong>Fecha de Registro:</strong> ${this.formatDate(customer.registerDate || '')}</p>
-          <p><strong>Estado:</strong> ${customer.status === 'A' ? 'Activo' : 'Inactivo'}</p>
-        </div>
-      `,
-      width: '500px',
-      confirmButtonColor: '#7c1d3b'
+      documentType: '',
+      itemsPerPage: 25
     });
   }
 
-  deleteCustomer(customer: Customer): void {
-    Swal.fire({
-      title: '¿Estás seguro?',
-      text: `¿Deseas eliminar al cliente "${customer.name} ${customer.surname}"?`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#7c1d3b',
-      cancelButtonColor: '#6c757d',
-      confirmButtonText: 'Sí, eliminar',
-      cancelButtonText: 'Cancelar'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        this.customerService.deleteCustomer(customer.idCustomer!).subscribe({
-          next: () => {
-            Swal.fire({
-              title: 'Eliminado',
-              text: 'El cliente ha sido eliminado correctamente',
-              icon: 'success',
-              confirmButtonColor: '#7c1d3b'
-            });
-            this.loadCustomers();
-            this.loadSummary();
-          },
-          error: (error) => {
-            console.error('Error deleting customer:', error);
-            Swal.fire({
-              title: 'Error',
-              text: 'No se pudo eliminar el cliente',
-              icon: 'error',
-              confirmButtonColor: '#7c1d3b'
-            });
-          }
-        });
-      }
-    });
+  refreshData() {
+    this.loadData();
   }
 
-  restoreCustomer(customer: Customer): void {
-    Swal.fire({
-      title: '¿Restaurar cliente?',
-      text: `¿Deseas restaurar al cliente "${customer.name} ${customer.surname}"?`,
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: '#28a745',
-      cancelButtonColor: '#6c757d',
-      confirmButtonText: 'Sí, restaurar',
-      cancelButtonText: 'Cancelar'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        this.customerService.restoreCustomer(customer.idCustomer!).subscribe({
-          next: () => {
-            Swal.fire({
-              title: 'Restaurado',
-              text: 'El cliente ha sido restaurado correctamente',
-              icon: 'success',
-              confirmButtonColor: '#7c1d3b'
-            });
-            this.loadCustomers();
-            this.loadSummary();
-          },
-          error: (error) => {
-            console.error('Error restoring customer:', error);
-            Swal.fire({
-              title: 'Error',
-              text: 'No se pudo restaurar el cliente',
-              icon: 'error',
-              confirmButtonColor: '#7c1d3b'
-            });
-          }
-        });
-      }
-    });
+  formatDate(dateString: string | undefined): string {
+    if (!dateString) return 'N/A';
+    
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('es-PE', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch {
+      return 'N/A';
+    }
   }
 
-  generateReport(): void {
+  getStatusText(status: string): string {
+    return status === 'A' ? 'Activo' : 'Inactivo';
+  }
+
+  getStatusClass(status: string): string {
+    return status === 'A' ? 'active' : 'inactive';
+  }
+
+  getDocumentTypeClass(documentType: string): string {
+    return documentType;
+  }
+
+  // Navigation methods
+  navigateToCreate() {
+    this.router.navigate(['/customers/create']);
+  }
+
+  viewCustomer(id: number) {
+    const customer = this.customers.find(c => c.idCustomer === id);
+    if (customer) {
+      this.selectedCustomer = customer;
+      this.showDetailModal = true;
+    }
+  }
+
+  editCustomer(id: number) {
+    this.router.navigate(['/customers/edit', id]);
+  }
+
+  deleteCustomer(id: number, customerName: string) {
+    if (confirm(`¿Estás seguro de que deseas desactivar al cliente "${customerName}"?\n\nEl cliente pasará a estado INACTIVO y podrás reactivarlo después.`)) {
+      this.isLoading = true;
+      this.customerService.delete(id).subscribe({
+        next: () => {
+          console.log('✅ Customer deactivated successfully');
+          this.notificationService.customerDeactivated(customerName);
+          // Recargar datos y forzar actualización
+          this.loadData();
+          // Limpiar filtros para mostrar todos los estados
+          setTimeout(() => {
+            this.filtersForm.patchValue({ status: '' });
+            this.isLoading = false;
+          }, 500);
+        },
+        error: (error) => {
+          console.error('❌ Error deactivating customer:', error);
+          this.notificationService.operationError('desactivar', 'cliente', error.error?.message);
+          this.isLoading = false;
+        }
+      });
+    }
+  }
+
+  restoreCustomer(id: number, customerName: string) {
+    if (confirm(`¿Estás seguro de que deseas reactivar al cliente "${customerName}"?\n\nEl cliente volverá a estado ACTIVO.`)) {
+      this.isLoading = true;
+      this.customerService.restore(id).subscribe({
+        next: () => {
+          console.log('✅ Customer restored successfully');
+          this.notificationService.customerRestored(customerName);
+          // Recargar datos y forzar actualización
+          this.loadData();
+          // Limpiar filtros para mostrar todos los estados
+          setTimeout(() => {
+            this.filtersForm.patchValue({ status: '' });
+            this.isLoading = false;
+          }, 500);
+        },
+        error: (error) => {
+          console.error('❌ Error restoring customer:', error);
+          this.notificationService.operationError('reactivar', 'cliente', error.error?.message);
+          this.isLoading = false;
+        }
+      });
+    }
+  }
+
+  generateReport() {
     this.customerService.generatePdfReport().subscribe({
       next: (blob) => {
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = 'reporte_clientes.pdf';
+        link.download = `reporte_clientes_${new Date().toISOString().split('T')[0]}.pdf`;
         link.click();
         window.URL.revokeObjectURL(url);
       },
       error: (error) => {
-        console.error('Error generating report:', error);
-        Swal.fire({
-          title: 'Error',
-          text: 'No se pudo generar el reporte',
-          icon: 'error',
-          confirmButtonColor: '#7c1d3b'
-        });
+        console.error('❌ Error generating report:', error);
+        alert('Error al generar el reporte PDF');
       }
     });
   }
 
-  onFormClose(): void {
-    this.showForm = false;
+  // Additional action methods
+  sendEmail(customer: CustomerDTO) {
+    if (customer.email) {
+      window.open(`mailto:${customer.email}?subject=Contacto desde DeliciousBakery`, '_blank');
+    }
+  }
+
+  callPhone(customer: CustomerDTO) {
+    if (customer.phone) {
+      window.open(`tel:${customer.phone}`, '_blank');
+    }
+  }
+
+  generateCustomerReport(customer: CustomerDTO) {
+    console.log('Generating individual report for customer:', customer);
+    // TODO: Implementar reporte individual del cliente
+    alert(`Generando reporte para ${customer.name} ${customer.surname}`);
+  }
+
+  // Detail modal methods
+  closeDetailModal() {
+    this.showDetailModal = false;
     this.selectedCustomer = null;
   }
 
-  onFormSuccess(): void {
-    this.showForm = false;
-    this.selectedCustomer = null;
-    this.loadCustomers();
-    this.loadSummary();
+  getCustomerInitials(customer: CustomerDTO): string {
+    const firstName = customer.name.charAt(0).toUpperCase();
+    const lastName = customer.surname.charAt(0).toUpperCase();
+    return firstName + lastName;
   }
 
-  getStatusClass(status: string): string {
-    return status === 'A' ? 'status-active' : 'status-inactive';
+  getDocumentTypeText(documentType: string): string {
+    switch (documentType) {
+      case 'DNI': return 'Documento Nacional de Identidad';
+      case 'CE': return 'Carnet de Extranjería';
+      case 'PASSPORT': return 'Pasaporte';
+      default: return documentType;
+    }
   }
 
-  getStatusLabel(status: string): string {
-    return status === 'A' ? 'Activo' : 'Inactivo';
+  editFromModal() {
+    if (this.selectedCustomer && this.selectedCustomer.idCustomer) {
+      this.closeDetailModal();
+      this.editCustomer(this.selectedCustomer.idCustomer);
+    }
   }
 
-  formatDate(date: string): string {
-    if (!date) return 'N/A';
-    return new Date(date).toLocaleDateString('es-PE');
+  deleteFromModal() {
+    if (this.selectedCustomer && this.selectedCustomer.idCustomer) {
+      this.deleteCustomer(this.selectedCustomer.idCustomer, `${this.selectedCustomer.name} ${this.selectedCustomer.surname}`);
+      this.closeDetailModal();
+    }
   }
 
-  getFullName(customer: Customer): string {
-    return `${customer.name} ${customer.surname}`;
-  }
-
-  getContactInfo(customer: Customer): string {
-    return `${customer.email} / ${customer.phone}`;
-  }
-
-  getLocationInfo(customer: Customer): string {
-    return `${customer.district}/${customer.province}/${customer.department}`;
+  restoreFromModal() {
+    if (this.selectedCustomer && this.selectedCustomer.idCustomer) {
+      this.restoreCustomer(this.selectedCustomer.idCustomer, `${this.selectedCustomer.name} ${this.selectedCustomer.surname}`);
+      this.closeDetailModal();
+    }
   }
 }

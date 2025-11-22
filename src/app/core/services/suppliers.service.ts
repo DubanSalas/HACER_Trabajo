@@ -1,121 +1,58 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { Supplier, Location, SupplierFormData } from '../interfaces/suppliers-interfaces';
+import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { SupplierDTO, SupplierRequest, SupplierSummary } from '../interfaces/suppliers-interfaces';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SuppliersService {
-  private readonly url = `${environment.urlBackEnd}/v1/api/supplier`;
-  private readonly locationUrl = `${environment.urlBackEnd}/v1/api/location`;
+  private apiUrl = `${environment.urlBackEnd}/v1/api/supplier`;
 
   constructor(private http: HttpClient) { }
 
-  // Proveedor seleccionado
-  private selectedSupplierSubject = new BehaviorSubject<Supplier | null>(null);
-  selectedSupplier$ = this.selectedSupplierSubject.asObservable();
-
-  setSelectedSupplier(supplier: Supplier | null): void {
-    this.selectedSupplierSubject.next(supplier);
+  getAll(): Observable<SupplierDTO[]> {
+    return this.http.get<SupplierDTO[]>(this.apiUrl);
   }
 
-  // CRUD proveedores
-  findByStatus(status: 'A' | 'I' | 'S'): Observable<Supplier[]> {
-    return this.http.get<Supplier[]>(`${this.url}/status/${status}`);
+  getById(id: number): Observable<SupplierDTO> {
+    return this.http.get<SupplierDTO>(`${this.apiUrl}/${id}`);
   }
 
-  // Obtener todos los proveedores
-  getSuppliers(): Observable<Supplier[]> {
-    return this.http.get<Supplier[]>(`${this.url}/all`);
+  getByStatus(status: string): Observable<SupplierDTO[]> {
+    return this.http.get<SupplierDTO[]>(`${this.apiUrl}/status/${status}`);
   }
 
-  // Obtener proveedor por ID
-  getSupplierById(id: number): Observable<Supplier> {
-    return this.http.get<Supplier>(`${this.url}/${id}`);
+  getByCategory(category: string): Observable<SupplierDTO[]> {
+    return this.http.get<SupplierDTO[]>(`${this.apiUrl}/category/${category}`);
   }
 
-  // Crear nuevo proveedor
-  create(supplier: SupplierFormData): Observable<Supplier> {
-    return this.http.post<Supplier>(`${this.url}/save`, supplier);
+  search(searchTerm: string, status: string = 'A'): Observable<SupplierDTO[]> {
+    return this.http.get<SupplierDTO[]>(`${this.apiUrl}/search?search=${searchTerm}&status=${status}`);
   }
 
-  // Actualizar proveedor
-  update(supplier: Supplier): Observable<Supplier> {
-    return this.http.put<Supplier>(`${this.url}/update/${supplier.id_Supplier}`, supplier);
+  getSummary(): Observable<SupplierSummary> {
+    return this.http.get<SupplierSummary>(`${this.apiUrl}/summary`);
   }
 
-  // Eliminar proveedor (cambiar status a inactivo)
-  delete(idSupplier: number): Observable<void> {
-    return this.http.delete<void>(`${this.url}/delete/${idSupplier}`);
+  create(supplier: SupplierRequest): Observable<SupplierDTO> {
+    return this.http.post<SupplierDTO>(`${this.apiUrl}/save`, supplier);
   }
 
-  // Restaurar proveedor (cambiar status a activo)
-  restore(idSupplier: number): Observable<void> {
-    return this.http.put<void>(`${this.url}/restore/${idSupplier}`, {});
+  update(id: number, supplier: SupplierRequest): Observable<SupplierDTO> {
+    return this.http.put<SupplierDTO>(`${this.apiUrl}/update/${id}`, supplier);
   }
 
-  // Generar reporte PDF de proveedores
-  reportPdf(): Observable<Blob> {
-    return this.http.get<Blob>(`${this.url}/pdf`, { responseType: 'blob' as 'json' });
+  delete(id: number): Observable<void> {
+    return this.http.patch<void>(`${this.apiUrl}/delete/${id}`, {});
   }
 
-  // Generar reporte PDF filtrado por categoría
-  reportPdfByCategory(category: string): Observable<Blob> {
-    return this.http.get<Blob>(`${this.url}/pdf/category/${category}`, { responseType: 'blob' as 'json' });
+  restore(id: number): Observable<void> {
+    return this.http.patch<void>(`${this.apiUrl}/restore/${id}`, {});
   }
 
-  // Obtener ubicaciones (datos temporales hasta implementar en backend)
-  getLocations(): Observable<Location[]> {
-    const locations: Location[] = [
-      { identifier_Location: 1, department: 'Lima', province: 'Lima', district: 'Lima', address: 'Av. Principal 123' },
-      { identifier_Location: 2, department: 'Lima', province: 'Lima', district: 'Miraflores', address: 'Av. Larco 456' },
-      { identifier_Location: 3, department: 'Lima', province: 'Lima', district: 'San Isidro', address: 'Av. Javier Prado 789' },
-      { identifier_Location: 4, department: 'Lima', province: 'Lima', district: 'Surco', address: 'Av. Benavides 321' },
-      { identifier_Location: 5, department: 'Arequipa', province: 'Arequipa', district: 'Cercado', address: 'Calle Mercaderes 111' }
-    ];
-    return new Observable(observer => {
-      observer.next(locations);
-      observer.complete();
-    });
-  }
-
-  // Obtener categorías disponibles
-  getCategories(): Observable<string[]> {
-    return this.http.get<string[]>(`${this.url}/categories`);
-  }
-
-  // Filtros por categoría
-  getByCategory(category: string): Observable<Supplier[]> {
-    return this.http.get<Supplier[]>(`${this.url}/category/${category}`);
-  }
-
-  // Filtros por términos de pago
-  getByPaymentTerms(paymentTerms: string): Observable<Supplier[]> {
-    return this.http.get<Supplier[]>(`${this.url}/payment-terms/${paymentTerms}`);
-  }
-
-  // Filtros por ubicación
-  getByLocation(locationId: number): Observable<Supplier[]> {
-    return this.http.get<Supplier[]>(`${this.url}/location/${locationId}`);
-  }
-
-  // Métodos de conveniencia para mantener compatibilidad
-  createSupplier(supplier: SupplierFormData): Observable<Supplier> {
-    return this.create(supplier);
-  }
-
-  updateSupplier(id: number, supplierData: SupplierFormData): Observable<Supplier> {
-    const supplier: Supplier = {
-      id_Supplier: id,
-      ...supplierData,
-      Status: supplierData.Status || 'A'
-    };
-    return this.update(supplier);
-  }
-
-  deleteSupplier(id: number): Observable<void> {
-    return this.delete(id);
+  generatePdfReport(): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/pdf`, { responseType: 'blob' });
   }
 }

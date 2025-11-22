@@ -1,244 +1,272 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { Subject, takeUntil } from 'rxjs';
-import Swal from 'sweetalert2';
-
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
+import { Router, ActivatedRoute } from '@angular/router';
+import { MaterialModule } from '../../../shared/material.module';
 import { StoreService } from '../../../core/services/store.service';
 import { ProductsService } from '../../../core/services/products.service';
 import { SuppliersService } from '../../../core/services/suppliers.service';
-import { StoreItem, CreateStoreItemRequest, UpdateStoreItemRequest } from '../../../core/interfaces/store-interfaces';
-import { Product } from '../../../core/interfaces/products-interfaces';
-import { Supplier } from '../../../core/interfaces/suppliers-interfaces';
+import { CustomValidators } from '../../../shared/validators/custom-validators';
+import { NotificationService } from '../../../core/services/notification.service';
 
 @Component({
   selector: 'app-store-form',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatIconModule,
-    MatButtonModule,
-    MatInputModule,
-    MatSelectModule,
-    MatDatepickerModule,
-    MatNativeDateModule,
-    MatProgressSpinnerModule
-  ],
+  imports: [CommonModule, ReactiveFormsModule, MaterialModule],
   templateUrl: './store-form.html',
   styleUrls: ['./store-form.scss']
 })
-export class StoreFormComponent implements OnInit, OnDestroy {
-  @Input() storeItem: StoreItem | null = null;
-  @Output() close = new EventEmitter<void>();
-  @Output() success = new EventEmitter<void>();
-
-  private destroy$ = new Subject<void>();
-
+export class StoreFormComponent implements OnInit {
   storeForm: FormGroup;
-  products: Product[] = [];
-  suppliers: Supplier[] = [];
-  loading = false;
   isEditMode = false;
+  storeItemId: number | null = null;
+  loading = false;
+  submitting = false;
 
-  units: string[] = [];
-  statuses: string[] = [];
+  products: any[] = [];
+  suppliers: any[] = [];
+  selectedProduct: any = null;
+
+  locations = [
+    'Almacén Principal',
+    'Vitrina Principal',
+    'Vitrina Secundaria',
+    'Refrigerador',
+    'Congelador',
+    'Área de Producción',
+    'Bodega',
+    'Mostrador'
+  ];
 
   constructor(
     private fb: FormBuilder,
     private storeService: StoreService,
     private productsService: ProductsService,
-    private suppliersService: SuppliersService
+    private suppliersService: SuppliersService,
+    private router: Router,
+    private route: ActivatedRoute,
+    private notificationService: NotificationService
   ) {
     this.storeForm = this.createForm();
   }
 
   ngOnInit(): void {
-    this.isEditMode = !!this.storeItem;
     this.loadInitialData();
     
-    if (this.storeItem) {
-      this.populateForm();
-    }
-  }
-
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-
-  private createForm(): FormGroup {
-    return this.fb.group({
-      id_Product: ['', Validators.required],
-      current_stock: [0, [Validators.required, Validators.min(0)]],
-      min_stock: [0, [Validators.required, Validators.min(0)]],
-      unit: ['', Validators.required],
-      unit_price: [0, [Validators.required, Validators.min(0)]],
-      id_Supplier: ['', Validators.required],
-      expiry_date: ['', Validators.required],
-      location: ['', Validators.required],
-      status: ['Disponible', Validators.required]
-    });
-  }
-
-  private loadInitialData(): void {
-    this.loadProducts();
-    this.loadSuppliers();
-    this.loadUnits();
-    this.loadStatuses();
-  }
-
-  private loadProducts(): void {
-    this.productsService.getProducts()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (products: Product[]) => this.products = products,
-        error: (error: any) => console.error('Error loading products:', error)
-      });
-  }
-
-  private loadSuppliers(): void {
-    this.suppliersService.getSuppliers()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (suppliers: Supplier[]) => this.suppliers = suppliers,
-        error: (error: any) => console.error('Error loading suppliers:', error)
-      });
-  }
-
-  private loadUnits(): void {
-    this.units = this.storeService.getUnits();
-  }
-
-  private loadStatuses(): void {
-    this.statuses = this.storeService.getStatuses();
-  }
-
-  private populateForm(): void {
-    if (!this.storeItem) return;
-
-    this.storeForm.patchValue({
-      id_Product: this.storeItem.id_Product,
-      current_stock: this.storeItem.current_stock,
-      min_stock: this.storeItem.min_stock,
-      unit: this.storeItem.unit,
-      unit_price: this.storeItem.unit_price,
-      id_Supplier: this.storeItem.id_Supplier,
-      expiry_date: this.storeItem.expiry_date,
-      location: this.storeItem.location,
-      status: this.storeItem.status
-    });
-  }
-
-  onProductChange(): void {
-    const productId = this.storeForm.get('id_Product')?.value;
-    if (productId) {
-      const product = this.products.find(p => p.id_Product === productId);
-      if (product) {
-        this.storeForm.patchValue({
-          unit_price: product.Price
-        });
+    this.route.params.subscribe(params => {
+      if (params['id']) {
+        this.isEditMode = true;
+        this.storeItemId = +params['id'];
+        this.loadStoreItem();
       }
+    });
+
+    // Watch for product changes
+    this.storeForm.get('productId')?.valueChanges.subscribe(productId => {
+      this.onProductChange(productId);
+    });
+  }
+
+  createForm(): FormGroup {
+    return this.fb.group({
+      productId: ['', Validators.required],
+      currentStock: ['', [
+        Validators.required,
+        Validators.min(0),
+        CustomValidators.positiveInteger()
+      ]],
+      minimumStock: ['', [
+        Validators.required,
+        Validators.min(1),
+        CustomValidators.positiveInteger()
+      ]],
+      location: ['', Validators.required],
+      supplier: ['', [
+        Validators.minLength(2),
+        Validators.maxLength(100),
+        CustomValidators.noOnlySpaces()
+      ]],
+      lastRestockDate: ['', [this.pastDateValidator]],
+      expirationDate: ['', [this.futureDateValidator]],
+      notes: ['', [
+        Validators.maxLength(500),
+        CustomValidators.noOnlySpaces()
+      ]]
+    }, { validators: [this.stockComparisonValidator, this.dateRangeValidator] });
+  }
+
+  loadInitialData(): void {
+    // Load products
+    this.productsService.getAll().subscribe({
+      next: (products: any[]) => {
+        this.products = products.filter(p => p.status === 'A');
+      },
+      error: (error: any) => console.error('Error loading products:', error)
+    });
+
+    // Load suppliers
+    this.suppliersService.getAll().subscribe({
+      next: (suppliers: any[]) => {
+        this.suppliers = suppliers.filter(s => s.status === 'A');
+      },
+      error: (error: any) => console.error('Error loading suppliers:', error)
+    });
+  }
+
+  loadStoreItem(): void {
+    if (!this.storeItemId) return;
+    
+    this.loading = true;
+    this.storeService.getById(this.storeItemId).subscribe({
+      next: (item: any) => {
+        this.storeForm.patchValue({
+          productId: item.product?.idProduct,
+          currentStock: item.currentStock,
+          minimumStock: item.minimumStock,
+          location: item.location,
+          supplier: item.supplier,
+          lastRestockDate: item.lastRestockDate,
+          expirationDate: item.expirationDate,
+          notes: item.notes
+        });
+        this.loading = false;
+      },
+      error: (error: any) => {
+        console.error('Error loading store item:', error);
+        this.loading = false;
+        this.router.navigate(['/store']);
+      }
+    });
+  }
+
+  onProductChange(productId: number): void {
+    this.selectedProduct = this.products.find(p => p.idProduct === productId);
+    if (this.selectedProduct) {
+      // Auto-fill current stock from product
+      this.storeForm.patchValue({
+        currentStock: this.selectedProduct.stock
+      });
     }
   }
 
   onSubmit(): void {
     if (this.storeForm.valid) {
-      this.loading = true;
-      
-      const formValue = this.storeForm.value;
-
-      if (this.isEditMode && this.storeItem) {
-        const updateRequest: UpdateStoreItemRequest = {
-          id_Product: formValue.id_Product,
-          current_stock: formValue.current_stock,
-          min_stock: formValue.min_stock,
-          unit: formValue.unit,
-          unit_price: formValue.unit_price,
-          id_Supplier: formValue.id_Supplier,
-          expiry_date: formValue.expiry_date,
-          location: formValue.location,
-          status: formValue.status
-        };
-
-        this.storeService.updateStoreItem(this.storeItem.id_store, updateRequest)
-          .pipe(takeUntil(this.destroy$))
-          .subscribe({
-            next: () => {
-              this.loading = false;
-              Swal.fire({
-                title: 'Éxito',
-                text: 'Producto actualizado correctamente en el almacén',
-                icon: 'success',
-                confirmButtonColor: '#7c1d3b'
-              });
-              this.success.emit();
-            },
-            error: (error) => {
-              this.loading = false;
-              console.error('Error updating store item:', error);
-              Swal.fire({
-                title: 'Error',
-                text: 'No se pudo actualizar el producto',
-                icon: 'error',
-                confirmButtonColor: '#7c1d3b'
-              });
-            }
-          });
-      } else {
-        const createRequest: CreateStoreItemRequest = {
-          id_Product: formValue.id_Product,
-          current_stock: formValue.current_stock,
-          min_stock: formValue.min_stock,
-          unit: formValue.unit,
-          unit_price: formValue.unit_price,
-          id_Supplier: formValue.id_Supplier,
-          expiry_date: formValue.expiry_date,
-          location: formValue.location,
-          status: formValue.status
-        };
-
-        this.storeService.createStoreItem(createRequest)
-          .pipe(takeUntil(this.destroy$))
-          .subscribe({
-            next: () => {
-              this.loading = false;
-              Swal.fire({
-                title: 'Éxito',
-                text: 'Producto agregado correctamente al almacén',
-                icon: 'success',
-                confirmButtonColor: '#7c1d3b'
-              });
-              this.success.emit();
-            },
-            error: (error) => {
-              this.loading = false;
-              console.error('Error creating store item:', error);
-              Swal.fire({
-                title: 'Error',
-                text: 'No se pudo agregar el producto al almacén',
-                icon: 'error',
-                confirmButtonColor: '#7c1d3b'
-              });
-            }
-          });
+      // Validación adicional de stock
+      if (this.showStockAlert()) {
+        const confirmed = confirm('⚠️ El stock actual está por debajo del mínimo. ¿Desea continuar?');
+        if (!confirmed) return;
       }
-    } else {
-      this.markFormGroupTouched();
-      Swal.fire({
-        title: 'Formulario Incompleto',
-        text: 'Por favor, completa todos los campos requeridos',
-        icon: 'warning',
-        confirmButtonColor: '#7c1d3b'
+      
+      this.submitting = true;
+      const storeData = this.storeForm.value;
+
+      const operation = this.isEditMode
+        ? this.storeService.update(this.storeItemId!, storeData)
+        : this.storeService.create(storeData);
+
+      operation.subscribe({
+        next: () => {
+          this.submitting = false;
+          const productName = this.selectedProduct?.productName || 'producto';
+          
+          if (this.isEditMode) {
+            this.notificationService.operationSuccess('actualización', `inventario de ${productName}`);
+          } else {
+            this.notificationService.operationSuccess('creación', `inventario de ${productName}`);
+          }
+          
+          this.router.navigate(['/store']);
+        },
+        error: (error: any) => {
+          console.error('Error saving store item:', error);
+          this.submitting = false;
+          const operation = this.isEditMode ? 'actualizar' : 'crear';
+          this.notificationService.operationError(operation, 'inventario', error.error?.message);
+        }
       });
+    } else {
+      this.notificationService.validationError('Por favor, completa todos los campos requeridos correctamente.');
+      this.markFormGroupTouched();
     }
+  }
+
+  onCancel(): void {
+    this.router.navigate(['/store']);
+  }
+
+  getErrorMessage(fieldName: string): string {
+    const field = this.storeForm.get(fieldName);
+    if (!field) return '';
+    
+    if (field.hasError('required')) return 'Este campo es requerido';
+    if (field.hasError('min')) return `El valor debe ser mayor o igual a ${field.errors?.['min']?.min}`;
+    if (field.hasError('positiveInteger')) return 'Debe ser un número entero positivo';
+    if (field.hasError('noOnlySpaces')) return 'No puede contener solo espacios';
+    if (field.hasError('maxlength')) return `Máximo ${field.errors?.['maxlength']?.requiredLength} caracteres`;
+    if (field.hasError('pastDate')) return 'La fecha debe ser anterior o igual a hoy';
+    if (field.hasError('futureDate')) return 'La fecha debe ser posterior a hoy';
+    
+    // Errores del formulario completo
+    if (this.storeForm.hasError('stockComparison')) {
+      return 'El stock actual no puede ser menor que el stock mínimo';
+    }
+    if (this.storeForm.hasError('dateRange')) {
+      return 'La fecha de vencimiento debe ser posterior a la fecha de reabastecimiento';
+    }
+    
+    return '';
+  }
+
+  // Validadores personalizados
+  pastDateValidator(control: AbstractControl): ValidationErrors | null {
+    if (!control.value) return null;
+    
+    const selectedDate = new Date(control.value);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    if (selectedDate > today) {
+      return { pastDate: true };
+    }
+    return null;
+  }
+
+  futureDateValidator(control: AbstractControl): ValidationErrors | null {
+    if (!control.value) return null;
+    
+    const selectedDate = new Date(control.value);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    if (selectedDate <= today) {
+      return { futureDate: true };
+    }
+    return null;
+  }
+
+  stockComparisonValidator(group: AbstractControl): ValidationErrors | null {
+    const currentStock = group.get('currentStock')?.value;
+    const minimumStock = group.get('minimumStock')?.value;
+    
+    if (currentStock !== null && minimumStock !== null && currentStock < minimumStock) {
+      return { stockComparison: true };
+    }
+    return null;
+  }
+
+  dateRangeValidator(group: AbstractControl): ValidationErrors | null {
+    const lastRestock = group.get('lastRestockDate')?.value;
+    const expiration = group.get('expirationDate')?.value;
+    
+    if (lastRestock && expiration) {
+      const restockDate = new Date(lastRestock);
+      const expirationDate = new Date(expiration);
+      
+      if (expirationDate <= restockDate) {
+        return { dateRange: true };
+      }
+    }
+    return null;
   }
 
   private markFormGroupTouched(): void {
@@ -248,18 +276,9 @@ export class StoreFormComponent implements OnInit, OnDestroy {
     });
   }
 
-  onCancel(): void {
-    this.close.emit();
-  }
-
-  isFieldInvalid(fieldName: string): boolean {
-    const field = this.storeForm.get(fieldName);
-    return !!(field && field.invalid && field.touched);
-  }
-
   getFieldError(fieldName: string): string {
     const field = this.storeForm.get(fieldName);
-    if (field?.errors) {
+    if (field?.errors && field.touched) {
       if (field.errors['required']) return `${this.getFieldLabel(fieldName)} es requerido`;
       if (field.errors['min']) return `${this.getFieldLabel(fieldName)} debe ser mayor o igual a ${field.errors['min'].min}`;
     }
@@ -268,32 +287,70 @@ export class StoreFormComponent implements OnInit, OnDestroy {
 
   private getFieldLabel(fieldName: string): string {
     const labels: { [key: string]: string } = {
-      'id_Product': 'Producto',
-      'current_stock': 'Stock actual',
-      'min_stock': 'Stock mínimo',
-      'unit': 'Unidad',
-      'unit_price': 'Precio unitario',
-      'id_Supplier': 'Proveedor',
-      'expiry_date': 'Fecha de vencimiento',
-      'location': 'Ubicación',
-      'status': 'Estado'
+      productId: 'Producto',
+      currentStock: 'Stock actual',
+      minimumStock: 'Stock mínimo',
+      location: 'Ubicación'
     };
     return labels[fieldName] || fieldName;
   }
 
-  getProductName(productId: number): string {
-    const product = this.products.find(p => p.id_Product === productId);
-    return product ? product.Product_Name : 'Producto no encontrado';
+  isFieldInvalid(fieldName: string): boolean {
+    const field = this.storeForm.get(fieldName);
+    return !!(field?.invalid && field.touched);
   }
 
-  getSupplierName(supplierId: number): string {
-    const supplier = this.suppliers.find(s => s.id_Supplier === supplierId);
-    return supplier ? supplier.Company_Name : 'Proveedor no encontrado';
+  // Stock calculation methods
+  getStockDifference(): number {
+    const current = this.storeForm.get('currentStock')?.value || 0;
+    const minimum = this.storeForm.get('minimumStock')?.value || 0;
+    return current - minimum;
   }
 
-  calculateTotalValue(): number {
-    const stock = this.storeForm.get('current_stock')?.value || 0;
-    const price = this.storeForm.get('unit_price')?.value || 0;
-    return stock * price;
+  getStockPercentage(): number {
+    const current = this.storeForm.get('currentStock')?.value || 0;
+    const minimum = this.storeForm.get('minimumStock')?.value || 1;
+    return Math.min(100, (current / minimum) * 100);
+  }
+
+  getStockStatus(): string {
+    const difference = this.getStockDifference();
+    if (difference < 0) return 'Stock Crítico';
+    if (difference === 0) return 'Stock Mínimo';
+    if (difference <= 5) return 'Stock Bajo';
+    return 'Stock Normal';
+  }
+
+  getStockStatusClass(): string {
+    const difference = this.getStockDifference();
+    if (difference < 0) return 'status-critical';
+    if (difference === 0) return 'status-minimum';
+    if (difference <= 5) return 'status-low';
+    return 'status-normal';
+  }
+
+  getStockDifferenceClass(): string {
+    const difference = this.getStockDifference();
+    return difference >= 0 ? 'positive' : 'negative';
+  }
+
+  showStockAlert(): boolean {
+    const current = this.storeForm.get('currentStock')?.value;
+    const minimum = this.storeForm.get('minimumStock')?.value;
+    return current !== null && minimum !== null && current < minimum;
+  }
+
+  getStockAlertClass(): string {
+    const difference = this.getStockDifference();
+    if (difference < -10) return 'alert-danger';
+    if (difference < 0) return 'alert-warning';
+    return 'alert-info';
+  }
+
+  getStockAlertMessage(): string {
+    const difference = this.getStockDifference();
+    if (difference < -10) return '⚠️ Stock crítico: Necesita reposición urgente';
+    if (difference < 0) return '⚠️ Stock por debajo del mínimo';
+    return 'ℹ️ Stock en nivel aceptable';
   }
 }

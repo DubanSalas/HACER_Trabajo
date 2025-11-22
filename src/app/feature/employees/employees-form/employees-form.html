@@ -1,212 +1,301 @@
-<div class="form-dialog">
-  <div class="form-header">
-    <h2 class="form-title">{{ isEditMode ? 'Editar Empleado' : 'Nuevo Empleado' }}</h2>
-    <button mat-icon-button class="close-btn" (click)="onCancel()">
-      <mat-icon>close</mat-icon>
-    </button>
+<div class="employee-form-container">
+  <!-- Header -->
+  <div class="page-header">
+    <mat-card class="header-card">
+      <mat-card-content>
+        <div class="header-content">
+          <div class="title-section">
+            <h1 class="page-title">
+              <mat-icon class="title-icon">{{ isEditMode ? 'edit' : 'person_add' }}</mat-icon>
+              {{ isEditMode ? 'Editar Empleado' : 'Nuevo Empleado' }}
+            </h1>
+            <p class="page-subtitle">
+              {{ isEditMode ? 'Modifica los datos del empleado' : 'Registra un nuevo empleado en el sistema' }}
+            </p>
+          </div>
+          <div class="header-actions">
+            <button 
+              mat-stroked-button 
+              color="warn"
+              (click)="onCancel()"
+              [disabled]="loading || submitting">
+              <mat-icon>arrow_back</mat-icon>
+              Volver
+            </button>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
   </div>
 
-  <form [formGroup]="form" class="form-content">
-    <!-- Primera fila: Código Empleado y Tipo de Documento -->
-    <div class="form-row">
-      <div class="form-group">
-        <label>Código Empleado <span class="required">*</span></label>
-        <input
-          type="text"
-          formControlName="Employee_Code"
-          class="form-input"
-          placeholder=""
-        />
-        <div class="error-message" *ngIf="form.get('Employee_Code')?.invalid && form.get('Employee_Code')?.touched">
-          El código del empleado es requerido
-        </div>
-      </div>
-      <div class="form-group">
-        <label>Tipo de Documento <span class="required">*</span></label>
-        <select formControlName="Document_Type" class="form-select">
-          <option value="">Seleccionar...</option>
-          <option *ngFor="let type of documentTypes" [value]="type">
-            {{ type }}
-          </option>
-        </select>
-        <mat-icon class="select-arrow">keyboard_arrow_down</mat-icon>
-        <div class="error-message" *ngIf="form.get('Document_Type')?.invalid && form.get('Document_Type')?.touched">
-          El tipo de documento es requerido
-        </div>
-      </div>
+  <!-- Loading -->
+  @if (loading) {
+    <div class="loading-container">
+      <mat-card>
+        <mat-card-content>
+          <div class="loading-content">
+            <mat-spinner diameter="50"></mat-spinner>
+            <p>Cargando datos del empleado...</p>
+          </div>
+        </mat-card-content>
+      </mat-card>
     </div>
+  }
 
-    <!-- Segunda fila: Número de Documento y Nombre -->
-    <div class="form-row">
-      <div class="form-group">
-        <label>Número de Documento <span class="required">*</span></label>
-        <input
-          type="text"
-          formControlName="Document_Number"
-          class="form-input"
-          placeholder=""
-        />
-        <div class="error-message" *ngIf="form.get('Document_Number')?.invalid && form.get('Document_Number')?.touched">
-          <span *ngIf="form.get('Document_Number')?.errors?.['required']">El número de documento es requerido</span>
-          <span *ngIf="form.get('Document_Number')?.errors?.['pattern']">El número de documento debe tener 8 dígitos</span>
-        </div>
-      </div>
-      <div class="form-group">
-        <label>Nombre <span class="required">*</span></label>
-        <input
-          type="text"
-          formControlName="Name"
-          class="form-input"
-          placeholder=""
-        />
-        <div class="error-message" *ngIf="form.get('Name')?.invalid && form.get('Name')?.touched">
-          El nombre es requerido
-        </div>
-      </div>
-    </div>
+  <!-- Form -->
+  @if (!loading) {
+    <div class="form-section">
+    <form [formGroup]="employeeForm" (ngSubmit)="onSubmit()">
+      <!-- Información Personal -->
+      <mat-card class="form-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>person</mat-icon>
+            Información Personal
+          </mat-card-title>
+          <mat-card-subtitle>
+            Datos básicos del empleado
+          </mat-card-subtitle>
+        </mat-card-header>
+        
+        <mat-card-content>
+          <div class="form-grid">
+            <!-- Nombres -->
+            <mat-form-field appearance="outline">
+              <mat-label>Nombres</mat-label>
+              <input 
+                matInput 
+                formControlName="name"
+                placeholder="Ej: Juan Carlos">
+              <mat-icon matPrefix>person</mat-icon>
+              @if (isFieldInvalid('name')) {
+                <mat-error>
+                  {{ getErrorMessage('name') }}
+                </mat-error>
+              }
+            </mat-form-field>
 
-    <!-- Tercera fila: Apellido y Fecha de Contratación -->
-    <div class="form-row">
-      <div class="form-group">
-        <label>Apellido <span class="required">*</span></label>
-        <input
-          type="text"
-          formControlName="Surname"
-          class="form-input"
-          placeholder=""
-        />
-        <div class="error-message" *ngIf="form.get('Surname')?.invalid && form.get('Surname')?.touched">
-          El apellido es requerido
-        </div>
-      </div>
-      <div class="form-group">
-        <label>Fecha de Contratación <span class="required">*</span></label>
-        <input
-          matInput
-          [matDatepicker]="picker"
-          formControlName="Hire_Date"
-          class="form-input"
-          placeholder="dd/mm/aaaa"
-        />
-        <mat-datepicker-toggle matSuffix [for]="picker" class="date-toggle">
-          <mat-icon matDatepickerToggleIcon>calendar_today</mat-icon>
-        </mat-datepicker-toggle>
-        <mat-datepicker #picker></mat-datepicker>
-        <div class="error-message" *ngIf="form.get('Hire_Date')?.invalid && form.get('Hire_Date')?.touched">
-          La fecha de contratación es requerida
-        </div>
-      </div>
-    </div>
+            <!-- Apellidos -->
+            <mat-form-field appearance="outline">
+              <mat-label>Apellidos</mat-label>
+              <input 
+                matInput 
+                formControlName="surname"
+                placeholder="Ej: García López">
+              <mat-icon matPrefix>person_outline</mat-icon>
+              @if (isFieldInvalid('surname')) {
+                <mat-error>
+                  {{ getErrorMessage('surname') }}
+                </mat-error>
+              }
+            </mat-form-field>
 
-    <!-- Cuarta fila: Teléfono y Departamento -->
-    <div class="form-row">
-      <div class="form-group">
-        <label>Teléfono <span class="required">*</span></label>
-        <input
-          type="text"
-          formControlName="Phone"
-          class="form-input"
-          placeholder=""
-        />
-        <div class="error-message" *ngIf="form.get('Phone')?.invalid && form.get('Phone')?.touched">
-          <span *ngIf="form.get('Phone')?.errors?.['required']">El teléfono es requerido</span>
-          <span *ngIf="form.get('Phone')?.errors?.['pattern']">El teléfono debe tener 9 dígitos</span>
-        </div>
-      </div>
-      <div class="form-group">
-        <label>Departamento <span class="required">*</span></label>
-        <select formControlName="id_Location" class="form-select">
-          <option value="">Seleccionar...</option>
-          <option *ngFor="let location of locations" [value]="location.identifier_Location">
-            {{ location.department }}
-          </option>
-        </select>
-        <mat-icon class="select-arrow">keyboard_arrow_down</mat-icon>
-        <div class="error-message" *ngIf="form.get('id_Location')?.invalid && form.get('id_Location')?.touched">
-          El departamento es requerido
-        </div>
-      </div>
-    </div>
+            <!-- DNI -->
+            <mat-form-field appearance="outline">
+              <mat-label>DNI</mat-label>
+              <input 
+                matInput 
+                formControlName="dni"
+                placeholder="Ej: 12345678"
+                maxlength="8">
+              <mat-icon matPrefix>fingerprint</mat-icon>
+              @if (isFieldInvalid('dni')) {
+                <mat-error>
+                  {{ getErrorMessage('dni') }}
+                </mat-error>
+              }
+            </mat-form-field>
 
-    <!-- Quinta fila: Provincia y Distrito -->
-    <div class="form-row">
-      <div class="form-group">
-        <label>Provincia</label>
-        <select class="form-select" disabled>
-          <option value="">Seleccionar...</option>
-        </select>
-        <mat-icon class="select-arrow">keyboard_arrow_down</mat-icon>
-      </div>
-      <div class="form-group">
-        <label>Distrito</label>
-        <select class="form-select" disabled>
-          <option value="">Seleccionar...</option>
-        </select>
-        <mat-icon class="select-arrow">keyboard_arrow_down</mat-icon>
-      </div>
-    </div>
+            <!-- Teléfono -->
+            <mat-form-field appearance="outline">
+              <mat-label>Teléfono</mat-label>
+              <input 
+                matInput 
+                formControlName="phone"
+                placeholder="Ej: 987654321"
+                maxlength="9">
+              <mat-icon matPrefix>phone</mat-icon>
+              @if (isFieldInvalid('phone')) {
+                <mat-error>
+                  {{ getErrorMessage('phone') }}
+                </mat-error>
+              }
+            </mat-form-field>
 
-    <!-- Sexta fila: Salario y Cargo -->
-    <div class="form-row">
-      <div class="form-group">
-        <label>Salario <span class="required">*</span></label>
-        <input
-          type="number"
-          formControlName="Salary"
-          class="form-input"
-          min="0"
-          step="0.01"
-        />
-        <div class="error-message" *ngIf="form.get('Salary')?.invalid && form.get('Salary')?.touched">
-          <span *ngIf="form.get('Salary')?.errors?.['required']">El salario es requerido</span>
-          <span *ngIf="form.get('Salary')?.errors?.['min']">El salario debe ser mayor a 0</span>
-        </div>
-      </div>
-      <div class="form-group">
-        <label>Cargo <span class="required">*</span></label>
-        <select formControlName="id_Position" class="form-select">
-          <option value="">Seleccionar...</option>
-          <option *ngFor="let position of positions" [value]="position.id_Position">
-            {{ getPositionDisplay(position) }}
-          </option>
-        </select>
-        <mat-icon class="select-arrow">keyboard_arrow_down</mat-icon>
-        <div class="error-message" *ngIf="form.get('id_Position')?.invalid && form.get('id_Position')?.touched">
-          El cargo es requerido
-        </div>
-      </div>
-    </div>
+            <!-- Email -->
+            <mat-form-field appearance="outline">
+              <mat-label>Correo Electrónico</mat-label>
+              <input 
+                matInput 
+                formControlName="email"
+                placeholder="Ej: empleado@email.com"
+                type="email">
+              <mat-icon matPrefix>email</mat-icon>
+              @if (isFieldInvalid('email')) {
+                <mat-error>
+                  {{ getErrorMessage('email') }}
+                </mat-error>
+              }
+            </mat-form-field>
 
-    <!-- Séptima fila: Email (ancho completo) -->
-    <div class="form-row">
-      <div class="form-group full-width">
-        <label>Email <span class="required">*</span></label>
-        <input
-          type="email"
-          formControlName="Email"
-          class="form-input"
-          placeholder=""
-        />
-        <div class="error-message" *ngIf="form.get('Email')?.invalid && form.get('Email')?.touched">
-          <span *ngIf="form.get('Email')?.errors?.['required']">El email es requerido</span>
-          <span *ngIf="form.get('Email')?.errors?.['email']">El email no es válido</span>
-        </div>
-      </div>
-    </div>
+            <!-- Dirección -->
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Dirección</mat-label>
+              <textarea 
+                matInput 
+                formControlName="address"
+                rows="2"
+                placeholder="Dirección completa del empleado...">
+              </textarea>
+              <mat-icon matPrefix>home</mat-icon>
+              @if (isFieldInvalid('address')) {
+                <mat-error>
+                  {{ getErrorMessage('address') }}
+                </mat-error>
+              }
+            </mat-form-field>
+          </div>
+        </mat-card-content>
+      </mat-card>
 
-    <!-- Botones de acción -->
-    <div class="form-actions">
-      <button type="button" class="cancel-btn" (click)="onCancel()">
-        Cancelar
-      </button>
-      <button
-        type="button"
-        class="submit-btn"
-        (click)="onSubmit()"
-        [disabled]="!form.valid"
-      >
-        {{ isEditMode ? 'Actualizar Empleado' : 'Crear Empleado' }}
-      </button>
+      <!-- Información Laboral -->
+      <mat-card class="form-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>work</mat-icon>
+            Información Laboral
+          </mat-card-title>
+          <mat-card-subtitle>
+            Datos del puesto de trabajo
+          </mat-card-subtitle>
+        </mat-card-header>
+        
+        <mat-card-content>
+          <div class="form-grid">
+            <!-- Cargo/Posición -->
+            <mat-form-field appearance="outline">
+              <mat-label>Cargo</mat-label>
+              <mat-select formControlName="positionName">
+                @for (position of positions; track position) {
+                  <mat-option [value]="position">
+                    {{ position }}
+                  </mat-option>
+                }
+              </mat-select>
+              <mat-icon matPrefix>badge</mat-icon>
+              @if (isFieldInvalid('positionName')) {
+                <mat-error>
+                  {{ getErrorMessage('positionName') }}
+                </mat-error>
+              }
+            </mat-form-field>
+
+            <!-- Salario -->
+            <mat-form-field appearance="outline">
+              <mat-label>Salario</mat-label>
+              <input 
+                matInput 
+                formControlName="salary"
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="0.00">
+              <span matTextPrefix>S/. </span>
+              <mat-icon matPrefix>attach_money</mat-icon>
+              @if (isFieldInvalid('salary')) {
+                <mat-error>
+                  {{ getErrorMessage('salary') }}
+                </mat-error>
+              }
+            </mat-form-field>
+
+            <!-- Fecha de Contratación -->
+            <mat-form-field appearance="outline">
+              <mat-label>Fecha de Contratación</mat-label>
+              <input 
+                matInput 
+                [matDatepicker]="hireDatePicker"
+                formControlName="hireDate"
+                readonly>
+              <mat-datepicker-toggle matIconSuffix [for]="hireDatePicker"></mat-datepicker-toggle>
+              <mat-datepicker #hireDatePicker></mat-datepicker>
+              <mat-icon matPrefix>event</mat-icon>
+              @if (isFieldInvalid('hireDate')) {
+                <mat-error>
+                  {{ getErrorMessage('hireDate') }}
+                </mat-error>
+              }
+            </mat-form-field>
+
+            <!-- Estado -->
+            @if (isEditMode) {
+              <mat-form-field appearance="outline">
+                <mat-label>Estado</mat-label>
+                <mat-select formControlName="status">
+                  <mat-option value="A">Activo</mat-option>
+                  <mat-option value="I">Inactivo</mat-option>
+                </mat-select>
+                <mat-icon matPrefix>toggle_on</mat-icon>
+              </mat-form-field>
+            }
+          </div>
+
+          <!-- Employee Summary -->
+          @if (getFullName()) {
+            <div class="employee-summary">
+              <mat-card class="summary-card">
+                <mat-card-content>
+                  <div class="summary-content">
+                    <div class="employee-avatar">
+                      <mat-icon>person</mat-icon>
+                    </div>
+                    <div class="employee-info">
+                      <h3>{{ getFullName() }}</h3>
+                      @if (employeeForm.get('positionName')?.value) {
+                        <p>
+                          {{ employeeForm.get('positionName')?.value }}
+                        </p>
+                      }
+                      @if (employeeForm.get('salary')?.value) {
+                        <p class="salary">
+                          S/. {{ employeeForm.get('salary')?.value | number:'1.2-2' }}
+                        </p>
+                      }
+                    </div>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            </div>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Actions -->
+      <mat-card class="actions-card">
+        <mat-card-content>
+          <div class="form-actions">
+            <button 
+              mat-stroked-button 
+              type="button"
+              (click)="onCancel()"
+              [disabled]="submitting">
+              <mat-icon>cancel</mat-icon>
+              Cancelar
+            </button>
+            
+            <button 
+              mat-raised-button 
+              color="primary"
+              type="submit"
+              [disabled]="employeeForm.invalid || submitting"
+              class="submit-btn">
+              <mat-icon>{{ submitting ? 'hourglass_empty' : 'save' }}</mat-icon>
+              {{ submitting ? 'Guardando...' : (isEditMode ? 'Actualizar' : 'Guardar') }}
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </form>
     </div>
-  </form>
+  }
 </div>

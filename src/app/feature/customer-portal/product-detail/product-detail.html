@@ -1,0 +1,103 @@
+<div class="product-detail-container">
+  <!-- Loading State -->
+  <div class="loading-container" *ngIf="isLoading">
+    <mat-spinner></mat-spinner>
+    <p>Cargando producto...</p>
+  </div>
+
+  <!-- Product Detail -->
+  <div class="product-detail-content" *ngIf="!isLoading && product">
+    <!-- Back Button -->
+    <button mat-button (click)="goBack()" class="back-button">
+      <mat-icon>arrow_back</mat-icon>
+      Volver al Menú
+    </button>
+
+    <!-- Product Info -->
+    <mat-card class="product-card">
+      <div class="product-layout">
+        <!-- Product Image -->
+        <div class="product-image-section">
+          <img [src]="product.image" [alt]="product.name" class="product-image">
+          <div class="product-badge" *ngIf="!product.isAvailable">
+            No Disponible
+          </div>
+        </div>
+
+        <!-- Product Details -->
+        <div class="product-info-section">
+          <h1 class="product-name">{{ product.name }}</h1>
+          
+          <div class="product-category">
+            <mat-icon>category</mat-icon>
+            <span>{{ product.category }}</span>
+          </div>
+
+          <div class="product-rating" *ngIf="product.rating">
+            <div class="stars">
+              <mat-icon *ngFor="let star of getStarArray(product.rating)" 
+                        [class.filled]="isStarFilled(star, product.rating)">
+                star
+              </mat-icon>
+            </div>
+            <span class="rating-text">{{ product.rating }} ({{ product.reviews }} reseñas)</span>
+          </div>
+
+          <p class="product-description">{{ product.description }}</p>
+
+          <div class="product-price-section">
+            <span class="price-label">Precio:</span>
+            <span class="product-price">S/ {{ product.price.toFixed(2) }}</span>
+          </div>
+
+          <div class="product-availability">
+            <mat-icon>{{ product.isAvailable ? 'check_circle' : 'cancel' }}</mat-icon>
+            <span>{{ product.isAvailable ? 'Disponible' : 'No disponible' }}</span>
+          </div>
+
+          <!-- Quantity Selector -->
+          <div class="quantity-section">
+            <label>Cantidad:</label>
+            <div class="quantity-controls">
+              <button mat-icon-button (click)="decreaseQuantity()" [disabled]="quantity <= 1">
+                <mat-icon>remove</mat-icon>
+              </button>
+              <span class="quantity-value">{{ quantity }}</span>
+              <button mat-icon-button (click)="increaseQuantity()" 
+                      [disabled]="!product.isAvailable">
+                <mat-icon>add</mat-icon>
+              </button>
+            </div>
+          </div>
+
+          <!-- Add to Cart Button -->
+          <div class="action-buttons">
+            <button mat-raised-button 
+                    color="primary" 
+                    (click)="addToCart()"
+                    [disabled]="!product.isAvailable"
+                    class="add-to-cart-btn">
+              <mat-icon>add_shopping_cart</mat-icon>
+              {{ product.isAvailable ? 'Agregar al Carrito' : 'No Disponible' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </mat-card>
+
+    <!-- Reviews Section -->
+    <mat-card class="reviews-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>rate_review</mat-icon>
+          Reseñas y Comentarios
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <app-product-reviews 
+          [productId]="+product.id">
+        </app-product-reviews>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

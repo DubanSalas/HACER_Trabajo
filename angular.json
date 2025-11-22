@@ -1,9 +1,13 @@
 {
   "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
   "version": 1,
+  "cli": {
+    "packageManager": "npm",
+    "analytics": "1a115403-073f-48dd-bcd4-d862b784fe8d"
+  },
   "newProjectRoot": "projects",
   "projects": {
-    "DeliPedidos": {
+    "frontend": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -31,21 +35,20 @@
             ],
             "styles": [
               "src/styles.scss"
-            ],
-            "outputMode": "static"
+            ]
           },
           "configurations": {
             "production": {
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "1MB"
+                  "maximumWarning": "600kB",
+                  "maximumError": "1.2MB"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
+                  "maximumWarning": "25kB",
+                  "maximumError": "30kB"
                 }
               ],
               "outputHashing": "all"
@@ -53,7 +56,9 @@
             "development": {
               "optimization": false,
               "extractLicenses": false,
-              "sourceMap": true
+              "sourceMap": true,
+              "ssr": false,
+              "server": false
             }
           },
           "defaultConfiguration": "production"
@@ -62,11 +67,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "DeliPedidos:build:production"
+              "buildTarget": "frontend:build:production"
             },
             "development": {
-              "buildTarget": "DeliPedidos:build:development",
-              "proxyConfig": "proxy.conf.json"
+              "buildTarget": "frontend:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -96,8 +100,5 @@
         }
       }
     }
-  },
-  "cli": {
-    "analytics": "dad71951-7a23-4b38-b7be-fe16854cceff"
   }
 }

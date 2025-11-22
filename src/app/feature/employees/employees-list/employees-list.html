@@ -1,190 +1,486 @@
-<div class="employees-container">
-  <!-- Header -->
-  <div class="header">
-    <div class="header-info">
-      <h1>Gestión de Empleados</h1>
-      <p>Administración completa del personal</p>
-    </div>
-  </div>
-
-  <!-- Stats Cards -->
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-content">
-        <span class="stat-label">Total Empleados</span>
-        <span class="stat-value">{{ stats.total }}</span>
-      </div>
-      <div class="stat-icon blue">
-        <mat-icon>people</mat-icon>
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-content">
-        <span class="stat-label">Activos</span>
-        <span class="stat-value">{{ stats.activos }}</span>
-      </div>
-      <div class="stat-icon green">
-        <mat-icon>check_circle</mat-icon>
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-content">
-        <span class="stat-label">Inactivos</span>
-        <span class="stat-value">{{ stats.inactivos }}</span>
-      </div>
-      <div class="stat-icon red">
-        <mat-icon>cancel</mat-icon>
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-content">
-        <span class="stat-label">Salario Promedio</span>
-        <span class="stat-value">S/ {{ stats.salarioPromedio }}</span>
-      </div>
-      <div class="stat-icon yellow">
-        <mat-icon>attach_money</mat-icon>
-      </div>
-    </div>
-  </div>
-
-  <!-- Position Distribution Section -->
-  <div class="distribution-section">
-    <h2>Distribución por Cargos</h2>
-    <div class="distribution-grid">
-      <div *ngFor="let position of positionDistribution" class="distribution-card">
-        <div class="distribution-icon">
-          <mat-icon>person</mat-icon>
-        </div>
-        <div class="distribution-info">
-          <span class="distribution-count">{{ position.count }}</span>
-          <span class="distribution-name">{{ position.name }}</span>
+<div class="modern-employees-container">
+  <!-- Modern Header -->
+  <div class="modern-header">
+    <div class="header-content">
+      <div class="title-section">
+        <div class="title-with-icon">
+          <div class="icon-wrapper">
+            <mat-icon>badge</mat-icon>
+          </div>
+          <div class="title-text">
+            <h1>Gestión de Empleados</h1>
+            <p>Administra el equipo de trabajo</p>
+          </div>
         </div>
       </div>
+      <div class="header-actions">
+        <button mat-raised-button color="primary" class="action-btn primary-btn" (click)="navigateToCreate()">
+          <mat-icon>person_add</mat-icon>
+          Nuevo Empleado
+        </button>
+        <button mat-stroked-button color="accent" class="action-btn secondary-btn" (click)="generateReport()">
+          <mat-icon>description</mat-icon>
+          Generar Reporte
+        </button>
+      </div>
     </div>
   </div>
 
-  <!-- Filters Section -->
-  <div class="filters-section">
-    <div class="search-box">
-      <mat-icon>search</mat-icon>
-      <input 
-        type="text" 
-        placeholder="Buscar por nombre, apellido, cargo....." 
-        [(ngModel)]="searchTerm"
-        (input)="applyFilters()"
-      />
-    </div>
-    <select class="filter-select" [(ngModel)]="selectedStatus" (change)="applyFilters()">
-      <option value="">Todos los Activos</option>
-      <option value="A">Activos</option>
-      <option value="I">Inactivos</option>
-    </select>
-    <button
-      mat-raised-button
-      class="new-employee-btn"
-      (click)="openEmployeeForm()"
-    >
-      <mat-icon>add_circle</mat-icon>
-      Nuevo Empleado
-    </button>
-  </div>
+  <!-- Modern Stats Cards -->
+  @if (summary) {
+    <div class="stats-section">
+      <div class="stats-grid">
+      <mat-card class="stat-card total-employees">
+        <mat-card-content>
+          <div class="stat-content">
+            <div class="stat-icon">
+              <mat-icon>people</mat-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">{{ (summary && summary.totalEmployees) || 0 }}</div>
+              <div class="stat-label">Total Empleados</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
 
-  <!-- Table -->
-  <div class="table-container">
-    <table mat-table [dataSource]="filteredEmployees" class="employees-table">
-      <ng-container matColumnDef="empleado">
-        <th mat-header-cell *matHeaderCellDef>EMPLEADO</th>
-        <td mat-cell *matCellDef="let element">
-          <div class="empleado-cell">
-            <div class="avatar">
+      <mat-card class="stat-card active-employees">
+        <mat-card-content>
+          <div class="stat-content">
+            <div class="stat-icon">
               <mat-icon>person</mat-icon>
             </div>
-            <div class="empleado-info">
-              <div class="empleado-name">{{ element.Name }} {{ element.Surname }}</div>
-              <div class="empleado-id">ID: EMP{{ element.id_Employee?.toString().padStart(3, '0') }}</div>
+            <div class="stat-info">
+              <div class="stat-value">{{ (summary && summary.activeEmployees) || 0 }}</div>
+              <div class="stat-label">Activos</div>
             </div>
           </div>
-        </td>
-      </ng-container>
+        </mat-card-content>
+      </mat-card>
 
-      <ng-container matColumnDef="documento">
-        <th mat-header-cell *matHeaderCellDef>DOCUMENTO</th>
-        <td mat-cell *matCellDef="let element">
-          <div class="documento-cell">
-            <div class="documento-type">{{ element.Document_Type }}</div>
-            <div class="documento-number">{{ element.Document_Number }}</div>
+      <mat-card class="stat-card average-salary">
+        <mat-card-content>
+          <div class="stat-content">
+            <div class="stat-icon">
+              <mat-icon>attach_money</mat-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">{{ formatCurrency((summary && summary.averageSalary) || 0) }}</div>
+              <div class="stat-label">Salario Promedio</div>
+            </div>
           </div>
-        </td>
-      </ng-container>
+        </mat-card-content>
+      </mat-card>
 
-      <ng-container matColumnDef="cargo">
-        <th mat-header-cell *matHeaderCellDef>CARGO</th>
-        <td mat-cell *matCellDef="let element">
-          <span class="cargo-badge">{{ getPositionName(element.id_Position) }}</span>
-        </td>
-      </ng-container>
-
-      <ng-container matColumnDef="contacto">
-        <th mat-header-cell *matHeaderCellDef>CONTACTO</th>
-        <td mat-cell *matCellDef="let element">
-          <div class="contacto-cell">
-            <div class="phone">{{ element.Phone }}</div>
-            <div class="email">{{ element.Email }}</div>
+      <mat-card class="stat-card inactive-employees">
+        <mat-card-content>
+          <div class="stat-content">
+            <div class="stat-icon">
+              <mat-icon>person_off</mat-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">{{ (summary && summary.inactiveEmployees) || 0 }}</div>
+              <div class="stat-label">Inactivos</div>
+            </div>
           </div>
-        </td>
-      </ng-container>
+        </mat-card-content>
+      </mat-card>
+      </div>
+    </div>
+  }
 
-      <ng-container matColumnDef="salario">
-        <th mat-header-cell *matHeaderCellDef>SALARIO</th>
-        <td mat-cell *matCellDef="let element">
-          <div class="salario-cell">
-            <div class="salario-amount">S/ {{ element.Salary.toLocaleString() }}</div>
-            <div class="salario-period">mensual</div>
-          </div>
-        </td>
-      </ng-container>
-
-      <ng-container matColumnDef="estado">
-        <th mat-header-cell *matHeaderCellDef>ESTADO</th>
-        <td mat-cell *matCellDef="let element">
-          <span class="status-badge" [ngClass]="getStatusClass(element.Status)">
-            {{ getStatusText(element.Status) }}
-          </span>
-        </td>
-      </ng-container>
-
-      <ng-container matColumnDef="acciones">
-        <th mat-header-cell *matHeaderCellDef>ACCIONES</th>
-        <td mat-cell *matCellDef="let element" class="actions-cell">
-          <button
-            mat-icon-button
-            class="action-btn edit-btn"
-            (click)="editEmployee(element)"
-            matTooltip="Editar"
-          >
-            <mat-icon>edit</mat-icon>
+  <!-- Filtros Simples -->
+  <div class="simple-filters-container">
+    <mat-card class="filters-card">
+      <mat-card-content>
+        <div class="filters-row">
+          <mat-form-field appearance="outline" class="search-field">
+            <mat-label>Buscar empleados</mat-label>
+            <input matInput [(ngModel)]="searchTerm" (input)="applyFilters()" placeholder="Buscar por nombre, email, documento...">
+            <mat-icon matPrefix>search</mat-icon>
+            @if (searchTerm) {
+              <button mat-icon-button matSuffix (click)="clearSearch()">
+                <mat-icon>close</mat-icon>
+              </button>
+            }
+          </mat-form-field>
+          
+          <button mat-raised-button color="primary" (click)="refreshData()" class="refresh-btn">
+            <mat-icon>refresh</mat-icon>
+            Actualizar
           </button>
-          <button
-            mat-icon-button
-            class="action-btn view-btn"
-            (click)="viewEmployee(element)"
-            matTooltip="Ver"
-          >
-            <mat-icon>visibility</mat-icon>
-          </button>
-          <button
-            mat-icon-button
-            class="action-btn delete-btn"
-            (click)="deleteEmployee(element)"
-            matTooltip="Eliminar"
-          >
-            <mat-icon>delete</mat-icon>
-          </button>
-        </td>
-      </ng-container>
-
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-    </table>
+        </div>
+      </mat-card-content>
+    </mat-card>
   </div>
+
+  <!-- Modern Employees List -->
+  <mat-card class="employees-list-card">
+    <mat-card-header class="list-header">
+      <div class="header-left">
+        <mat-icon class="list-icon">badge</mat-icon>
+        <div class="header-text">
+          <mat-card-title>Lista de Empleados</mat-card-title>
+          <mat-card-subtitle>Mostrando {{ filteredEmployees.length }} de {{ employees.length }} empleados</mat-card-subtitle>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button mat-icon-button (click)="refreshData()" matTooltip="Actualizar">
+          <mat-icon>refresh</mat-icon>
+        </button>
+      </div>
+    </mat-card-header>
+
+    <mat-card-content>
+      <!-- Loading State -->
+      @if (loading) {
+        <div class="loading-state">
+          <mat-spinner diameter="50"></mat-spinner>
+          <p>Cargando empleados...</p>
+        </div>
+      }
+
+      <!-- Empty State -->
+      @if (!loading && filteredEmployees.length === 0) {
+        <div class="empty-state">
+          <div class="empty-icon">
+            <mat-icon>badge</mat-icon>
+          </div>
+          <h3>No se encontraron empleados</h3>
+          @if (searchTerm) {
+            <p>Intenta ajustar los filtros de búsqueda</p>
+          }
+          @if (!searchTerm) {
+            <p>No hay empleados registrados</p>
+          }
+          <button mat-raised-button color="primary" (click)="navigateToCreate()">
+            <mat-icon>person_add</mat-icon>
+            Registrar Primer Empleado
+          </button>
+        </div>
+      }
+
+      <!-- Employees List -->
+      @if (!loading && filteredEmployees.length > 0) {
+        <div class="employees-list">
+          @for (employee of filteredEmployees; track employee.employeeCode) {
+            <mat-card class="employee-card" [class.inactive]="employee.status !== 'A'">
+          <mat-card-content>
+            <div class="employee-content">
+              <!-- Employee Header -->
+              <div class="employee-header">
+                <div class="employee-avatar-section">
+                  <div class="employee-avatar">
+                    {{ employee.name.charAt(0) }}{{ employee.surname.charAt(0) }}
+                  </div>
+                  <div class="employee-code">{{ employee.employeeCode }}</div>
+                </div>
+                <div class="employee-status">
+                  <mat-chip [class]="getStatusClass(employee.status)">{{ getStatusText(employee.status) }}</mat-chip>
+                </div>
+              </div>
+
+              <!-- Employee Details -->
+              <div class="employee-details">
+                <h3 class="employee-name">{{ employee.name }} {{ employee.surname }}</h3>
+                <div class="employee-position">
+                  <mat-icon>work</mat-icon>
+                  <span>{{ employee.positionName }}</span>
+                </div>
+                
+                <div class="detail-grid">
+                  <div class="detail-row">
+                    <mat-icon>email</mat-icon>
+                    <span class="label">Email:</span>
+                    <span class="value">{{ employee.email }}</span>
+                  </div>
+                  <div class="detail-row">
+                    <mat-icon>phone</mat-icon>
+                    <span class="label">Teléfono:</span>
+                    <span class="value">{{ employee.phone }}</span>
+                  </div>
+                  <div class="detail-row">
+                    <mat-icon>business</mat-icon>
+                    <span class="label">Departamento:</span>
+                    <span class="value">{{ employee.department }}</span>
+                  </div>
+                  <div class="detail-row">
+                    <mat-icon>event</mat-icon>
+                    <span class="label">Ingreso:</span>
+                    <span class="value">{{ formatDate(employee.hireDate) }}</span>
+                  </div>
+                  <div class="detail-row">
+                    <mat-icon>attach_money</mat-icon>
+                    <span class="label">Salario:</span>
+                    <span class="value salary">{{ formatSalary(employee.salary) }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Employee Actions -->
+              <div class="employee-actions">
+                <button mat-icon-button color="primary" (click)="viewEmployee(employee)" matTooltip="Ver detalles">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+                <button mat-icon-button color="accent" (click)="editEmployee(employee)" matTooltip="Editar">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button [matMenuTriggerFor]="employeeMenu" matTooltip="Más opciones">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+                <mat-menu #employeeMenu="matMenu">
+                  <button mat-menu-item (click)="toggleStatus(employee)">
+                    <mat-icon>{{ employee.status === 'A' ? 'block' : 'check_circle' }}</mat-icon>
+                    <span>{{ employee.status === 'A' ? 'Desactivar' : 'Activar' }}</span>
+                  </button>
+                  <button mat-menu-item (click)="viewHistory(employee)">
+                    <mat-icon>history</mat-icon>
+                    <span>Ver Historial</span>
+                  </button>
+                  <button mat-menu-item (click)="generateReport(employee)">
+                    <mat-icon>description</mat-icon>
+                    <span>Generar Reporte</span>
+                  </button>
+                </mat-menu>
+              </div>
+            </div>
+          </mat-card-content>
+          </mat-card>
+        }
+      </div>
+    }
+    </mat-card-content>
+  </mat-card>
 </div>
+
+<!-- Employee Detail Modal -->
+@if (showDetailModal) {
+  <div class="modal-overlay" (click)="closeDetailModal()">
+    @if (selectedEmployee) {
+      <div class="employee-detail-modal" (click)="$event.stopPropagation()">
+        <!-- Modal Header -->
+    <div class="modal-header">
+      <div class="header-left">
+        <div class="employee-avatar">
+          {{ getEmployeeInitials(selectedEmployee) }}
+        </div>
+        <div class="employee-info">
+          <h2>{{ selectedEmployee.name }} {{ selectedEmployee.surname }}</h2>
+          <p class="employee-code">{{ selectedEmployee.employeeCode }}</p>
+          <mat-chip [class]="getStatusClass(selectedEmployee.status)">
+            <mat-icon>{{ selectedEmployee.status === 'A' ? 'check_circle' : 'cancel' }}</mat-icon>
+            {{ getStatusText(selectedEmployee.status) }}
+          </mat-chip>
+        </div>
+      </div>
+      <button mat-icon-button (click)="closeDetailModal()" class="close-button">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <!-- Modal Content -->
+    <div class="modal-content">
+      <div class="detail-cards">
+        <!-- Personal Information -->
+        <mat-card class="info-card">
+          <mat-card-header>
+            <div class="card-header-content">
+              <mat-icon class="card-icon">person</mat-icon>
+              <div class="card-title">
+                <h3>Información Personal</h3>
+              </div>
+            </div>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="info-grid">
+              <div class="info-item">
+                <mat-icon>badge</mat-icon>
+                <div class="info-content">
+                  <span class="info-label">Nombre Completo</span>
+                  <span class="info-value">{{ selectedEmployee.name }} {{ selectedEmployee.surname }}</span>
+                </div>
+              </div>
+              <div class="info-item">
+                <mat-icon>fingerprint</mat-icon>
+                <div class="info-content">
+                  <span class="info-label">{{ selectedEmployee.documentType }}</span>
+                  <span class="info-value">{{ selectedEmployee.documentNumber }}</span>
+                </div>
+              </div>
+              <div class="info-item">
+                <mat-icon>qr_code</mat-icon>
+                <div class="info-content">
+                  <span class="info-label">Código de Empleado</span>
+                  <span class="info-value">{{ selectedEmployee.employeeCode }}</span>
+                </div>
+              </div>
+              <div class="info-item">
+                <mat-icon>event</mat-icon>
+                <div class="info-content">
+                  <span class="info-label">Fecha de Contratación</span>
+                  <span class="info-value">{{ formatDate(selectedEmployee.hireDate) }}</span>
+                </div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Contact Information -->
+        <mat-card class="info-card">
+          <mat-card-header>
+            <div class="card-header-content">
+              <mat-icon class="card-icon">contact_phone</mat-icon>
+              <div class="card-title">
+                <h3>Información de Contacto</h3>
+              </div>
+            </div>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="info-grid">
+              <div class="info-item clickable" (click)="sendEmail(selectedEmployee)" [class.disabled]="!selectedEmployee.email">
+                <mat-icon>email</mat-icon>
+                <div class="info-content">
+                  <span class="info-label">Correo Electrónico</span>
+                  <span class="info-value">{{ selectedEmployee.email || 'No registrado' }}</span>
+                </div>
+                @if (selectedEmployee.email) {
+                  <mat-icon class="action-icon">open_in_new</mat-icon>
+                }
+              </div>
+              <div class="info-item clickable" (click)="callPhone(selectedEmployee)" [class.disabled]="!selectedEmployee.phone">
+                <mat-icon>phone</mat-icon>
+                <div class="info-content">
+                  <span class="info-label">Teléfono</span>
+                  <span class="info-value">{{ selectedEmployee.phone || 'No registrado' }}</span>
+                </div>
+                @if (selectedEmployee.phone) {
+                  <mat-icon class="action-icon">call</mat-icon>
+                }
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Work Information -->
+        <mat-card class="info-card">
+          <mat-card-header>
+            <div class="card-header-content">
+              <mat-icon class="card-icon">work</mat-icon>
+              <div class="card-title">
+                <h3>Información Laboral</h3>
+              </div>
+            </div>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="info-grid">
+              <div class="info-item">
+                <mat-icon>business_center</mat-icon>
+                <div class="info-content">
+                  <span class="info-label">Cargo</span>
+                  <span class="info-value">{{ selectedEmployee.positionName }}</span>
+                </div>
+              </div>
+              <div class="info-item">
+                <mat-icon>monetization_on</mat-icon>
+                <div class="info-content">
+                  <span class="info-label">Salario</span>
+                  <span class="info-value salary">S/ {{ selectedEmployee.salary | number:'1.2-2' }}</span>
+                </div>
+              </div>
+              <div class="info-item">
+                <mat-icon>calendar_today</mat-icon>
+                <div class="info-content">
+                  <span class="info-label">Fecha de Contratación</span>
+                  <span class="info-value">{{ formatDate(selectedEmployee.hireDate) }}</span>
+                </div>
+              </div>
+              <div class="info-item">
+                <mat-icon>{{ selectedEmployee.status === 'A' ? 'check_circle' : 'cancel' }}</mat-icon>
+                <div class="info-content">
+                  <span class="info-label">Estado</span>
+                  <span class="info-value" [class]="getStatusClass(selectedEmployee.status)">
+                    {{ getStatusText(selectedEmployee.status) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Location Information -->
+        <mat-card class="info-card">
+          <mat-card-header>
+            <div class="card-header-content">
+              <mat-icon class="card-icon">place</mat-icon>
+              <div class="card-title">
+                <h3>Ubicación</h3>
+              </div>
+            </div>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="info-grid">
+              <div class="info-item">
+                <mat-icon>home</mat-icon>
+                <div class="info-content">
+                  <span class="info-label">Dirección</span>
+                  <span class="info-value">{{ selectedEmployee.address || 'No registrada' }}</span>
+                </div>
+              </div>
+              <div class="info-item">
+                <mat-icon>location_city</mat-icon>
+                <div class="info-content">
+                  <span class="info-label">Distrito</span>
+                  <span class="info-value">{{ selectedEmployee.district }}</span>
+                </div>
+              </div>
+              <div class="info-item">
+                <mat-icon>map</mat-icon>
+                <div class="info-content">
+                  <span class="info-label">Provincia</span>
+                  <span class="info-value">{{ selectedEmployee.province }}</span>
+                </div>
+              </div>
+              <div class="info-item">
+                <mat-icon>public</mat-icon>
+                <div class="info-content">
+                  <span class="info-label">Departamento</span>
+                  <span class="info-value">{{ selectedEmployee.department }}</span>
+                </div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+    <!-- Modal Actions -->
+    <div class="modal-actions">
+      <button mat-raised-button color="primary" (click)="editFromModal()">
+        <mat-icon>edit</mat-icon>
+        Editar
+      </button>
+      <button mat-stroked-button (click)="generateEmployeeReport(selectedEmployee)">
+        <mat-icon>description</mat-icon>
+        Reporte
+      </button>
+      @if (selectedEmployee.status === 'A') {
+        <button mat-stroked-button color="warn" (click)="deleteFromModal()">
+          <mat-icon>block</mat-icon>
+          Desactivar
+        </button>
+      }
+      @if (selectedEmployee.status !== 'A') {
+        <button mat-stroked-button color="primary" (click)="restoreFromModal()">
+          <mat-icon>restore</mat-icon>
+          Reactivar
+        </button>
+      }
+      <button mat-stroked-button (click)="closeDetailModal()">
+        <mat-icon>close</mat-icon>
+        Cerrar
+      </button>
+        </div>
+      </div>
+    }
+  </div>
+}

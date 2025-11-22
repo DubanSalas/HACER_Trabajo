@@ -1,56 +1,35 @@
-// Supplier Interface - Basado en la tabla supplier de Oracle
-export interface Supplier {
-  id_Supplier?: number
-  Company_Name: string
-  Contact_Name: string
-  Phone: string
-  Email: string
-  Address: string
-  Category: string
-  Payment_Terms: string
-  id_Location: number
-  Status: string
-  createdAt?: Date
-  updatedAt?: Date
+export interface SupplierDTO {
+  idSupplier?: number;
+  companyName: string;
+  contactName: string;
+  phone: string;
+  email: string;
+  address: string;
+  category: string;
+  paymentTerms: string;
+  locationId: number;
+  department: string;
+  province: string;
+  district: string;
+  locationAddress: string;
+  status: string;
 }
 
-// Location Interface - Basado en la tabla location de Oracle
-export interface Location {
-  identifier_Location: number
-  department: string
-  province: string
-  district: string
-  address: string
+export interface SupplierRequest {
+  companyName: string;
+  contactName: string;
+  phone: string;
+  email: string;
+  address: string;
+  category: string;
+  paymentTerms: string;
+  locationId: number;
+  status: string;
 }
 
-export interface SupplierResponse {
-  data: Supplier[]
-  total: number
-  page: number
-  pageSize: number
-}
-
-export interface SupplierStats {
-  total: number
-  activos: number
-  inactivos: number
-  suspendidos: number
-}
-
-export interface SupplierCategory {
-  name: string
-  count: number
-}
-
-// Para el formulario
-export interface SupplierFormData {
-  Company_Name: string
-  Contact_Name: string
-  Phone: string
-  Email: string
-  Address: string
-  Category: string
-  Payment_Terms: string
-  id_Location: number
-  Status?: string
+export interface SupplierSummary {
+  totalSuppliers: number;
+  activeSuppliers: number;
+  inactiveSuppliers: number;
+  suspendedSuppliers: number;
 }

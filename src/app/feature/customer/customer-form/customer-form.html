@@ -1,200 +1,287 @@
-<div class="modal-overlay" (click)="onCancel()">
-  <div class="modal-container" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h2>{{ isEditMode ? 'Editar Cliente' : 'Nuevo Cliente' }}</h2>
-      <button mat-icon-button (click)="onCancel()" class="close-btn">
-        <mat-icon>close</mat-icon>
-      </button>
-    </div>
+<div class="customer-form-container">
+  <!-- Header -->
+  <div class="page-header">
+    <mat-card class="header-card">
+      <mat-card-content>
+        <div class="header-content">
+          <div class="title-section">
+            <h1 class="page-title">
+              <mat-icon class="title-icon">{{ isEditMode ? 'edit' : 'person_add' }}</mat-icon>
+              {{ isEditMode ? 'Editar Cliente' : 'Nuevo Cliente' }}
+            </h1>
+            <p class="page-subtitle">
+              {{ isEditMode ? 'Modifica los datos del cliente' : 'Registra un nuevo cliente en el sistema' }}
+            </p>
+          </div>
+          <div class="header-actions">
+            <button 
+              mat-stroked-button 
+              color="warn"
+              (click)="onCancel()"
+              [disabled]="loading">
+              <mat-icon>arrow_back</mat-icon>
+              Volver
+            </button>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
 
-    <form [formGroup]="customerForm" (ngSubmit)="onSubmit()" class="customer-form">
-      <div class="form-content">
-        <!-- Basic Information -->
-        <div class="form-section">
-          <div class="form-row">
-            <div class="form-group">
-              <label for="clientCode">Código Cliente <span class="required">*</span></label>
-              <input 
-                matInput 
-                type="text" 
-                formControlName="clientCode"
-                (blur)="onClientCodeChange()"
-                [class.error]="isFieldInvalid('clientCode')"
-                readonly>
-              <div *ngIf="isFieldInvalid('clientCode')" class="error-message">
-                {{ getFieldError('clientCode') }}
-              </div>
+  <!-- Loading -->
+  <div *ngIf="loading && isEditMode" class="loading-container">
+    <mat-card>
+      <mat-card-content>
+        <div class="loading-content">
+          <mat-spinner diameter="50"></mat-spinner>
+          <p>Cargando datos del cliente...</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Form -->
+  <div *ngIf="!loading || !isEditMode" class="form-section">
+    <form [formGroup]="customerForm" (ngSubmit)="onSubmit()">
+      <mat-card class="form-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>info</mat-icon>
+            Información Personal
+          </mat-card-title>
+          <mat-card-subtitle>
+            Datos básicos del cliente
+          </mat-card-subtitle>
+        </mat-card-header>
+        
+        <mat-card-content>
+          <div class="form-grid">
+            <!-- Código de Cliente - Campo oculto, se genera automáticamente en el backend -->
+            <div class="auto-generated-info">
+              <mat-icon>info</mat-icon>
+              <span>El código de cliente se generará automáticamente</span>
             </div>
 
-            <div class="form-group">
-              <label for="documentType">Tipo de Documento <span class="required">*</span></label>
-              <mat-select 
-                formControlName="documentType" 
-                [class.error]="isFieldInvalid('documentType')">
+            <!-- Tipo de Documento -->
+            <mat-form-field appearance="outline">
+              <mat-label>Tipo de Documento</mat-label>
+              <mat-select formControlName="documentType">
                 <mat-option *ngFor="let type of documentTypes" [value]="type.value">
                   {{ type.label }}
                 </mat-option>
               </mat-select>
-              <div *ngIf="isFieldInvalid('documentType')" class="error-message">
-                {{ getFieldError('documentType') }}
-              </div>
-            </div>
-          </div>
+              <mat-icon matPrefix>description</mat-icon>
+            </mat-form-field>
 
-          <div class="form-row">
-            <div class="form-group">
-              <label for="documentNumber">Número de Documento <span class="required">*</span></label>
+            <!-- Número de Documento -->
+            <mat-form-field appearance="outline">
+              <mat-label>Número de Documento</mat-label>
               <input 
                 matInput 
-                type="text" 
                 formControlName="documentNumber"
-                (blur)="onDocumentNumberChange()"
-                [class.error]="isFieldInvalid('documentNumber')">
-              <div *ngIf="isFieldInvalid('documentNumber')" class="error-message">
-                {{ getFieldError('documentNumber') }}
-              </div>
-            </div>
+                [placeholder]="getDocumentPlaceholder()"
+                [maxlength]="getDocumentMaxLength()">
+              <mat-icon matPrefix>fingerprint</mat-icon>
+              <mat-hint>{{ getDocumentHint() }}</mat-hint>
+              <mat-error *ngIf="isFieldInvalid('documentNumber')">
+                {{ getErrorMessage('documentNumber') }}
+              </mat-error>
+            </mat-form-field>
 
-            <div class="form-group">
-              <label for="dateBirth">Fecha de Nacimiento <span class="required">*</span></label>
+            <!-- Nombres -->
+            <mat-form-field appearance="outline">
+              <mat-label>Nombres *</mat-label>
               <input 
                 matInput 
-                type="date" 
-                formControlName="dateBirth"
-                [class.error]="isFieldInvalid('dateBirth')">
-              <div *ngIf="isFieldInvalid('dateBirth')" class="error-message">
-                {{ getFieldError('dateBirth') }}
-              </div>
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="name">Nombre <span class="required">*</span></label>
-              <input 
-                matInput 
-                type="text" 
                 formControlName="name"
-                [class.error]="isFieldInvalid('name')">
-              <div *ngIf="isFieldInvalid('name')" class="error-message">
-                {{ getFieldError('name') }}
-              </div>
-            </div>
+                placeholder="Ej: Juan Carlos">
+              <mat-icon matPrefix>person</mat-icon>
+              <mat-hint>Solo letras y espacios simples</mat-hint>
+              <mat-error *ngIf="isFieldInvalid('name')">
+                {{ getErrorMessage('name') }}
+              </mat-error>
+            </mat-form-field>
 
-            <div class="form-group">
-              <label for="surname">Apellido <span class="required">*</span></label>
+            <!-- Apellidos -->
+            <mat-form-field appearance="outline">
+              <mat-label>Apellidos *</mat-label>
               <input 
                 matInput 
-                type="text" 
                 formControlName="surname"
-                [class.error]="isFieldInvalid('surname')">
-              <div *ngIf="isFieldInvalid('surname')" class="error-message">
-                {{ getFieldError('surname') }}
-              </div>
-            </div>
-          </div>
+                placeholder="Ej: García López">
+              <mat-icon matPrefix>person_outline</mat-icon>
+              <mat-hint>Solo letras y espacios simples</mat-hint>
+              <mat-error *ngIf="isFieldInvalid('surname')">
+                {{ getErrorMessage('surname') }}
+              </mat-error>
+            </mat-form-field>
 
-          <div class="form-row">
-            <div class="form-group">
-              <label for="phone">Teléfono <span class="required">*</span></label>
+            <!-- Fecha de Nacimiento -->
+            <mat-form-field appearance="outline">
+              <mat-label>Fecha de Nacimiento *</mat-label>
               <input 
                 matInput 
-                type="tel" 
+                [matDatepicker]="birthDatePicker"
+                formControlName="dateBirth"
+                readonly>
+              <mat-datepicker-toggle matIconSuffix [for]="birthDatePicker"></mat-datepicker-toggle>
+              <mat-datepicker #birthDatePicker></mat-datepicker>
+              <mat-icon matPrefix>cake</mat-icon>
+              <mat-hint>Debe ser mayor de 18 años</mat-hint>
+              <mat-error *ngIf="isFieldInvalid('dateBirth')">
+                {{ getErrorMessage('dateBirth') }}
+              </mat-error>
+            </mat-form-field>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Información de Contacto -->
+      <mat-card class="form-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>contact_phone</mat-icon>
+            Información de Contacto
+          </mat-card-title>
+          <mat-card-subtitle>
+            Datos de comunicación
+          </mat-card-subtitle>
+        </mat-card-header>
+        
+        <mat-card-content>
+          <div class="form-grid">
+            <!-- Teléfono -->
+            <mat-form-field appearance="outline">
+              <mat-label>Teléfono *</mat-label>
+              <input 
+                matInput 
                 formControlName="phone"
-                placeholder="987654321"
-                [class.error]="isFieldInvalid('phone')">
-              <div *ngIf="isFieldInvalid('phone')" class="error-message">
-                {{ getFieldError('phone') }}
-              </div>
-            </div>
+                placeholder="Ej: 987654321"
+                maxlength="9"
+                type="tel">
+              <mat-icon matPrefix>phone</mat-icon>
+              <mat-hint>Debe comenzar con 9 y tener 9 dígitos</mat-hint>
+              <mat-error *ngIf="isFieldInvalid('phone')">
+                {{ getErrorMessage('phone') }}
+              </mat-error>
+            </mat-form-field>
 
-            <div class="form-group">
-              <label for="email">Email <span class="required">*</span></label>
+            <!-- Email -->
+            <mat-form-field appearance="outline">
+              <mat-label>Correo Electrónico</mat-label>
               <input 
                 matInput 
-                type="email" 
                 formControlName="email"
-                (blur)="onEmailChange()"
-                [class.error]="isFieldInvalid('email')">
-              <div *ngIf="isFieldInvalid('email')" class="error-message">
-                {{ getFieldError('email') }}
-              </div>
-            </div>
+                placeholder="Ej: cliente@email.com"
+                type="email">
+              <mat-icon matPrefix>email</mat-icon>
+              <mat-error *ngIf="isFieldInvalid('email')">
+                {{ getErrorMessage('email') }}
+              </mat-error>
+            </mat-form-field>
+
+
           </div>
+        </mat-card-content>
+      </mat-card>
 
-          <!-- Location Information -->
-          <div class="form-row">
-            <div class="form-group">
-              <label for="department">Departamento <span class="required">*</span></label>
+      <!-- Información de Ubicación -->
+      <mat-card class="form-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>place</mat-icon>
+            Información de Ubicación
+          </mat-card-title>
+          <mat-card-subtitle>
+            Dirección y ubicación del cliente
+          </mat-card-subtitle>
+        </mat-card-header>
+        
+        <mat-card-content>
+          <div class="form-grid">
+            <!-- Dirección -->
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Dirección</mat-label>
               <input 
                 matInput 
-                type="text" 
-                formControlName="department"
-                placeholder="Lima"
-                [class.error]="isFieldInvalid('department')">
-              <div *ngIf="isFieldInvalid('department')" class="error-message">
-                {{ getFieldError('department') }}
-              </div>
-            </div>
+                formControlName="address"
+                placeholder="Ej: Av. Javier Prado 123, Dpto. 501">
+              <mat-icon matPrefix>home</mat-icon>
+              <mat-error *ngIf="isFieldInvalid('address')">
+                {{ getErrorMessage('address') }}
+              </mat-error>
+            </mat-form-field>
 
-            <div class="form-group">
-              <label for="province">Provincia <span class="required">*</span></label>
-              <input 
-                matInput 
-                type="text" 
-                formControlName="province"
-                placeholder="Lima"
-                [class.error]="isFieldInvalid('province')">
-              <div *ngIf="isFieldInvalid('province')" class="error-message">
-                {{ getFieldError('province') }}
-              </div>
-            </div>
+            <!-- Departamento -->
+            <mat-form-field appearance="outline">
+              <mat-label>Departamento</mat-label>
+              <mat-select formControlName="department" (selectionChange)="onDepartmentChange()">
+                <mat-option *ngFor="let dept of departments" [value]="dept">
+                  {{ dept }}
+                </mat-option>
+              </mat-select>
+              <mat-icon matPrefix>public</mat-icon>
+              <mat-error *ngIf="isFieldInvalid('department')">
+                {{ getErrorMessage('department') }}
+              </mat-error>
+            </mat-form-field>
+
+            <!-- Provincia -->
+            <mat-form-field appearance="outline">
+              <mat-label>Provincia</mat-label>
+              <mat-select formControlName="province" (selectionChange)="onProvinceChange()">
+                <mat-option *ngFor="let prov of availableProvinces" [value]="prov">
+                  {{ prov }}
+                </mat-option>
+              </mat-select>
+              <mat-icon matPrefix>map</mat-icon>
+              <mat-error *ngIf="isFieldInvalid('province')">
+                {{ getErrorMessage('province') }}
+              </mat-error>
+            </mat-form-field>
+
+            <!-- Distrito -->
+            <mat-form-field appearance="outline">
+              <mat-label>Distrito</mat-label>
+              <mat-select formControlName="district">
+                <mat-option *ngFor="let dist of availableDistricts" [value]="dist">
+                  {{ dist }}
+                </mat-option>
+              </mat-select>
+              <mat-icon matPrefix>location_city</mat-icon>
+              <mat-error *ngIf="isFieldInvalid('district')">
+                {{ getErrorMessage('district') }}
+              </mat-error>
+            </mat-form-field>
           </div>
+        </mat-card-content>
+      </mat-card>
 
-          <div class="form-row">
-            <div class="form-group">
-              <label for="district">Distrito <span class="required">*</span></label>
-              <input 
-                matInput 
-                type="text" 
-                formControlName="district"
-                placeholder="San Vicente"
-                [class.error]="isFieldInvalid('district')">
-              <div *ngIf="isFieldInvalid('district')" class="error-message">
-                {{ getFieldError('district') }}
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label for="locationAddress">Dirección <span class="required">*</span></label>
-              <input 
-                matInput 
-                type="text" 
-                formControlName="locationAddress"
-                placeholder="Av. Principal 123"
-                [class.error]="isFieldInvalid('locationAddress')">
-              <div *ngIf="isFieldInvalid('locationAddress')" class="error-message">
-                {{ getFieldError('locationAddress') }}
-              </div>
-            </div>
+      <!-- Actions -->
+      <mat-card class="actions-card">
+        <mat-card-content>
+          <div class="form-actions">
+            <button 
+              mat-stroked-button 
+              type="button"
+              (click)="onCancel()"
+              [disabled]="loading">
+              <mat-icon>cancel</mat-icon>
+              Cancelar
+            </button>
+            
+            <button 
+              mat-raised-button 
+              color="primary"
+              type="submit"
+              [disabled]="customerForm.invalid || loading"
+              class="submit-btn">
+              <mat-icon>{{ loading ? 'hourglass_empty' : 'save' }}</mat-icon>
+              {{ loading ? 'Guardando...' : (isEditMode ? 'Actualizar' : 'Guardar') }}
+            </button>
           </div>
-        </div>
-      </div>
-
-      <!-- Form Actions -->
-      <div class="form-actions">
-        <button type="button" mat-button (click)="onCancel()" class="cancel-btn">
-          Cancelar
-        </button>
-        <button 
-          type="submit" 
-          mat-raised-button 
-          [disabled]="!customerForm.valid || loading"
-          class="submit-btn">
-          <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
-          <span *ngIf="!loading">{{ isEditMode ? 'Actualizar Cliente' : 'Crear Cliente' }}</span>
-        </button>
-      </div>
+        </mat-card-content>
+      </mat-card>
     </form>
   </div>
 </div>

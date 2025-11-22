@@ -1,207 +1,279 @@
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 20px;
+// Paleta de colores profesional de panadería
+$bakery-primary: #d4a574;
+$bakery-secondary: #8b6f47;
+$bakery-accent: #f4e4c1;
+$bakery-dark: #5d4e37;
+$bakery-light: #faf6f0;
+$bakery-success: #7cb342;
+$bakery-warning: #ff8f00;
+$bakery-danger: #d32f2f;
 
-  .modal-container {
-    background: #7c1d3b;
-    border-radius: 16px;
-    width: 100%;
-    max-width: 800px;
-    max-height: 90vh;
-    overflow: hidden;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+.store-form-container {
+  padding: 1.5rem;
+  background: linear-gradient(135deg, $bakery-light 0%, #fff8f0 100%);
+  min-height: 100vh;
 
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 24px 32px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-
-      h2 {
-        color: white;
-        font-size: 24px;
-        font-weight: 600;
-        margin: 0;
-      }
-
-      .close-btn {
-        color: white;
+  // Header
+  .page-header {
+    margin-bottom: 2rem;
+    
+    .header-card {
+      background: linear-gradient(135deg, rgba(212, 165, 116, 0.15) 0%, rgba(244, 228, 193, 0.25) 100%) !important;
+      border: 1px solid rgba(212, 165, 116, 0.3);
+      box-shadow: 0 4px 20px rgba(93, 78, 55, 0.1) !important;
+      border-radius: 16px !important;
+      
+      .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
         
-        &:hover {
-          background-color: rgba(255, 255, 255, 0.1);
+        .title-section {
+          .page-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 2rem;
+            font-weight: 700;
+            color: $bakery-dark;
+            margin: 0 0 0.5rem 0;
+            
+            .title-icon {
+              font-size: 2.5rem;
+              color: $bakery-primary;
+            }
+          }
+          
+          .page-subtitle {
+            color: $bakery-secondary;
+            font-size: 1.1rem;
+            margin: 0;
+          }
+        }
+        
+        .header-actions {
+          display: flex;
+          gap: 1rem;
+        }
+      }
+    }
+  }
+
+  // Form Section
+  .form-section {
+    .form-card {
+      margin-bottom: 2rem;
+      border-radius: 16px !important;
+      box-shadow: 0 4px 16px rgba(93, 78, 55, 0.08) !important;
+      border: 1px solid rgba(212, 165, 116, 0.1);
+      background: white;
+      
+      .mat-mdc-card-header {
+        background: linear-gradient(135deg, rgba(244, 228, 193, 0.3) 0%, rgba(250, 246, 240, 0.5) 100%);
+        border-radius: 16px 16px 0 0;
+        border-bottom: 2px solid rgba(212, 165, 116, 0.15);
+        
+        .mat-mdc-card-title {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-size: 1.3rem;
+          font-weight: 600;
+          color: $bakery-dark;
+          
+          mat-icon {
+            color: $bakery-primary;
+          }
+        }
+        
+        .mat-mdc-card-subtitle {
+          color: $bakery-secondary;
+          margin-top: 0.25rem;
+        }
+      }
+      
+      .mat-mdc-card-content {
+        padding: 2rem !important;
+      }
+    }
+
+    // Form Grid
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      
+      .full-width {
+        grid-column: 1 / -1;
+      }
+    }
+
+    // Form Fields
+    .mat-mdc-form-field {
+      width: 100%;
+      
+      &.mat-form-field-appearance-outline {
+        .mat-mdc-form-field-outline {
+          color: rgba(212, 165, 116, 0.3);
+        }
+        
+        &.mat-focused .mat-mdc-form-field-outline-thick {
+          color: $bakery-primary;
+        }
+        
+        .mat-mdc-form-field-icon-prefix {
+          color: $bakery-primary;
+          margin-right: 0.75rem;
+        }
+      }
+      
+      .mat-mdc-form-field-label {
+        color: #666;
+      }
+      
+      &.mat-focused .mat-mdc-form-field-label {
+        color: $bakery-primary;
+      }
+    }
+
+    // Stock Indicators
+    .stock-indicators {
+      margin-top: 2rem;
+      padding-top: 2rem;
+      border-top: 1px solid rgba(0, 0, 0, 0.06);
+      
+      .indicator-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        
+        .stock-card {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          padding: 1rem;
+          border-radius: 12px;
+          transition: all 0.3s ease;
+          
+          &.current-stock {
+            background: linear-gradient(135deg, rgba(212, 165, 116, 0.15) 0%, rgba(244, 228, 193, 0.25) 100%);
+            border: 1px solid rgba(212, 165, 116, 0.3);
+            
+            mat-icon {
+              color: $bakery-primary;
+              font-size: 2rem;
+            }
+          }
+          
+          &.minimum-stock {
+            background: linear-gradient(135deg, rgba(139, 111, 71, 0.1) 0%, rgba(93, 78, 55, 0.15) 100%);
+            border: 1px solid rgba(139, 111, 71, 0.3);
+            
+            mat-icon {
+              color: $bakery-secondary;
+              font-size: 2rem;
+            }
+          }
+          
+          &.status-critical {
+            background: linear-gradient(135deg, rgba(211, 47, 47, 0.1) 0%, rgba(211, 47, 47, 0.05) 100%);
+            border: 1px solid rgba(211, 47, 47, 0.3);
+            
+            mat-icon {
+              color: $bakery-danger;
+              font-size: 2rem;
+            }
+          }
+          
+          &.status-normal {
+            background: linear-gradient(135deg, rgba(124, 179, 66, 0.1) 0%, rgba(124, 179, 66, 0.05) 100%);
+            border: 1px solid rgba(124, 179, 66, 0.3);
+            
+            mat-icon {
+              color: $bakery-success;
+              font-size: 2rem;
+            }
+          }
+          
+          .stock-info {
+            display: flex;
+            flex-direction: column;
+            
+            .stock-label {
+              font-size: 0.85rem;
+              color: #666;
+              font-weight: 500;
+            }
+            
+            .stock-value {
+              font-size: 1.2rem;
+              font-weight: 600;
+              color: #333;
+            }
+          }
         }
       }
     }
 
-    .store-form {
-      .form-content {
-        background: white;
-        padding: 32px;
-        max-height: calc(90vh - 200px);
-        overflow-y: auto;
-
-        .form-section {
-          .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 24px;
-            margin-bottom: 24px;
-
-            &:last-child {
-              margin-bottom: 0;
-            }
-
-            .form-group {
-              display: flex;
-              flex-direction: column;
-
-              &.full-width {
-                grid-column: 1 / -1;
-              }
-
-              label {
-                font-weight: 600;
-                color: #2c3e50;
-                margin-bottom: 8px;
-                font-size: 14px;
-
-                .required {
-                  color: #dc3545;
-                }
-              }
-
-              mat-select,
-              input {
-                border: 2px solid #e9ecef;
-                border-radius: 8px;
-                padding: 12px 16px;
-                font-size: 16px;
-                transition: border-color 0.2s ease;
-
-                &:focus {
-                  border-color: #7c1d3b;
-                  outline: none;
-                }
-
-                &.error {
-                  border-color: #dc3545;
-                }
-              }
-
-              mat-select {
-                ::ng-deep {
-                  .mat-mdc-select-value {
-                    color: #495057;
-                  }
-
-                  .mat-mdc-select-placeholder {
-                    color: #6c757d;
-                  }
-
-                  .mat-mdc-select-arrow {
-                    color: #6c757d;
-                  }
-                }
-              }
-
-              input {
-                &::placeholder {
-                  color: #6c757d;
-                }
-
-                &:disabled {
-                  background-color: #f8f9fa;
-                  color: #6c757d;
-                  cursor: not-allowed;
-                }
-              }
-
-              .total-value {
-                display: flex;
-                align-items: center;
-                height: 48px;
-                padding: 12px 16px;
-                background-color: #f8f9fa;
-                border: 2px solid #e9ecef;
-                border-radius: 8px;
-                font-size: 18px;
-                font-weight: 700;
-                color: #28a745;
-              }
-
-              .error-message {
-                color: #dc3545;
-                font-size: 12px;
-                margin-top: 4px;
-              }
-            }
-          }
-
-          // Specific grid layouts for different rows
-          .form-row:nth-child(2) {
-            grid-template-columns: 1fr 1fr 1fr;
-          }
-
-          .form-row:nth-child(3) {
-            grid-template-columns: 1fr 1fr;
-          }
-        }
+    // Stock Alert
+    .stock-alert {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      
+      &.alert-danger {
+        background: linear-gradient(135deg, rgba(211, 47, 47, 0.1) 0%, rgba(211, 47, 47, 0.05) 100%);
+        border: 1px solid rgba(211, 47, 47, 0.3);
+        color: $bakery-danger;
       }
+      
+      &.alert-warning {
+        background: linear-gradient(135deg, rgba(255, 143, 0, 0.1) 0%, rgba(255, 143, 0, 0.05) 100%);
+        border: 1px solid rgba(255, 143, 0, 0.3);
+        color: $bakery-warning;
+      }
+      
+      &.alert-info {
+        background: linear-gradient(135deg, rgba(124, 179, 66, 0.1) 0%, rgba(124, 179, 66, 0.05) 100%);
+        border: 1px solid rgba(124, 179, 66, 0.3);
+        color: $bakery-success;
+      }
+      
+      mat-icon {
+        font-size: 1.5rem;
+      }
+      
+      span {
+        font-weight: 500;
+      }
+    }
 
+    // Actions Card
+    .actions-card {
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+      border-radius: 12px !important;
+      
       .form-actions {
         display: flex;
         justify-content: flex-end;
-        gap: 16px;
-        padding: 24px 32px;
-        background-color: #f8f9fa;
-        border-top: 1px solid #e9ecef;
-
-        .cancel-btn {
-          color: #6c757d;
-          border: 1px solid #6c757d;
-          padding: 12px 24px;
-          border-radius: 8px;
-
-          &:hover {
-            background-color: #6c757d;
-            color: white;
+        gap: 1rem;
+        padding: 1rem 0;
+        
+        button {
+          min-width: 120px;
+          height: 48px;
+          font-weight: 600;
+          
+          &.submit-btn {
+            background: linear-gradient(135deg, $bakery-primary 0%, $bakery-secondary 100%) !important;
+            color: white !important;
           }
-        }
-
-        .submit-btn {
-          background-color: #7c1d3b;
-          color: white;
-          padding: 12px 24px;
-          border-radius: 8px;
-          min-width: 140px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-
-          &:hover:not(:disabled) {
-            background-color: #6a1830;
-          }
-
-          &:disabled {
-            background-color: #6c757d;
-            cursor: not-allowed;
-          }
-
-          mat-spinner {
-            ::ng-deep circle {
-              stroke: white;
-            }
+          
+          mat-icon {
+            margin-right: 0.5rem;
           }
         }
       }
@@ -209,140 +281,37 @@
   }
 }
 
-// Responsive Design
-@media (max-width: 768px) {
-  .modal-overlay {
-    padding: 10px;
-
-    .modal-container {
-      max-width: 100%;
-      max-height: 95vh;
-
-      .modal-header {
-        padding: 16px 20px;
-
-        h2 {
-          font-size: 20px;
-        }
-      }
-
-      .store-form {
-        .form-content {
-          padding: 20px;
-
-          .form-section {
-            .form-row {
-              grid-template-columns: 1fr;
-              gap: 16px;
-
-              // Override specific layouts for mobile
-              &:nth-child(2) {
-                grid-template-columns: 1fr;
-              }
-
-              &:nth-child(3) {
-                grid-template-columns: 1fr;
-              }
-
-              .form-group {
-                &.full-width {
-                  grid-column: 1;
-                }
-              }
-            }
-          }
-        }
-
-        .form-actions {
-          padding: 16px 20px;
-          flex-direction: column;
-
-          .cancel-btn,
-          .submit-btn {
-            width: 100%;
-          }
-        }
-      }
-    }
-  }
+// Custom styles for select
+.mat-mdc-select-arrow {
+  color: $bakery-primary;
 }
 
-@media (max-width: 480px) {
-  .modal-overlay {
-    padding: 5px;
-
-    .modal-container {
-      .store-form {
-        .form-content {
-          padding: 16px;
-        }
-
-        .form-actions {
-          padding: 12px 16px;
-        }
-      }
-    }
-  }
-}
-
-// Custom scrollbar
-.form-content {
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 3px;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 3px;
-
-    &:hover {
-      background: #a8a8a8;
-    }
-  }
-}
-
-// Form validation styles
-.form-group {
-  mat-select.error {
-    ::ng-deep {
-      .mat-mdc-select-value {
-        color: #dc3545;
-      }
-      
-      .mat-mdc-form-field-outline {
-        border-color: #dc3545 !important;
-      }
-    }
-  }
-
-  input.error {
-    border-color: #dc3545 !important;
-    
-    &:focus {
-      border-color: #dc3545 !important;
-      box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
-    }
-  }
+// Custom styles for date picker
+.mat-datepicker-toggle {
+  color: $bakery-primary;
 }
 
 // Success states
-.form-group {
-  input:valid:not(:placeholder-shown) {
-    border-color: #28a745;
+.mat-mdc-form-field.mat-form-field-valid {
+  .mat-mdc-form-field-outline-thick {
+    color: $bakery-success;
   }
 }
 
-// Focus states
-.form-group {
-  mat-select:focus-within {
-    ::ng-deep {
-      .mat-mdc-form-field-outline {
-        border-color: #7c1d3b !important;
+// Responsive
+@media (max-width: 768px) {
+  .store-form-container {
+    padding: 1rem;
+    
+    .form-section {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .stock-indicators {
+        .indicator-grid {
+          grid-template-columns: 1fr;
+        }
       }
     }
   }

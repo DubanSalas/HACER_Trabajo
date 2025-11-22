@@ -1,137 +1,271 @@
-import { Component, inject, OnInit } from "@angular/core"
-import { CommonModule } from "@angular/common"
-import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms"
-import { MatButtonModule } from "@angular/material/button"
-import { MatIconModule } from "@angular/material/icon"
-import { MatInputModule } from "@angular/material/input"
-import { MatSelectModule } from "@angular/material/select"
-import { MatDialogRef, MAT_DIALOG_DATA } from "@angular/material/dialog"
-import { MatDatepickerModule } from "@angular/material/datepicker"
-import { MatNativeDateModule } from "@angular/material/core"
-import { EmployeesService } from "../../../core/services/employees.service"
-import { Employee, Position, Location, EmployeeFormData } from "../../../core/interfaces/employees-interfaces"
-import Swal from 'sweetalert2'
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router, ActivatedRoute } from '@angular/router';
+import { MaterialModule } from '../../../shared/material.module';
+import { EmployeesService } from '../../../core/services/employees.service';
+import { NotificationService } from '../../../core/services/notification.service';
+import { CustomValidators } from '../../../shared/validators/custom-validators';
 
 @Component({
-  selector: "app-employee-form",
+  selector: 'app-employees-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatButtonModule, MatIconModule, MatInputModule, MatSelectModule, MatDatepickerModule, MatNativeDateModule],
-  templateUrl: "./employees-form.html",
-  styleUrls: ["./employees-form.scss"],
+  imports: [CommonModule, ReactiveFormsModule, MaterialModule],
+  templateUrl: './employees-form.html',
+  styleUrls: ['./employees-form.scss']
 })
-export class EmployeeForm implements OnInit {
-  private fb = inject(FormBuilder)
-  private dialogRef = inject(MatDialogRef<EmployeeForm>)
-  private data = inject(MAT_DIALOG_DATA)
-  private employeesService = inject(EmployeesService)
+export class EmployeesFormComponent implements OnInit {
+  employeeForm: FormGroup;
+  isEditMode = false;
+  employeeId: number | null = null;
+  loading = false;
+  submitting = false;
 
-  form = this.fb.group({
-    Employee_Code: ["", Validators.required],
-    Document_Type: ["", Validators.required],
-    Document_Number: ["", [Validators.required, Validators.pattern(/^\d{8}$/)]],
-    Name: ["", Validators.required],
-    Surname: ["", Validators.required],
-    Hire_Date: [new Date(), Validators.required],
-    Phone: ["", [Validators.required, Validators.pattern(/^\d{9}$/)]],
-    id_Location: [null as number | null, Validators.required],
-    Salary: [0, [Validators.required, Validators.min(1)]],
-    Email: ["", [Validators.required, Validators.email]],
-    id_Position: [null as number | null, Validators.required]
-  })
+  positions = [
+    'Gerente',
+    'Panadero',
+    'Repostero',
+    'Cajero',
+    'Vendedor',
+    'Ayudante',
+    'Limpieza',
+    'Seguridad'
+  ];
 
-  documentTypes = [
-    "DNI", 
-    "CEX", 
-    "PAS"
-  ]
-
-  positions: Position[] = []
-  locations: Location[] = []
-  employee: Employee | null = null
-  isEditMode = false
+  constructor(
+    private fb: FormBuilder,
+    private employeesService: EmployeesService,
+    private router: Router,
+    private route: ActivatedRoute,
+    private notificationService: NotificationService
+  ) {
+    this.employeeForm = this.createForm();
+  }
 
   ngOnInit(): void {
-    if (this.data) {
-      this.positions = this.data.positions || []
-      this.locations = this.data.locations || []
-      this.employee = this.data.employee || null
-      this.isEditMode = !!this.employee
-
-      if (this.employee) {
-        this.form.patchValue({
-          Employee_Code: this.employee.Employee_Code,
-          Document_Type: this.employee.Document_Type,
-          Document_Number: this.employee.Document_Number,
-          Name: this.employee.Name,
-          Surname: this.employee.Surname,
-          Hire_Date: new Date(this.employee.Hire_Date),
-          Phone: this.employee.Phone,
-          id_Location: this.employee.id_Location,
-          Salary: this.employee.Salary,
-          Email: this.employee.Email,
-          id_Position: this.employee.id_Position
-        })
+    this.route.params.subscribe(params => {
+      if (params['id']) {
+        this.isEditMode = true;
+        this.employeeId = +params['id'];
+        this.loadEmployee();
       }
-    }
+    });
   }
 
-  getLocationDisplay(location: Location): string {
-    return `${location.district}, ${location.province}, ${location.department}`
+  createForm(): FormGroup {
+    return this.fb.group({
+      name: ['', [
+        Validators.required, 
+        Validators.minLength(2), 
+        Validators.maxLength(50),
+        CustomValidators.name(),
+        CustomValidators.noMultipleSpaces()
+      ]],
+      surname: ['', [
+        Validators.required, 
+        Validators.minLength(2), 
+        Validators.maxLength(50),
+        CustomValidators.name(),
+        CustomValidators.noMultipleSpaces()
+      ]],
+      dni: ['', [
+        Validators.required, 
+        CustomValidators.dni()
+      ]],
+      phone: ['', [
+        Validators.required, 
+        CustomValidators.phone()
+      ]],
+      email: ['', [
+        Validators.required, 
+        CustomValidators.email()
+      ]],
+      address: ['', [
+        Validators.required, 
+        Validators.minLength(10), 
+        Validators.maxLength(200)
+      ]],
+      positionName: ['', Validators.required],
+      salary: ['', [
+        Validators.required, 
+        CustomValidators.price(),
+        Validators.min(1025) // Salario mínimo en Perú
+      ]],
+      hireDate: ['', [
+        Validators.required,
+        CustomValidators.hireDate()
+      ]],
+      status: ['A', Validators.required]
+    });
   }
 
-  getPositionDisplay(position: Position): string {
-    return position.Position_Name
-  }
-
-  onCancel(): void {
-    this.dialogRef.close()
+  loadEmployee(): void {
+    if (!this.employeeId) return;
+    
+    this.loading = true;
+    this.employeesService.getById(this.employeeId).subscribe({
+      next: (employee: any) => {
+        this.employeeForm.patchValue({
+          name: employee.name,
+          surname: employee.surname,
+          dni: employee.dni,
+          phone: employee.phone,
+          email: employee.email,
+          address: employee.address,
+          positionName: employee.position?.positionName || employee.positionName,
+          salary: employee.salary,
+          hireDate: employee.hireDate,
+          status: employee.status
+        });
+        this.loading = false;
+      },
+      error: (error: any) => {
+        console.error('Error loading employee:', error);
+        this.loading = false;
+        this.router.navigate(['/employees']);
+      }
+    });
   }
 
   onSubmit(): void {
-    if (this.form.valid) {
-      const formData: EmployeeFormData = {
-        Employee_Code: this.form.value.Employee_Code!,
-        Document_Type: this.form.value.Document_Type!,
-        Document_Number: this.form.value.Document_Number!,
-        Name: this.form.value.Name!,
-        Surname: this.form.value.Surname!,
-        Hire_Date: this.form.value.Hire_Date!,
-        Phone: this.form.value.Phone!,
-        id_Location: this.form.value.id_Location!,
-        Salary: this.form.value.Salary!,
-        Email: this.form.value.Email!,
-        id_Position: this.form.value.id_Position!,
-        Status: 'A'
-      }
+    if (this.employeeForm.valid) {
+      this.submitting = true;
+      const employeeData = this.employeeForm.value;
+      const employeeName = `${employeeData.name} ${employeeData.surname}`;
 
-      if (this.isEditMode && this.employee?.id_Employee) {
-        this.employeesService.updateEmployee(this.employee.id_Employee, formData).subscribe({
-          next: () => {
-            Swal.fire('Éxito', 'Empleado actualizado correctamente', 'success')
-            this.dialogRef.close(true)
-          },
-          error: (error) => {
-            console.error('Error updating employee:', error)
-            Swal.fire('Error', 'No se pudo actualizar el empleado', 'error')
+      const operation = this.isEditMode
+        ? this.employeesService.update(this.employeeId!, employeeData)
+        : this.employeesService.create(employeeData);
+
+      operation.subscribe({
+        next: () => {
+          this.submitting = false;
+          
+          if (this.isEditMode) {
+            this.notificationService.employeeUpdated(employeeName);
+          } else {
+            this.notificationService.employeeCreated(employeeName);
           }
-        })
-      } else {
-        this.employeesService.createEmployee(formData).subscribe({
-          next: () => {
-            Swal.fire('Éxito', 'Empleado creado correctamente', 'success')
-            this.dialogRef.close(true)
-          },
-          error: (error) => {
-            console.error('Error creating employee:', error)
-            Swal.fire('Error', 'No se pudo crear el empleado', 'error')
-          }
-        })
-      }
+          
+          this.router.navigate(['/employees']);
+        },
+        error: (error: any) => {
+          console.error('Error saving employee:', error);
+          this.submitting = false;
+          
+          const operation = this.isEditMode ? 'actualizar' : 'crear';
+          this.notificationService.operationError(operation, 'empleado', error.error?.message);
+        }
+      });
     } else {
-      // Marcar todos los campos como touched para mostrar errores
-      Object.keys(this.form.controls).forEach(key => {
-        this.form.get(key)?.markAsTouched()
-      })
+      this.notificationService.validationError('Por favor, completa todos los campos requeridos correctamente.');
+      this.markFormGroupTouched();
     }
+  }
+
+  onCancel(): void {
+    this.router.navigate(['/employees']);
+  }
+
+  generateEmployeeCode(): string {
+    const timestamp = Date.now().toString().slice(-4);
+    return `EMP${timestamp}`;
+  }
+
+  getErrorMessage(fieldName: string): string {
+    const field = this.employeeForm.get(fieldName);
+    if (!field) return '';
+    
+    if (field.hasError('required')) {
+      return 'Este campo es requerido';
+    }
+    if (field.hasError('invalidName')) {
+      return field.errors?.['invalidName'];
+    }
+    if (field.hasError('multipleSpaces')) {
+      return field.errors?.['multipleSpaces'];
+    }
+    if (field.hasError('invalidDni')) {
+      return field.errors?.['invalidDni'];
+    }
+    if (field.hasError('invalidPhone')) {
+      return field.errors?.['invalidPhone'];
+    }
+    if (field.hasError('invalidEmail')) {
+      return field.errors?.['invalidEmail'];
+    }
+    if (field.hasError('email')) {
+      return 'Email inválido';
+    }
+    if (field.hasError('invalidPrice')) {
+      return field.errors?.['invalidPrice'];
+    }
+    if (field.hasError('futureDate')) {
+      return field.errors?.['futureDate'];
+    }
+    if (field.hasError('tooOld')) {
+      return field.errors?.['tooOld'];
+    }
+    if (field.hasError('minlength')) {
+      return `Mínimo ${field.errors?.['minlength']?.requiredLength} caracteres`;
+    }
+    if (field.hasError('maxlength')) {
+      return `Máximo ${field.errors?.['maxlength']?.requiredLength} caracteres`;
+    }
+    if (field.hasError('min')) {
+      const min = field.errors?.['min']?.min;
+      if (fieldName === 'salary') return `El salario mínimo es S/${min}`;
+      return `El valor debe ser mayor a ${min}`;
+    }
+    return '';
+  }
+
+  private markFormGroupTouched(): void {
+    Object.keys(this.employeeForm.controls).forEach(key => {
+      const control = this.employeeForm.get(key);
+      control?.markAsTouched();
+    });
+  }
+
+  getFieldError(fieldName: string): string {
+    const field = this.employeeForm.get(fieldName);
+    if (field?.errors && field.touched) {
+      if (field.errors['required']) return `${this.getFieldLabel(fieldName)} es requerido`;
+      if (field.errors['minlength']) return `${this.getFieldLabel(fieldName)} debe tener al menos ${field.errors['minlength'].requiredLength} caracteres`;
+      if (field.errors['maxlength']) return `${this.getFieldLabel(fieldName)} no puede exceder ${field.errors['maxlength'].requiredLength} caracteres`;
+      if (field.errors['email']) return 'Ingrese un email válido';
+      if (field.errors['pattern']) {
+        if (fieldName === 'dni') return 'DNI debe tener 8 dígitos';
+        if (fieldName === 'phone') return 'Teléfono debe tener 9 dígitos';
+      }
+      if (field.errors['min']) return `${this.getFieldLabel(fieldName)} debe ser mayor a ${field.errors['min'].min}`;
+    }
+    return '';
+  }
+
+  private getFieldLabel(fieldName: string): string {
+    const labels: { [key: string]: string } = {
+      name: 'Nombre',
+      surname: 'Apellido',
+      dni: 'DNI',
+      phone: 'Teléfono',
+      email: 'Email',
+      address: 'Dirección',
+      positionName: 'Cargo',
+      salary: 'Salario',
+      hireDate: 'Fecha de contratación'
+    };
+    return labels[fieldName] || fieldName;
+  }
+
+  isFieldInvalid(fieldName: string): boolean {
+    const field = this.employeeForm.get(fieldName);
+    return !!(field?.invalid && field.touched);
+  }
+
+  getFullName(): string {
+    const name = this.employeeForm.get('name')?.value || '';
+    const surname = this.employeeForm.get('surname')?.value || '';
+    return `${name} ${surname}`.trim();
   }
 }

@@ -1,0 +1,486 @@
+.order-confirmation {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 40px 20px;
+  
+  .confirmation-container {
+    max-width: 600px;
+    margin: 0 auto;
+    
+    // Success Animation
+    .success-animation {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      margin-bottom: 32px;
+      
+      .success-circle {
+        position: relative;
+        z-index: 2;
+        width: 100px;
+        height: 100px;
+        background: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        animation: successBounce 0.6s ease-out;
+        
+        .success-icon {
+          font-size: 60px;
+          width: 60px;
+          height: 60px;
+          color: #4CAF50;
+        }
+      }
+      
+      .success-ripple {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 100px;
+        height: 100px;
+        border: 3px solid rgba(255, 255, 255, 0.6);
+        border-radius: 50%;
+        animation: ripple 1.5s infinite;
+      }
+    }
+    
+    // Confirmation Message
+    .confirmation-message {
+      text-align: center;
+      color: white;
+      margin-bottom: 32px;
+      
+      h1 {
+        margin: 0 0 12px 0;
+        font-size: 2.2rem;
+        font-weight: 700;
+        animation: fadeInUp 0.8s ease-out 0.2s both;
+      }
+      
+      .subtitle {
+        margin: 0;
+        font-size: 1.1rem;
+        opacity: 0.9;
+        animation: fadeInUp 0.8s ease-out 0.4s both;
+      }
+    }
+    
+    // Order Details Card
+    .order-details-card {
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      margin-bottom: 24px;
+      animation: fadeInUp 0.8s ease-out 0.6s both;
+      
+      mat-card-content {
+        padding: 24px;
+        
+        .order-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          margin-bottom: 24px;
+          
+          .order-info {
+            h2 {
+              margin: 0 0 8px 0;
+              color: #333;
+              font-weight: 600;
+              font-size: 1.3rem;
+            }
+            
+            .order-total {
+              margin: 0;
+              font-size: 1.1rem;
+              font-weight: 700;
+              color: #667eea;
+            }
+          }
+          
+          .order-status {
+            .status-badge {
+              display: flex;
+              align-items: center;
+              gap: 6px;
+              padding: 8px 16px;
+              border-radius: 20px;
+              font-size: 0.9rem;
+              font-weight: 600;
+              
+              &.confirmed {
+                background: #e8f5e8;
+                color: #2e7d32;
+                
+                mat-icon {
+                  font-size: 18px;
+                  width: 18px;
+                  height: 18px;
+                }
+              }
+            }
+          }
+        }
+        
+        .delivery-info {
+          margin-top: 24px;
+          
+          .info-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 20px;
+            
+            &:last-child {
+              margin-bottom: 0;
+            }
+            
+            mat-icon {
+              color: #667eea;
+              font-size: 24px;
+              width: 24px;
+              height: 24px;
+              margin-top: 2px;
+            }
+            
+            div {
+              flex: 1;
+              
+              h4 {
+                margin: 0 0 4px 0;
+                color: #333;
+                font-weight: 600;
+                font-size: 1rem;
+              }
+              
+              p {
+                margin: 0;
+                color: #666;
+                font-size: 0.9rem;
+                line-height: 1.4;
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    // Timeline Card
+    .timeline-card {
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      margin-bottom: 32px;
+      animation: fadeInUp 0.8s ease-out 0.8s both;
+      
+      mat-card-header {
+        padding: 24px 24px 0;
+        
+        mat-card-title {
+          color: #333;
+          font-weight: 600;
+          font-size: 1.2rem;
+        }
+      }
+      
+      mat-card-content {
+        padding: 24px;
+        
+        .order-timeline {
+          .timeline-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 24px;
+            position: relative;
+            
+            &:not(:last-child)::after {
+              content: '';
+              position: absolute;
+              left: 20px;
+              top: 40px;
+              width: 2px;
+              height: calc(100% + 4px);
+              background: #e0e0e0;
+            }
+            
+            &.active {
+              .timeline-icon {
+                background: #4CAF50;
+                color: white;
+                box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.2);
+              }
+              
+              &::after {
+                background: #4CAF50;
+              }
+              
+              .timeline-content {
+                h4 {
+                  color: #4CAF50;
+                }
+              }
+            }
+            
+            &.pending {
+              .timeline-icon {
+                background: #f5f5f5;
+                color: #999;
+              }
+              
+              .timeline-content {
+                h4, p {
+                  color: #999;
+                }
+              }
+            }
+            
+            &:last-child {
+              margin-bottom: 0;
+              
+              &::after {
+                display: none;
+              }
+            }
+            
+            .timeline-icon {
+              width: 40px;
+              height: 40px;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              flex-shrink: 0;
+              position: relative;
+              z-index: 1;
+              
+              mat-icon {
+                font-size: 20px;
+                width: 20px;
+                height: 20px;
+              }
+            }
+            
+            .timeline-content {
+              flex: 1;
+              
+              h4 {
+                margin: 0 0 4px 0;
+                font-weight: 600;
+                font-size: 1rem;
+              }
+              
+              p {
+                margin: 0 0 4px 0;
+                font-size: 0.9rem;
+                line-height: 1.4;
+              }
+              
+              .timeline-time {
+                font-size: 0.8rem;
+                color: #888;
+                font-weight: 500;
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    // Action Buttons
+    .action-buttons {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 32px;
+      animation: fadeInUp 0.8s ease-out 1s both;
+      
+      button {
+        flex: 1;
+        padding: 12px 24px;
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: 12px;
+        
+        mat-icon {
+          margin-right: 8px;
+        }
+        
+        &.track-button {
+          background: white;
+          color: #667eea;
+          
+          &:hover {
+            background: #f8f9ff;
+          }
+        }
+        
+        &.continue-button {
+          border-color: white;
+          color: white;
+          
+          &:hover {
+            background: rgba(255, 255, 255, 0.1);
+          }
+        }
+      }
+    }
+    
+    // Additional Info
+    .additional-info {
+      animation: fadeInUp 0.8s ease-out 1.2s both;
+      
+      .info-card {
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        
+        mat-card-content {
+          padding: 24px;
+          
+          .info-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            
+            mat-icon {
+              color: #667eea;
+              font-size: 24px;
+              width: 24px;
+              height: 24px;
+            }
+            
+            h3 {
+              margin: 0;
+              color: #333;
+              font-weight: 600;
+            }
+          }
+          
+          p {
+            margin: 0 0 16px 0;
+            color: #666;
+            line-height: 1.6;
+          }
+          
+          .contact-info {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            
+            .contact-item {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              
+              mat-icon {
+                color: #667eea;
+                font-size: 18px;
+                width: 18px;
+                height: 18px;
+              }
+              
+              span {
+                color: #555;
+                font-weight: 500;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Animations
+@keyframes successBounce {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes ripple {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.6;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(2);
+    opacity: 0;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .order-confirmation {
+    padding: 20px 16px;
+    
+    .confirmation-container {
+      .confirmation-message {
+        h1 {
+          font-size: 1.8rem;
+        }
+        
+        .subtitle {
+          font-size: 1rem;
+        }
+      }
+      
+      .order-details-card,
+      .timeline-card {
+        mat-card-content {
+          padding: 20px;
+        }
+        
+        .order-header {
+          flex-direction: column;
+          gap: 16px;
+          align-items: flex-start;
+        }
+      }
+      
+      .action-buttons {
+        flex-direction: column;
+        
+        button {
+          width: 100%;
+        }
+      }
+      
+      .additional-info {
+        .info-card {
+          mat-card-content {
+            padding: 20px;
+            
+            .contact-info {
+              .contact-item {
+                justify-content: center;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

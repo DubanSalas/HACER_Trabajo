@@ -1,0 +1,646 @@
+// Paleta de colores profesional de panadería
+$bakery-primary: #d4a574;
+$bakery-secondary: #8b6f47;
+$bakery-accent: #f4e4c1;
+$bakery-dark: #5d4e37;
+$bakery-light: #faf6f0;
+$bakery-success: #7cb342;
+$bakery-warning: #ff8f00;
+$bakery-danger: #d32f2f;
+
+.product-form-container {
+  padding: 0;
+  background: #f5f5f5;
+  min-height: 100vh;
+
+  // Header igual al dashboard
+  .page-header {
+    padding: 24px;
+    background: #f5f5f5;
+
+    .header-card {
+      .mat-mdc-card-content {
+        padding: 0 !important;
+      }
+
+      .header-content {
+        background: linear-gradient(135deg, $bakery-secondary 0%, $bakery-dark 100%);
+        color: white;
+        padding: 28px 32px;
+        border-radius: 20px;
+        box-shadow: 0 6px 24px rgba(93, 78, 55, 0.2);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        &::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background:
+            radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.05) 0%, transparent 50%),
+            radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+          pointer-events: none;
+        }
+
+        .title-section {
+          position: relative;
+          z-index: 1;
+
+          .page-title {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin: 0 0 8px 0;
+            font-size: 28px;
+            font-weight: 700;
+            color: white;
+
+            .title-icon {
+              font-size: 32px;
+              width: 32px;
+              height: 32px;
+            }
+          }
+
+          .page-subtitle {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 14px;
+            font-weight: 500;
+          }
+        }
+
+        .header-actions {
+          position: relative;
+          z-index: 1;
+          display: flex;
+          gap: 12px;
+
+          button {
+            background: rgba(255, 255, 255, 0.15) !important;
+            color: white !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            backdrop-filter: blur(10px);
+            font-weight: 600;
+            transition: all 0.3s ease;
+
+            &:hover {
+              background: rgba(255, 255, 255, 0.25) !important;
+              transform: translateY(-2px);
+              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Loading
+  .loading-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 400px;
+    padding: 60px 24px;
+
+    mat-card {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      padding: 40px;
+    }
+
+    .loading-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+
+      p {
+        color: #64748b;
+        font-size: 16px;
+        margin: 0;
+      }
+    }
+  }
+
+  // Form Section
+  .form-section {
+    padding: 0 24px 24px;
+
+    .form-card {
+      margin-bottom: 20px;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      border: none;
+      transition: all 0.3s ease;
+
+      &:hover {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+      }
+
+      .mat-mdc-card-header {
+        padding: 24px 24px 16px;
+        border-bottom: 1px solid #f1f5f9;
+
+        .mat-mdc-card-title {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          font-size: 18px;
+          font-weight: 700;
+          color: #1e293b;
+          margin: 0;
+
+          mat-icon {
+            color: $bakery-primary;
+            font-size: 22px;
+          }
+        }
+
+        .mat-mdc-card-subtitle {
+          color: #64748b;
+          margin-top: 4px;
+          font-size: 14px;
+        }
+      }
+
+      .mat-mdc-card-content {
+        padding: 24px !important;
+      }
+    }
+
+    // Form Grid
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+
+      .full-width {
+        grid-column: 1 / -1;
+      }
+    }
+
+    // Form Fields
+    .mat-mdc-form-field {
+      width: 100%;
+
+      &.mat-form-field-appearance-outline {
+        .mat-mdc-form-field-outline {
+          color: #e2e8f0;
+        }
+
+        &.mat-focused .mat-mdc-form-field-outline-thick {
+          color: $bakery-primary;
+        }
+
+        .mat-mdc-form-field-icon-prefix {
+          color: $bakery-primary;
+          margin-right: 12px;
+        }
+      }
+
+      .mat-mdc-form-field-label {
+        color: #64748b;
+        font-weight: 500;
+      }
+
+      &.mat-focused .mat-mdc-form-field-label {
+        color: $bakery-primary;
+      }
+
+      .mat-mdc-input-element {
+        color: #1e293b;
+        font-weight: 500;
+
+        &::placeholder {
+          color: #94a3b8;
+        }
+      }
+
+      .mat-mdc-form-field-hint {
+        color: #64748b;
+        font-size: 12px;
+      }
+
+      .mat-mdc-form-field-error {
+        color: $bakery-danger;
+        font-size: 12px;
+        font-weight: 600;
+      }
+    }
+
+    // Stock Indicators
+    .stock-indicators {
+      margin-top: 2rem;
+      padding-top: 2rem;
+      border-top: 1px solid rgba(0, 0, 0, 0.06);
+
+      .indicator-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+
+        .stock-card {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          padding: 1rem;
+          border-radius: 8px;
+          transition: all 0.3s ease;
+
+          &.current-stock {
+            background: linear-gradient(135deg, rgba(212, 165, 116, 0.15) 0%, rgba(244, 228, 193, 0.25) 100%);
+            border: 1px solid rgba(212, 165, 116, 0.3);
+
+            mat-icon {
+              color: $bakery-primary;
+              font-size: 2rem;
+            }
+          }
+
+          &.initial-stock {
+            background: linear-gradient(135deg, rgba(139, 111, 71, 0.1) 0%, rgba(93, 78, 55, 0.15) 100%);
+            border: 1px solid rgba(139, 111, 71, 0.3);
+
+            mat-icon {
+              color: $bakery-secondary;
+              font-size: 2rem;
+            }
+          }
+
+          .stock-info {
+            display: flex;
+            flex-direction: column;
+
+            .stock-label {
+              font-size: 0.85rem;
+              color: #666;
+              font-weight: 500;
+            }
+
+            .stock-value {
+              font-size: 1.2rem;
+              font-weight: 600;
+              color: #333;
+            }
+          }
+        }
+      }
+    }
+
+    // Actions Card
+    .actions-card {
+      margin-top: 24px;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+      .mat-mdc-card-content {
+        padding: 24px !important;
+      }
+
+      .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+
+        button {
+          min-width: 140px;
+          height: 44px;
+          font-weight: 600;
+          font-size: 14px;
+          transition: all 0.3s ease;
+
+          mat-icon {
+            margin-right: 8px;
+          }
+
+          &.submit-btn {
+            background: linear-gradient(135deg, $bakery-success 0%, #6a9e38 100%) !important;
+            color: white !important;
+            box-shadow: 0 2px 8px rgba(124, 179, 66, 0.3);
+
+            &:hover:not(:disabled) {
+              transform: translateY(-2px);
+              box-shadow: 0 4px 12px rgba(124, 179, 66, 0.4);
+            }
+          }
+
+          &:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .product-form-container {
+    .page-header .header-content {
+      flex-direction: column;
+      gap: 20px;
+      text-align: center;
+
+      .header-actions {
+        width: 100%;
+        flex-direction: column;
+
+        button {
+          width: 100%;
+        }
+      }
+    }
+
+    .form-section {
+      .form-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+
+      .stock-indicators .indicator-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .actions-card .form-actions {
+        flex-direction: column;
+
+        button {
+          width: 100%;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .product-form-container {
+    padding: 0.5rem;
+
+    .form-section {
+      .form-card {
+        .mat-mdc-card-content {
+          padding: 1rem !important;
+        }
+      }
+    }
+  }
+}
+
+// Animation for form validation
+.mat-mdc-form-field.mat-form-field-invalid {
+  .mat-mdc-form-field-outline-thick {
+    color: #f44336 !important;
+  }
+}
+
+// Custom styles for select
+.mat-mdc-select-arrow {
+  color: $bakery-primary;
+}
+
+// Loading button animation
+button[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+// Success states
+.mat-mdc-form-field.mat-form-field-valid {
+  .mat-mdc-form-field-outline-thick {
+    color: $bakery-success;
+  }
+}
+
+// Custom prefix styles
+.mat-mdc-form-field-text-prefix {
+  color: $bakery-primary;
+  font-weight: 600;
+}
+
+// Image Section Styles
+.image-card {
+  .image-section {
+    display: grid;
+    grid-template-columns: 50px 1fr;
+    gap: 1.5rem;
+    align-items: start;
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    // Image Preview Container
+    .image-preview-container {
+      position: relative;
+      width: 50px !important;
+      max-width: 50px !important;
+      min-width: 50px !important;
+      margin: 0;
+      flex-shrink: 0;
+      overflow: hidden;
+
+      .image-preview {
+        position: relative;
+        width: 50px !important;
+        height: 50px !important;
+        max-width: 50px !important;
+        max-height: 50px !important;
+        min-width: 50px !important;
+        min-height: 50px !important;
+        border-radius: 8px;
+        overflow: hidden !important;
+        box-shadow: 0 2px 8px rgba(93, 78, 55, 0.1);
+        border: 1px solid rgba(212, 165, 116, 0.3);
+        background: $bakery-light;
+        display: block !important;
+        flex-shrink: 0;
+
+        img {
+          width: 50px !important;
+          height: 50px !important;
+          max-width: 50px !important;
+          max-height: 50px !important;
+          min-width: 50px !important;
+          min-height: 50px !important;
+          object-fit: cover !important;
+          object-position: center !important;
+          display: block !important;
+        }
+
+        .remove-image-btn {
+          position: absolute;
+          top: -6px;
+          right: -6px;
+          width: 20px;
+          height: 20px;
+          min-width: 20px;
+          min-height: 20px;
+          padding: 0;
+          background-color: rgba(244, 67, 54, 0.95) !important;
+          color: white !important;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+          transition: all 0.2s ease;
+
+          mat-icon {
+            font-size: 14px;
+            width: 14px;
+            height: 14px;
+            line-height: 14px;
+          }
+
+          &:hover {
+            background-color: rgba(211, 47, 47, 1) !important;
+            transform: scale(1.15);
+          }
+        }
+      }
+
+      .no-image-placeholder {
+        width: 50px !important;
+        height: 50px !important;
+        max-width: 50px !important;
+        max-height: 50px !important;
+        min-width: 50px !important;
+        min-height: 50px !important;
+        border-radius: 8px;
+        border: 1px dashed rgba(212, 165, 116, 0.4);
+        background: linear-gradient(135deg, $bakery-light 0%, rgba(244, 228, 193, 0.2) 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: $bakery-secondary;
+        flex-shrink: 0;
+
+        mat-icon {
+          font-size: 1.25rem;
+          width: 1.25rem;
+          height: 1.25rem;
+          margin-bottom: 0;
+          opacity: 0.5;
+        }
+
+        p {
+          display: none;
+        }
+      }
+    }
+
+    // Image Upload Options
+    .image-upload-options {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+
+      .image-actions {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+
+        button {
+          flex: 1;
+          min-width: 200px;
+          height: 48px;
+
+          @media (max-width: 480px) {
+            min-width: 100%;
+          }
+        }
+      }
+
+      .image-hint {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+        padding: 1rem;
+        background: rgba(212, 165, 116, 0.08);
+        border-left: 4px solid $bakery-primary;
+        border-radius: 8px;
+        color: $bakery-secondary;
+        font-size: 0.9rem;
+        line-height: 1.5;
+
+        mat-icon {
+          font-size: 1.2rem;
+          width: 1.2rem;
+          height: 1.2rem;
+          margin-top: 2px;
+          flex-shrink: 0;
+        }
+
+        span {
+          flex: 1;
+        }
+      }
+    }
+  }
+}
+
+// Loading state for image upload
+.uploading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  z-index: 10;
+
+  .upload-progress {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+
+    mat-spinner {
+      ::ng-deep circle {
+        stroke: $bakery-primary !important;
+      }
+    }
+
+    p {
+      color: $bakery-secondary;
+      font-weight: 600;
+      margin: 0;
+    }
+  }
+}
+
+// Hover effects optimizados
+.image-preview {
+  will-change: box-shadow;
+
+  &:hover {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+  }
+}
+
+// Button animations optimizadas
+button {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:not([disabled]):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+  }
+
+  &:not([disabled]):active {
+    transform: translateY(0);
+  }
+}

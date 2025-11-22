@@ -1,262 +1,313 @@
-import { Component, inject, OnInit } from "@angular/core";
-import { CommonModule } from "@angular/common";
-import { MatButtonModule } from "@angular/material/button";
-import { MatIconModule } from "@angular/material/icon";
-import { MatTableModule } from "@angular/material/table";
-import { MatInputModule } from "@angular/material/input";
-import { MatSelectModule } from "@angular/material/select";
-import { MatDialog, MatDialogModule } from "@angular/material/dialog";
-import { FormsModule } from "@angular/forms";
-import { EmployeesService } from "../../../core/services/employees.service";
-import { Employee, EmployeeStats, EmployeePosition, Position, Location } from "../../../core/interfaces/employees-interfaces";
-import { EmployeeForm } from "../employees-form/employees-form";
-import Swal from 'sweetalert2';
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { MaterialModule } from '../../../shared/material.module';
+import { EmployeesService } from '../../../core/services/employees.service';
+import { EmployeeDTO, EmployeeSummary } from '../../../core/interfaces/employees-interfaces';
+import { NotificationService } from '../../../core/services/notification.service';
+import { FilterService, FilterConfig } from '../../../core/services/filter.service';
 
 @Component({
-  selector: "app-employees-list",
+  selector: 'app-employees-list',
   standalone: true,
-  imports: [
-    CommonModule,
-    MatButtonModule,
-    MatIconModule,
-    MatTableModule,
-    MatInputModule,
-    MatSelectModule,
-    MatDialogModule,
-    FormsModule,
-  ],
-  templateUrl: "./employees-list.html",
-  styleUrls: ["./employees-list.scss"],
+  imports: [CommonModule, FormsModule, MaterialModule],
+  templateUrl: './employees-list.html',
+  styleUrls: ['./employees-list.scss']
 })
-export class EmployeesList implements OnInit {
-  private dialog = inject(MatDialog);
-  private employeesService = inject(EmployeesService);
-
-  displayedColumns: string[] = [
-    "empleado",
-    "documento",
-    "cargo",
-    "contacto",
-    "salario",
-    "estado",
-    "acciones",
-  ];
-
-  employees: Employee[] = [];
-  filteredEmployees: Employee[] = [];
-  positions: Position[] = [];
-  locations: Location[] = [];
-  stats: EmployeeStats = {
-    total: 0,
-    activos: 0,
-    inactivos: 0,
-    salarioPromedio: 0,
-  };
-  positionDistribution: EmployeePosition[] = [];
+export class EmployeesListComponent implements OnInit {
+  employees: EmployeeDTO[] = [];
+  filteredEmployees: EmployeeDTO[] = [];
+  summary: EmployeeSummary | null = null;
+  loading = false;
+  filterConfig: FilterConfig;
+  departments: string[] = [];
+  searchTerm = '';
+  
+  // Detail modal properties
+  showDetailModal = false;
+  selectedEmployee: EmployeeDTO | null = null;
 
   // Filtros
-  searchTerm: string = '';
-  selectedStatus: string = '';
+  statusOptions = [
+    { value: 'A', label: 'Activos' },
+    { value: 'I', label: 'Inactivos' },
+    { value: '', label: 'Todos' }
+  ];
+
+  constructor(
+    private employeesService: EmployeesService,
+    private router: Router,
+    private notificationService: NotificationService,
+    private filterService: FilterService
+  ) {
+    this.filterConfig = this.filterService.getEmployeeFilterConfig();
+  }
 
   ngOnInit(): void {
     this.loadEmployees();
-    this.loadPositions();
-    this.loadLocations();
+    this.loadSummary();
   }
 
-  private loadEmployees(): void {
-    this.employeesService.getEmployees().subscribe({
-      next: (employees) => {
-        this.employees = employees;
-        this.filteredEmployees = employees;
-        this.calculateStats();
-        this.calculatePositionDistribution();
+  loadEmployees(): void {
+    this.loading = true;
+    this.employeesService.getAll().subscribe({
+      next: (data) => {
+        console.log('Employees loaded from backend:', data);
+        this.employees = data || [];
+        this.extractDepartments();
+        this.applyFilters();
+        this.loading = false;
+        
+        if (this.employees.length === 0) {
+          this.notificationService.noDataFound('empleados');
+        }
       },
       error: (error) => {
         console.error('Error loading employees:', error);
-        Swal.fire('Error', 'No se pudieron cargar los empleados. Verifique la conexión con el servidor.', 'error');
+        this.employees = [];
+        this.filteredEmployees = [];
+        this.loading = false;
+        this.notificationService.operationError('cargar', 'empleados', error.error?.message || error.message);
       }
     });
   }
 
-  private loadPositions(): void {
-    this.employeesService.getPositions().subscribe({
-      next: (positions) => {
-        this.positions = positions;
+  extractDepartments(): void {
+    this.departments = [...new Set(this.employees.map(emp => emp.positionName || 'Sin departamento'))].sort();
+  }
+
+  loadSummary(): void {
+    this.employeesService.getSummary().subscribe({
+      next: (data) => {
+        console.log('Summary loaded from backend:', data);
+        this.summary = data;
       },
       error: (error) => {
-        console.error('Error loading positions:', error);
+        console.error('Error loading summary:', error);
+        // Crear un resumen por defecto basado en los empleados cargados
+        if (this.employees && this.employees.length > 0) {
+          const activeEmployees = this.employees.filter(emp => emp.status === 'A').length;
+          const inactiveEmployees = this.employees.filter(emp => emp.status === 'I').length;
+          const totalSalary = this.employees.reduce((sum, emp) => sum + (emp.salary || 0), 0);
+          const averageSalary = totalSalary / this.employees.length;
+          
+          this.summary = {
+            totalEmployees: this.employees.length,
+            activeEmployees: activeEmployees,
+            inactiveEmployees: inactiveEmployees,
+            averageSalary: averageSalary
+          };
+        }
       }
     });
-  }
-
-  private loadLocations(): void {
-    this.employeesService.getLocations().subscribe({
-      next: (locations) => {
-        this.locations = locations;
-      },
-      error: (error) => {
-        console.error('Error loading locations:', error);
-      }
-    });
-  }
-
-  private calculateStats(): void {
-    this.stats.total = this.employees.length;
-    this.stats.activos = this.employees.filter(e => e.Status === 'A').length;
-    this.stats.inactivos = this.employees.filter(e => e.Status === 'I').length;
-    
-    const totalSalary = this.employees.reduce((sum, emp) => sum + emp.Salary, 0);
-    this.stats.salarioPromedio = this.employees.length > 0 ? Math.round(totalSalary / this.employees.length) : 0;
-  }
-
-  private calculatePositionDistribution(): void {
-    const positionMap = new Map<number, { name: string, count: number }>();
-    
-    this.employees.forEach(employee => {
-      const position = this.positions.find(p => p.id_Position === employee.id_Position);
-      const positionName = position?.Position_Name || 'Sin cargo';
-      const key = employee.id_Position;
-      
-      if (positionMap.has(key)) {
-        positionMap.get(key)!.count++;
-      } else {
-        positionMap.set(key, { name: positionName, count: 1 });
-      }
-    });
-
-    this.positionDistribution = Array.from(positionMap.values());
   }
 
   applyFilters(): void {
-    this.filteredEmployees = this.employees.filter(employee => {
-      const matchesSearch = !this.searchTerm || 
-        employee.Name.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        employee.Surname.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        employee.Email.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        employee.Employee_Code.toLowerCase().includes(this.searchTerm.toLowerCase());
-      
-      const matchesStatus = !this.selectedStatus || employee.Status === this.selectedStatus;
-
-      return matchesSearch && matchesStatus;
-    });
+    if (!this.employees) {
+      this.filteredEmployees = [];
+      return;
+    }
+    
+    // Aplicar filtros básicos primero
+    let filtered = [...this.employees];
+    
+    // Filtro por término de búsqueda
+    if (this.searchTerm && this.searchTerm.trim()) {
+      const term = this.searchTerm.toLowerCase().trim();
+      filtered = filtered.filter(emp => 
+        emp.name.toLowerCase().includes(term) ||
+        emp.surname.toLowerCase().includes(term) ||
+        emp.email.toLowerCase().includes(term) ||
+        emp.employeeCode.toLowerCase().includes(term) ||
+        emp.documentNumber.includes(term) ||
+        emp.positionName.toLowerCase().includes(term)
+      );
+    }
+    
+    this.filteredEmployees = filtered;
   }
 
-  getStatusText(status: string): string {
-    switch (status) {
-      case 'A': return 'Activo';
-      case 'I': return 'Inactivo';
-      default: return status;
-    }
+  // Método para manejar cambios en filtros avanzados
+  onFiltersChanged(event: any): void {
+    console.log('Filters changed:', event);
+    this.searchTerm = event.searchTerm || '';
+    this.applyFilters();
+  }
+
+  clearFilters(): void {
+    this.filterService.clearFilters();
+    this.applyFilters();
+  }
+
+  clearSearch(): void {
+    this.searchTerm = '';
+    this.applyFilters();
+  }
+
+  refreshData(): void {
+    this.loadEmployees();
+    this.loadSummary();
   }
 
   getStatusClass(status: string): string {
-    switch (status) {
-      case 'A': return 'status-activo';
-      case 'I': return 'status-inactivo';
-      default: return '';
+    return status === 'A' ? 'active' : 'inactive';
+  }
+
+  getStatusText(status: string): string {
+    return status === 'A' ? 'Activo' : 'Inactivo';
+  }
+
+  formatSalary(salary: number): string {
+    return new Intl.NumberFormat('es-PE', {
+      style: 'currency',
+      currency: 'PEN'
+    }).format(salary);
+  }
+
+  formatDate(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-PE');
+  }
+
+  formatCurrency(amount: number): string {
+    return new Intl.NumberFormat('es-PE', {
+      style: 'currency',
+      currency: 'PEN'
+    }).format(amount);
+  }
+
+  viewEmployee(employee: EmployeeDTO): void {
+    this.selectedEmployee = employee;
+    this.showDetailModal = true;
+  }
+
+  editEmployee(employee: EmployeeDTO): void {
+    this.router.navigate(['/employees/edit', employee.idEmployee]);
+  }
+
+  deleteEmployee(employee: EmployeeDTO): void {
+    if (confirm(`¿Estás seguro de que deseas desactivar al empleado "${employee.name} ${employee.surname}"?`)) {
+      this.employeesService.delete(employee.idEmployee).subscribe({
+        next: () => {
+          this.notificationService.employeeDeactivated(`${employee.name} ${employee.surname}`);
+          this.loadEmployees();
+        },
+        error: (error) => {
+          console.error('Error deleting employee:', error);
+          this.notificationService.operationError('desactivar', 'empleado', error.error?.message);
+        }
+      });
     }
   }
 
-  getPositionName(positionId: number): string {
-    const position = this.positions.find(p => p.id_Position === positionId);
-    return position?.Position_Name || 'Sin cargo';
-  }
-
-  getLocationDisplay(locationId: number): string {
-    const location = this.locations.find(l => l.identifier_Location === locationId);
-    if (location) {
-      return `${location.district}, ${location.province}`;
+  restoreEmployee(employee: EmployeeDTO): void {
+    if (confirm(`¿Estás seguro de que deseas reactivar al empleado "${employee.name} ${employee.surname}"?`)) {
+      this.employeesService.restore(employee.idEmployee).subscribe({
+        next: () => {
+          this.notificationService.employeeRestored(`${employee.name} ${employee.surname}`);
+          this.loadEmployees();
+        },
+        error: (error) => {
+          console.error('Error restoring employee:', error);
+          this.notificationService.operationError('reactivar', 'empleado', error.error?.message);
+        }
+      });
     }
-    return 'Sin ubicación';
   }
 
-  openEmployeeForm(): void {
-    const dialogRef = this.dialog.open(EmployeeForm, {
-      width: "900px",
-      maxWidth: "95vw",
-      disableClose: true,
-      data: { positions: this.positions, locations: this.locations }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.loadEmployees();
-      }
-    });
+  generateReport(employee?: EmployeeDTO): void {
+    if (employee) {
+      console.log('Generating report for employee:', employee);
+      // TODO: Implementar reporte individual
+    } else {
+      this.employeesService.generatePdfReport().subscribe({
+        next: (blob) => {
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'reporte-empleados.pdf';
+          a.click();
+          window.URL.revokeObjectURL(url);
+        },
+        error: (error) => {
+          console.error('Error generating report:', error);
+        }
+      });
+    }
   }
 
-  editEmployee(employee: Employee): void {
-    const dialogRef = this.dialog.open(EmployeeForm, {
-      width: "900px",
-      maxWidth: "95vw",
-      disableClose: true,
-      data: { employee, positions: this.positions, locations: this.locations }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.loadEmployees();
-      }
-    });
+  trackByEmployeeId(index: number, employee: EmployeeDTO): number {
+    return employee.idEmployee;
   }
 
-  deleteEmployee(employee: Employee): void {
-    Swal.fire({
-      title: '¿Estás seguro?',
-      text: `¿Deseas eliminar al empleado ${employee.Name} ${employee.Surname}?`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Sí, eliminar',
-      cancelButtonText: 'Cancelar'
-    }).then((result) => {
-      if (result.isConfirmed && employee.id_Employee) {
-        this.employeesService.deleteEmployee(employee.id_Employee).subscribe({
-          next: () => {
-            Swal.fire('Eliminado', 'El empleado ha sido eliminado.', 'success');
-            this.loadEmployees();
-          },
-          error: (error) => {
-            console.error('Error deleting employee:', error);
-            Swal.fire('Error', 'No se pudo eliminar el empleado.', 'error');
-          }
-        });
-      }
-    });
+  toggleStatus(employee: EmployeeDTO): void {
+    const newStatus = employee.status === 'A' ? 'I' : 'A';
+    const action = newStatus === 'A' ? 'activar' : 'desactivar';
+    
+    if (confirm(`¿Está seguro de ${action} al empleado ${employee.name} ${employee.surname}?`)) {
+      // TODO: Implementar cambio de estado
+      console.log(`Toggle status for employee:`, employee);
+    }
   }
 
-  viewEmployee(employee: Employee): void {
-    console.log("View employee:", employee);
+  viewHistory(employee: EmployeeDTO): void {
+    console.log('View history for employee:', employee);
+    // TODO: Implementar historial de empleado
   }
 
-  exportReport(): void {
-    this.employeesService.reportPdf().subscribe({
-      next: (blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `reporte-empleados-${new Date().toISOString().split('T')[0]}.pdf`;
-        link.click();
-        window.URL.revokeObjectURL(url);
-        Swal.fire('Éxito', 'Reporte descargado correctamente', 'success');
-      },
-      error: (error) => {
-        console.error('Error generating report:', error);
-        Swal.fire('Información', 'Función de exportación en desarrollo', 'info');
-      }
-    });
+  // Navigation methods
+  navigateToCreate(): void {
+    this.router.navigate(['/employees/create']);
   }
 
-  sendReport(): void {
-    Swal.fire({
-      title: 'Enviar Reporte',
-      text: 'Esta funcionalidad estará disponible próximamente',
-      icon: 'info',
-      showCancelButton: true,
-      confirmButtonText: 'Entendido',
-      cancelButtonText: 'Cancelar'
-    });
+  // Detail modal methods
+  closeDetailModal(): void {
+    this.showDetailModal = false;
+    this.selectedEmployee = null;
+  }
+
+  getEmployeeInitials(employee: EmployeeDTO): string {
+    const firstName = employee.name.charAt(0).toUpperCase();
+    const lastName = employee.surname.charAt(0).toUpperCase();
+    return firstName + lastName;
+  }
+
+  editFromModal(): void {
+    if (this.selectedEmployee && this.selectedEmployee.idEmployee) {
+      this.closeDetailModal();
+      this.editEmployee(this.selectedEmployee);
+    }
+  }
+
+  deleteFromModal(): void {
+    if (this.selectedEmployee) {
+      this.deleteEmployee(this.selectedEmployee);
+      this.closeDetailModal();
+    }
+  }
+
+  restoreFromModal(): void {
+    if (this.selectedEmployee) {
+      this.restoreEmployee(this.selectedEmployee);
+      this.closeDetailModal();
+    }
+  }
+
+  generateEmployeeReport(employee: EmployeeDTO): void {
+    console.log('Generating individual report for employee:', employee);
+    this.notificationService.info(`Generando reporte para "${employee.name} ${employee.surname}"`);
+  }
+
+  sendEmail(employee: EmployeeDTO): void {
+    if (employee.email) {
+      window.open(`mailto:${employee.email}?subject=Contacto desde DeliciousBakery`, '_blank');
+    }
+  }
+
+  callPhone(employee: EmployeeDTO): void {
+    if (employee.phone) {
+      window.open(`tel:${employee.phone}`, '_blank');
+    }
   }
 }

@@ -1,0 +1,256 @@
+@if (!isLoading) {
+<div class="order-detail">
+
+  <!-- Header -->
+  <div class="order-header">
+    <button mat-icon-button (click)="goBack()" class="back-btn">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <div class="header-info">
+      <h1>{{ order?.orderNumber }}</h1>
+      <mat-chip [color]="getStatusColor(order?.status!)" selected>
+        {{ getStatusLabel(order?.status!) }}
+      </mat-chip>
+    </div>
+    <button mat-icon-button [matMenuTriggerFor]="menu" class="menu-btn">
+      <mat-icon>more_vert</mat-icon>
+    </button>
+  </div>
+
+  <!-- Order Tracking -->
+  @if (order?.status !== 'CANCELLED') {
+  <mat-card class="tracking-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>local_shipping</mat-icon>
+        Seguimiento del Pedido
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <mat-stepper [selectedIndex]="getCurrentStepIndex()" orientation="horizontal" class="tracking-stepper">
+        <mat-step *ngFor="let step of trackingSteps; let i = index" [completed]="isStepCompleted(i)"
+          [state]="isStepCompleted(i) ? 'done' : 'number'">
+          <ng-template matStepLabel>{{ step.label }}</ng-template>
+          <div class="step-content">
+            <mat-icon [class.completed]="isStepCompleted(i)">{{ step.icon }}</mat-icon>
+          </div>
+        </mat-step>
+      </mat-stepper>
+
+      <!-- Estimated Delivery -->
+      @if (order?.estimatedDelivery && order?.status !== 'DELIVERED') {
+      <div class="delivery-info">
+        <mat-icon>schedule</mat-icon>
+        <span>Entrega estimada: {{ order?.estimatedDelivery | date:'HH:mm' }}</span>
+      </div>
+
+      }
+      
+      <!-- Actual Delivery -->
+      @if (order?.actualDelivery) {
+      <div class="delivery-info success">
+        <mat-icon>check_circle</mat-icon>
+        <span>Entregado el {{ order?.actualDelivery | date:'dd/MM/yyyy HH:mm' }}</span>
+      </div>
+      }
+    </mat-card-content>
+  </mat-card>
+  }
+
+  <!-- Order Information -->
+  <mat-card class="order-info-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>receipt</mat-icon>
+        Información del Pedido
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="info-grid">
+        <div class="info-item">
+          <span class="label">Fecha del Pedido:</span>
+          <span class="value">{{ order?.orderDate | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Método de Pago:</span>
+          <span class="value">{{ order?.paymentMethod }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Cliente:</span>
+          <span class="value">{{ order?.customerName }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Teléfono:</span>
+          <span class="value">{{ order?.customerPhone }}</span>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Delivery Address -->
+  <mat-card class="address-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>location_on</mat-icon>
+        Dirección de Entrega
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <p class="address">{{ order?.deliveryAddress }}</p>
+      @if (order?.specialInstructions) {
+      <p class="instructions">
+        <mat-icon>info</mat-icon>
+        <strong>Instrucciones:</strong> {{ order?.specialInstructions }}
+      </p>
+      }
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Order Items -->
+  <mat-card class="items-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>restaurant_menu</mat-icon>
+        Productos Pedidos ({{ order?.items?.length || 0 }})
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="items-list">
+        <div *ngFor="let item of order?.items" class="order-item">
+          <div class="item-image">
+            <img [src]="item.product.image" [alt]="item.product.name">
+          </div>
+          <div class="item-details">
+            <h3 class="item-name">{{ item.product.name }}</h3>
+            <p class="item-description">{{ item.product.description }}</p>
+            @if (item.notes) {
+            <p class="item-notes">
+              <mat-icon>note</mat-icon>
+              <strong>Notas:</strong> {{ item.notes }}
+            </p>
+            }
+            <div class="item-quantity">
+              <span class="quantity">Cantidad: {{ item.quantity }}</span>
+              <span class="unit-price">S/{{ item.price.toFixed(2) }} c/u</span>
+            </div>
+          </div>
+          <div class="item-total">
+            <span class="total-price">S/{{ (item.price * item.quantity).toFixed(2) }}</span>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Order Summary -->
+  <mat-card class="summary-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>calculate</mat-icon>
+        Resumen del Pedido
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="summary-row">
+        <span>Subtotal:</span>
+        <span>S/{{ order?.subtotal?.toFixed(2) || '0.00' }}</span>
+      </div>
+      <div class="summary-row">
+        <span>Delivery:</span>
+        <span>S/{{ order?.deliveryFee?.toFixed(2) || '0.00' }}</span>
+      </div>
+      @if (order?.discount && (order?.discount || 0) > 0) {
+      <div class="summary-row">
+        <span>Descuento:</span>
+        <span class="discount">-S/{{ order?.discount?.toFixed(2) || '0.00' }}</span>
+      </div>
+      }
+      <mat-divider></mat-divider>
+      <div class="summary-row total">
+        <span><strong>Total:</strong></span>
+        <span><strong>S/{{ order?.total?.toFixed(2) || '0.00' }}</strong></span>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Tracking History -->
+  @if (order?.trackingHistory && (order?.trackingHistory?.length || 0) > 0) {
+  <mat-card class="history-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>history</mat-icon>
+        Historial de Seguimiento
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="history-timeline">
+        <div *ngFor="let event of order?.trackingHistory" class="timeline-item">
+          <div class="timeline-marker">
+            <mat-icon>check_circle</mat-icon>
+          </div>
+          <div class="timeline-content">
+            <div class="timeline-time">{{ event.timestamp | date:'dd/MM/yyyy HH:mm' }}</div>
+            <div class="timeline-status">{{ getStatusLabel(event.status) }}</div>
+            <div class="timeline-description">{{ event.description }}</div>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+  }
+
+  <!-- Action Buttons -->
+  <div class="action-buttons">
+    @if (canCancelOrder()) {
+    <button mat-raised-button color="warn" (click)="cancelOrder()" class="action-btn">
+      <mat-icon>cancel</mat-icon>
+      Cancelar Pedido
+    </button>
+    }
+
+    @if (canReorder()) {
+    <button mat-raised-button color="primary" (click)="reorderItems()" class="action-btn">
+      <mat-icon>refresh</mat-icon>
+      Pedir de Nuevo
+    </button>
+    }
+
+    <button mat-stroked-button (click)="contactSupport()" class="action-btn">
+      <mat-icon>support_agent</mat-icon>
+      Contactar Soporte
+    </button>
+
+    <button mat-stroked-button (click)="shareOrder()" class="action-btn">
+      <mat-icon>share</mat-icon>
+      Compartir
+    </button>
+  </div>
+
+</div>
+} @else {
+<!-- Loading Template -->
+<div class="loading-container">
+  <mat-spinner></mat-spinner>
+  <p>Cargando detalles del pedido...</p>
+</div>
+}
+
+<!-- Menu -->
+<ng-template #loadingTemplate>
+  <div class="loading-container">
+    <mat-spinner></mat-spinner>
+    <p>Cargando detalles del pedido...</p>
+  </div>
+</ng-template>
+
+<!-- Menu -->
+<mat-menu #menu="matMenu">
+  <button mat-menu-item (click)="shareOrder()">
+    <mat-icon>share</mat-icon>
+    <span>Compartir</span>
+  </button>
+  <button mat-menu-item (click)="contactSupport()">
+    <mat-icon>support_agent</mat-icon>
+    <span>Contactar Soporte</span>
+  </button>
+</mat-menu>

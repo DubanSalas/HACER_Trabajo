@@ -1,0 +1,239 @@
+<div class="supplier-form-container">
+  <!-- Header -->
+  <div class="page-header">
+    <mat-card class="header-card">
+      <mat-card-content>
+        <div class="header-content">
+          <div class="title-section">
+            <h1 class="page-title">
+              <mat-icon class="title-icon">{{ isEditMode ? 'edit' : 'business' }}</mat-icon>
+              {{ isEditMode ? 'Editar Proveedor' : 'Nuevo Proveedor' }}
+            </h1>
+            <p class="page-subtitle">
+              {{ isEditMode ? 'Modifica los datos del proveedor' : 'Registra un nuevo proveedor en el sistema' }}
+            </p>
+          </div>
+          <div class="header-actions">
+            <button 
+              mat-stroked-button 
+              color="warn"
+              (click)="onCancel()"
+              [disabled]="loading || submitting">
+              <mat-icon>arrow_back</mat-icon>
+              Volver
+            </button>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-card>
+      <mat-card-content>
+        <div class="loading-content">
+          <mat-spinner diameter="50"></mat-spinner>
+          <p>Cargando datos del proveedor...</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Form -->
+  <div *ngIf="!loading" class="form-section">
+    <form [formGroup]="supplierForm" (ngSubmit)="onSubmit()">
+      <!-- Información de la Empresa -->
+      <mat-card class="form-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>business</mat-icon>
+            Información de la Empresa
+          </mat-card-title>
+          <mat-card-subtitle>
+            Datos básicos del proveedor
+          </mat-card-subtitle>
+        </mat-card-header>
+        
+        <mat-card-content>
+          <div class="form-grid">
+            <!-- Nombre de la Empresa -->
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Nombre de la Empresa</mat-label>
+              <input 
+                matInput 
+                formControlName="companyName"
+                placeholder="Ej: Distribuidora ABC S.A.C.">
+              <mat-icon matPrefix>business</mat-icon>
+              <mat-error *ngIf="isFieldInvalid('companyName')">
+                {{ getErrorMessage('companyName') }}
+              </mat-error>
+            </mat-form-field>
+
+            <!-- Categoría -->
+            <mat-form-field appearance="outline">
+              <mat-label>Categoría</mat-label>
+              <mat-select formControlName="category">
+                <mat-option *ngFor="let category of categories" [value]="category">
+                  {{ category }}
+                </mat-option>
+              </mat-select>
+              <mat-icon matPrefix>category</mat-icon>
+              <mat-error *ngIf="isFieldInvalid('category')">
+                {{ getErrorMessage('category') }}
+              </mat-error>
+            </mat-form-field>
+
+            <!-- Términos de Pago -->
+            <mat-form-field appearance="outline">
+              <mat-label>Términos de Pago</mat-label>
+              <mat-select formControlName="paymentTerms">
+                <mat-option *ngFor="let term of paymentTerms" [value]="term">
+                  {{ term }}
+                </mat-option>
+              </mat-select>
+              <mat-icon matPrefix>payment</mat-icon>
+              <mat-error *ngIf="isFieldInvalid('paymentTerms')">
+                {{ getErrorMessage('paymentTerms') }}
+              </mat-error>
+            </mat-form-field>
+
+            <!-- Dirección -->
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Dirección</mat-label>
+              <textarea 
+                matInput 
+                formControlName="address"
+                rows="2"
+                placeholder="Dirección completa de la empresa...">
+              </textarea>
+              <mat-icon matPrefix>place</mat-icon>
+              <mat-error *ngIf="isFieldInvalid('address')">
+                {{ getErrorMessage('address') }}
+              </mat-error>
+            </mat-form-field>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Información de Contacto -->
+      <mat-card class="form-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>contact_phone</mat-icon>
+            Información de Contacto
+          </mat-card-title>
+          <mat-card-subtitle>
+            Datos del representante o contacto principal
+          </mat-card-subtitle>
+        </mat-card-header>
+        
+        <mat-card-content>
+          <div class="form-grid">
+            <!-- Nombre del Contacto -->
+            <mat-form-field appearance="outline">
+              <mat-label>Nombre del Contacto</mat-label>
+              <input 
+                matInput 
+                formControlName="contactName"
+                placeholder="Ej: Juan Pérez">
+              <mat-icon matPrefix>person</mat-icon>
+              <mat-error *ngIf="isFieldInvalid('contactName')">
+                {{ getErrorMessage('contactName') }}
+              </mat-error>
+            </mat-form-field>
+
+            <!-- Teléfono -->
+            <mat-form-field appearance="outline">
+              <mat-label>Teléfono</mat-label>
+              <input 
+                matInput 
+                formControlName="phone"
+                placeholder="Ej: 987654321"
+                maxlength="9">
+              <mat-icon matPrefix>phone</mat-icon>
+              <mat-error *ngIf="isFieldInvalid('phone')">
+                {{ getErrorMessage('phone') }}
+              </mat-error>
+            </mat-form-field>
+
+            <!-- Email -->
+            <mat-form-field appearance="outline">
+              <mat-label>Correo Electrónico</mat-label>
+              <input 
+                matInput 
+                formControlName="email"
+                placeholder="Ej: contacto@empresa.com"
+                type="email">
+              <mat-icon matPrefix>email</mat-icon>
+              <mat-error *ngIf="isFieldInvalid('email')">
+                {{ getErrorMessage('email') }}
+              </mat-error>
+            </mat-form-field>
+
+            <!-- Estado -->
+            <mat-form-field appearance="outline" *ngIf="isEditMode">
+              <mat-label>Estado</mat-label>
+              <mat-select formControlName="status">
+                <mat-option value="A">Activo</mat-option>
+                <mat-option value="I">Inactivo</mat-option>
+              </mat-select>
+              <mat-icon matPrefix>toggle_on</mat-icon>
+            </mat-form-field>
+          </div>
+
+          <!-- Supplier Summary -->
+          <div class="supplier-summary" *ngIf="supplierForm.get('companyName')?.value">
+            <mat-card class="summary-card">
+              <mat-card-content>
+                <div class="summary-content">
+                  <div class="supplier-avatar">
+                    <mat-icon>business</mat-icon>
+                  </div>
+                  <div class="supplier-info">
+                    <h3>{{ supplierForm.get('companyName')?.value }}</h3>
+                    <p *ngIf="supplierForm.get('category')?.value">
+                      {{ supplierForm.get('category')?.value }}
+                    </p>
+                    <p *ngIf="supplierForm.get('contactName')?.value">
+                      Contacto: {{ supplierForm.get('contactName')?.value }}
+                    </p>
+                    <p *ngIf="supplierForm.get('paymentTerms')?.value" class="payment-terms">
+                      Pago: {{ supplierForm.get('paymentTerms')?.value }}
+                    </p>
+                  </div>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Actions -->
+      <mat-card class="actions-card">
+        <mat-card-content>
+          <div class="form-actions">
+            <button 
+              mat-stroked-button 
+              type="button"
+              (click)="onCancel()"
+              [disabled]="submitting">
+              <mat-icon>cancel</mat-icon>
+              Cancelar
+            </button>
+            
+            <button 
+              mat-raised-button 
+              color="primary"
+              type="submit"
+              [disabled]="supplierForm.invalid || submitting"
+              class="submit-btn">
+              <mat-icon>{{ submitting ? 'hourglass_empty' : 'save' }}</mat-icon>
+              {{ submitting ? 'Guardando...' : (isEditMode ? 'Actualizar' : 'Guardar') }}
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </form>
+  </div>
+</div>

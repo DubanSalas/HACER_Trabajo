@@ -1,0 +1,168 @@
+<div class="register-container">
+  <div class="register-card-wrapper">
+    <mat-card class="register-card">
+      <mat-card-header>
+        <button mat-icon-button class="back-button" (click)="goBack()">
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+        <div class="header-content">
+          <mat-icon class="header-icon">person_add</mat-icon>
+          <h1>Crear Cuenta</h1>
+          <p>Regístrate para realizar tus pedidos</p>
+        </div>
+      </mat-card-header>
+
+      <mat-card-content>
+        <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Tipo de Documento</mat-label>
+              <mat-select formControlName="documentType">
+                <mat-option *ngFor="let type of documentTypes" [value]="type.value">
+                  {{ type.label }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Número de Documento</mat-label>
+              <input matInput formControlName="documentNumber" placeholder="12345678" maxlength="12">
+              <mat-icon matPrefix>badge</mat-icon>
+              <mat-error>{{ getErrorMessage('documentNumber') }}</mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Nombres</mat-label>
+              <input matInput formControlName="name" placeholder="Juan Carlos" maxlength="50">
+              <mat-icon matPrefix>person</mat-icon>
+              <mat-error>{{ getErrorMessage('name') }}</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Apellidos</mat-label>
+              <input matInput formControlName="surname" placeholder="Pérez García" maxlength="50">
+              <mat-icon matPrefix>person_outline</mat-icon>
+              <mat-error>{{ getErrorMessage('surname') }}</mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Fecha de Nacimiento</mat-label>
+              <input matInput [matDatepicker]="picker" formControlName="dateBirth">
+              <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+              <mat-datepicker #picker></mat-datepicker>
+              <mat-error>{{ getErrorMessage('dateBirth') }}</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Teléfono</mat-label>
+              <input matInput formControlName="phone" placeholder="987654321" maxlength="9">
+              <mat-icon matPrefix>phone</mat-icon>
+              <mat-hint>Debe iniciar con 9</mat-hint>
+              <mat-error>{{ getErrorMessage('phone') }}</mat-error>
+            </mat-form-field>
+          </div>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Email</mat-label>
+            <input matInput type="email" formControlName="email" placeholder="correo@ejemplo.com">
+            <mat-icon matPrefix>email</mat-icon>
+            <mat-error>{{ getErrorMessage('email') }}</mat-error>
+          </mat-form-field>
+
+          <div class="section-title">
+            <mat-icon>location_on</mat-icon>
+            <h3>Dirección de Entrega</h3>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="third-width">
+              <mat-label>Departamento</mat-label>
+              <mat-select formControlName="department">
+                <mat-option *ngFor="let dept of departments" [value]="dept">
+                  {{ dept }}
+                </mat-option>
+              </mat-select>
+              <mat-icon matPrefix>map</mat-icon>
+              <mat-error>{{ getErrorMessage('department') }}</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="third-width">
+              <mat-label>Provincia</mat-label>
+              <mat-select formControlName="province" [disabled]="!provinces.length">
+                <mat-option *ngFor="let prov of provinces" [value]="prov">
+                  {{ prov }}
+                </mat-option>
+              </mat-select>
+              <mat-hint *ngIf="!provinces.length && registerForm.get('department')?.value">
+                Selecciona un departamento primero
+              </mat-hint>
+              <mat-error>{{ getErrorMessage('province') }}</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="third-width">
+              <mat-label>Distrito</mat-label>
+              <mat-select formControlName="district" [disabled]="!districts.length">
+                <mat-option *ngFor="let dist of districts" [value]="dist">
+                  {{ dist }}
+                </mat-option>
+              </mat-select>
+              <mat-hint *ngIf="!districts.length && registerForm.get('province')?.value">
+                Selecciona una provincia primero
+              </mat-hint>
+              <mat-error>{{ getErrorMessage('district') }}</mat-error>
+            </mat-form-field>
+          </div>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Dirección Completa</mat-label>
+            <input matInput formControlName="address" placeholder="Av. Principal 123, Dpto 456" maxlength="200">
+            <mat-icon matPrefix>home</mat-icon>
+            <mat-hint>Incluye calle, número, referencia</mat-hint>
+            <mat-error>{{ getErrorMessage('address') }}</mat-error>
+          </mat-form-field>
+
+          <div class="section-title">
+            <mat-icon>security</mat-icon>
+            <h3>Seguridad</h3>
+          </div>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Contraseña</mat-label>
+            <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password" placeholder="Mínimo 8 caracteres">
+            <mat-icon matPrefix>lock</mat-icon>
+            <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword">
+              <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
+            <mat-hint>{{ getPasswordHint() }}</mat-hint>
+            <mat-error>{{ getErrorMessage('password') }}</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Confirmar Contraseña</mat-label>
+            <input matInput [type]="hideConfirmPassword ? 'password' : 'text'" formControlName="confirmPassword">
+            <mat-icon matPrefix>lock</mat-icon>
+            <button mat-icon-button matSuffix type="button" (click)="hideConfirmPassword = !hideConfirmPassword">
+              <mat-icon>{{ hideConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
+            <mat-error>{{ getErrorMessage('confirmPassword') }}</mat-error>
+          </mat-form-field>
+
+          <button mat-raised-button color="primary" type="submit" class="register-button" [disabled]="loading">
+            <mat-icon *ngIf="!loading">person_add</mat-icon>
+            <span *ngIf="!loading">Registrarse</span>
+            <span *ngIf="loading">Registrando...</span>
+          </button>
+
+          <div class="login-link">
+            <span>¿Ya tienes cuenta?</span>
+            <a routerLink="/auth/customer-login">Inicia sesión aquí</a>
+          </div>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

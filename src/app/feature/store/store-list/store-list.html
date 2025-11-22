@@ -1,207 +1,296 @@
 <div class="store-container">
   <!-- Header -->
-  <div class="header">
-    <div class="header-content">
-      <h1>Gestión de Almacén</h1>
-      <p class="subtitle">Control completo de inventario y stock</p>
-    </div>
-    <div class="header-actions">
-      <button mat-raised-button class="report-btn">
-        <mat-icon>description</mat-icon>
-        Reporte
-      </button>
+  <div class="page-header">
+    <mat-card class="header-card">
+      <mat-card-content>
+        <div class="header-content">
+          <div class="title-section">
+            <h1 class="page-title">
+              <mat-icon class="title-icon">store</mat-icon>
+              Gestión de Almacén
+            </h1>
+            <p class="page-subtitle">Control de inventario y stock</p>
+          </div>
+          <div class="header-actions">
+            <button 
+              mat-raised-button 
+              color="primary" 
+              class="create-btn"
+              (click)="navigateToCreate()">
+              <mat-icon>add_box</mat-icon>
+              Nuevo Item
+            </button>
+            <button 
+              mat-stroked-button 
+              color="accent"
+              (click)="generateReport()">
+              <mat-icon>description</mat-icon>
+              Generar Reporte
+            </button>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Resumen de almacén -->
+  <div class="summary-section" *ngIf="summary">
+    <div class="summary-grid">
+      <mat-card class="summary-card total-card">
+        <mat-card-content>
+          <div class="summary-content">
+            <div class="summary-icon">
+              <mat-icon>inventory_2</mat-icon>
+            </div>
+            <div class="summary-info">
+              <h3>Total Items</h3>
+              <div class="summary-value">{{ summary.totalItems }}</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="summary-card warning-card">
+        <mat-card-content>
+          <div class="summary-content">
+            <div class="summary-icon">
+              <mat-icon>warning</mat-icon>
+            </div>
+            <div class="summary-info">
+              <h3>Stock Bajo</h3>
+              <div class="summary-value">{{ summary.lowStockItems }}</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="summary-card danger-card">
+        <mat-card-content>
+          <div class="summary-content">
+            <div class="summary-icon">
+              <mat-icon>schedule</mat-icon>
+            </div>
+            <div class="summary-info">
+              <h3>Por Vencer</h3>
+              <div class="summary-value">{{ summary.nearExpiryItems }}</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="summary-card value-card">
+        <mat-card-content>
+          <div class="summary-content">
+            <div class="summary-icon">
+              <mat-icon>attach_money</mat-icon>
+            </div>
+            <div class="summary-info">
+              <h3>Valor Total</h3>
+              <div class="summary-value">{{ formatPrice(summary.totalInventoryValue) }}</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
     </div>
   </div>
 
-  <!-- Stats Cards -->
-  <div class="stats-grid">
-    <div class="stat-card total">
-      <div class="stat-content">
-        <div class="stat-info">
-          <h3>Total Productos</h3>
-          <p class="stat-value">{{ stats.total_products }}</p>
-          <p class="stat-subtitle">En inventario</p>
-        </div>
-        <div class="stat-icon">
-          <mat-icon>inventory</mat-icon>
-        </div>
+  <!-- Filtros Avanzados -->
+  <app-advanced-filter 
+    [config]="filterConfig"
+    searchPlaceholder="Buscar items por producto, código, proveedor, ubicación..."
+    [showStatusFilter]="true"
+    (filtersChanged)="onFiltersChanged($event)">
+  </app-advanced-filter>
+
+  <!-- Lista de items -->
+  <mat-card class="store-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>list</mat-icon>
+        Items de Almacén
+      </mat-card-title>
+      <mat-card-subtitle>
+        Mostrando {{ filteredItems.length }} de {{ storeItems.length }} items
+      </mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <!-- Loading -->
+      <div *ngIf="loading" class="loading-container">
+        <mat-spinner diameter="50"></mat-spinner>
+        <p>Cargando inventario...</p>
       </div>
-    </div>
 
-    <div class="stat-card low-stock">
-      <div class="stat-content">
-        <div class="stat-info">
-          <h3>Stock Bajo</h3>
-          <p class="stat-value">{{ stats.low_stock }}</p>
-          <p class="stat-subtitle">Requieren atención</p>
-        </div>
-        <div class="stat-icon">
-          <mat-icon>warning</mat-icon>
-        </div>
+      <!-- Empty state -->
+      <div *ngIf="!loading && filteredItems.length === 0" class="empty-state">
+        <mat-icon class="empty-icon">store</mat-icon>
+        <h3>No se encontraron items</h3>
+        <p *ngIf="searchTerm">Intenta ajustar los filtros de búsqueda</p>
+        <p *ngIf="!searchTerm">No hay items registrados en el almacén</p>
+        <button 
+          mat-raised-button 
+          color="primary"
+          (click)="navigateToCreate()">
+          <mat-icon>add_box</mat-icon>
+          Registrar Primer Item
+        </button>
       </div>
-    </div>
 
-    <div class="stat-card out-of-stock">
-      <div class="stat-content">
-        <div class="stat-info">
-          <h3>Agotados</h3>
-          <p class="stat-value">{{ stats.out_of_stock }}</p>
-          <p class="stat-subtitle">Sin stock</p>
-        </div>
-        <div class="stat-icon">
-          <mat-icon>remove_shopping_cart</mat-icon>
-        </div>
-      </div>
-    </div>
+      <!-- Grid de items -->
+      <div *ngIf="!loading && filteredItems.length > 0" class="store-grid">
+        <mat-card 
+          *ngFor="let item of filteredItems; trackBy: trackByItemId" 
+          class="store-item-card"
+          [class.inactive]="item.status !== 'A'"
+          [class.low-stock]="item.lowStock"
+          [class.out-of-stock]="item.outOfStock"
+          [class.near-expiry]="item.nearExpiry">
+          
+          <mat-card-header class="item-header">
+            <div mat-card-avatar class="item-avatar">
+              <mat-icon>{{ item.category === 'Bebidas' ? 'local_drink' : 'inventory_2' }}</mat-icon>
+            </div>
+            <mat-card-title class="item-name">
+              {{ item.productName }}
+            </mat-card-title>
+            <mat-card-subtitle class="item-code">
+              {{ item.itemCode }}
+            </mat-card-subtitle>
+            <div class="item-status">
+              <mat-chip [class]="getStatusClass(item.status)">
+                {{ getStatusText(item.status) }}
+              </mat-chip>
+            </div>
+          </mat-card-header>
 
-    <div class="stat-card expiring">
-      <div class="stat-content">
-        <div class="stat-info">
-          <h3>Próximos a Vencer</h3>
-          <p class="stat-value">{{ stats.expiring_soon }}</p>
-          <p class="stat-subtitle">En 7 días</p>
-        </div>
-        <div class="stat-icon">
-          <mat-icon>schedule</mat-icon>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Filters and Actions -->
-  <div class="filters-section">
-    <div class="search-container">
-      <mat-icon class="search-icon">search</mat-icon>
-      <input 
-        type="text" 
-        placeholder="Buscar por nombre o proveedor..." 
-        [(ngModel)]="searchTerm"
-        (input)="onSearch()"
-        class="search-input">
-    </div>
-
-    <div class="filters-container">
-      <mat-form-field appearance="outline" class="filter-field">
-        <mat-label>Todas las Categorías</mat-label>
-        <mat-select [(value)]="filters.category" (selectionChange)="onFilterChange()">
-          <mat-option value="">Todas las Categorías</mat-option>
-          <mat-option *ngFor="let category of categories" [value]="category">
-            {{ category }}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="filter-field">
-        <mat-label>Todos los Activos</mat-label>
-        <mat-select [(value)]="filters.status" (selectionChange)="onFilterChange()">
-          <mat-option value="">Todos los Activos</mat-option>
-          <mat-option *ngFor="let status of statuses" [value]="status">
-            {{ status }}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-    </div>
-
-    <div class="action-buttons">
-      <button mat-icon-button (click)="toggleViewMode()" class="view-toggle">
-        <mat-icon>{{ viewMode === 'list' ? 'view_module' : 'view_list' }}</mat-icon>
-      </button>
-      <span class="view-label">Vista:</span>
-      <button mat-raised-button color="primary" (click)="openCreateForm()" class="new-item-btn">
-        <mat-icon>add_circle</mat-icon>
-        Agregar Producto
-      </button>
-    </div>
-  </div>
-
-  <!-- Loading Spinner -->
-  <div *ngIf="loading" class="loading-container">
-    <mat-spinner diameter="50"></mat-spinner>
-    <p>Cargando inventario...</p>
-  </div>
-
-  <!-- Store Items Table -->
-  <div *ngIf="!loading" class="table-container">
-    <table class="store-table">
-      <thead>
-        <tr>
-          <th>PRODUCTO</th>
-          <th>CATEGORÍA</th>
-          <th>STOCK</th>
-          <th>PRECIO UNIT</th>
-          <th>PROVEEDOR</th>
-          <th>VENCIMIENTO</th>
-          <th>ESTADO</th>
-          <th>ACCIONES</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let item of filteredItems" class="store-row">
-          <td>
-            <div class="product-info">
-              <div class="product-image">
-                <mat-icon>inventory_2</mat-icon>
+          <mat-card-content class="item-content">
+            <div class="item-info">
+              <div class="info-row">
+                <mat-icon class="info-icon">category</mat-icon>
+                <span class="info-label">Categoría:</span>
+                <span class="info-value">{{ item.category }}</span>
               </div>
-              <div class="product-details">
-                <span class="product-name">{{ item.product_name }}</span>
-                <span class="product-id">ID: {{ item.id_Product }}</span>
+
+              <div class="info-row">
+                <mat-icon class="info-icon">place</mat-icon>
+                <span class="info-label">Ubicación:</span>
+                <span class="info-value">{{ item.location }}</span>
+              </div>
+
+              <div class="info-row">
+                <mat-icon class="info-icon">business</mat-icon>
+                <span class="info-label">Proveedor:</span>
+                <span class="info-value">{{ item.supplierName || 'Sin proveedor' }}</span>
+              </div>
+
+              <div class="info-row stock-row">
+                <mat-icon class="info-icon">inventory</mat-icon>
+                <span class="info-label">Stock:</span>
+                <span class="info-value" [class]="getStockClass(item)">
+                  {{ item.currentStock }} / {{ item.minimumStock }}
+                </span>
+              </div>
+
+              <div class="info-row">
+                <mat-icon class="info-icon">schedule</mat-icon>
+                <span class="info-label">Vencimiento:</span>
+                <span class="info-value" [class]="getExpiryClass(item)">
+                  {{ formatDate(item.expiryDate) }}
+                </span>
+              </div>
+
+              <div class="info-row price-row">
+                <mat-icon class="info-icon">attach_money</mat-icon>
+                <span class="info-label">Valor Total:</span>
+                <span class="info-value price-value">{{ formatPrice(item.totalStockValue) }}</span>
               </div>
             </div>
-          </td>
-          <td>{{ item.category }}</td>
-          <td>
-            <div class="stock-info" [ngClass]="getStockClass(item)">
-              <span class="stock-amount">{{ formatStock(item.current_stock, item.unit) }}</span>
-              <span class="stock-min">Mín: {{ item.min_stock }}</span>
-            </div>
-          </td>
-          <td class="price-cell">{{ formatCurrency(item.unit_price) }}</td>
-          <td>{{ item.supplier_name || 'N/A' }}</td>
-          <td>
-            <div class="expiry-info">
-              <span class="expiry-date">{{ formatDate(item.expiry_date) }}</span>
-              <span *ngIf="isExpired(item.expiry_date)" class="expiry-warning expired">Vencido</span>
-              <span *ngIf="isExpiringSoon(item.expiry_date) && !isExpired(item.expiry_date)" class="expiry-warning expiring">Próximo</span>
-            </div>
-          </td>
-          <td>
-            <span class="status-badge" [ngClass]="getStatusClass(item.status)">
-              {{ item.status }}
-            </span>
-          </td>
-          <td>
-            <div class="action-buttons">
-              <button mat-icon-button (click)="openEditForm(item)" class="edit-btn" title="Editar">
-                <mat-icon>edit</mat-icon>
-              </button>
-              <button mat-icon-button (click)="viewItem(item)" class="view-btn" title="Ver">
-                <mat-icon>visibility</mat-icon>
-              </button>
-              <button mat-icon-button (click)="deleteItem(item)" class="delete-btn" title="Eliminar">
-                <mat-icon>delete</mat-icon>
-              </button>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
 
-    <!-- Empty State -->
-    <div *ngIf="filteredItems.length === 0" class="empty-state">
-      <mat-icon>inventory</mat-icon>
-      <h3>No se encontraron productos</h3>
-      <p>No hay productos en el almacén que coincidan con los filtros aplicados</p>
-      <button mat-raised-button color="primary" (click)="clearFilters()">
-        Limpiar Filtros
-      </button>
-    </div>
-  </div>
+            <!-- Stock Status Indicator -->
+            <div class="stock-indicator" [class]="getStockClass(item)">
+              <mat-icon>{{ item.outOfStock ? 'error' : (item.lowStock ? 'warning' : 'check_circle') }}</mat-icon>
+              <span>{{ getStockLabel(item) }}</span>
+            </div>
 
-  <!-- Store Form Modal -->
-  <app-store-form
-    *ngIf="showForm"
-    [storeItem]="selectedItem"
-    (close)="onFormClose()"
-    (success)="onFormSuccess()">
-  </app-store-form>
+            <!-- Expiry Warning -->
+            <div *ngIf="item.nearExpiry" class="expiry-warning">
+              <mat-icon>schedule</mat-icon>
+              <span>Próximo a vencer</span>
+            </div>
+          </mat-card-content>
+
+          <mat-card-actions class="item-actions">
+            <button 
+              mat-button 
+              color="primary"
+              (click)="viewItem(item)"
+              matTooltip="Ver detalles">
+              <mat-icon>visibility</mat-icon>
+              Ver
+            </button>
+
+            <button 
+              mat-button 
+              color="accent"
+              (click)="updateStock(item)"
+              matTooltip="Actualizar stock">
+              <mat-icon>edit</mat-icon>
+              Stock
+            </button>
+
+            <button 
+              mat-button 
+              color="accent"
+              (click)="editItem(item)"
+              matTooltip="Editar item">
+              <mat-icon>edit</mat-icon>
+              Editar
+            </button>
+
+            <button 
+              *ngIf="item.status === 'A'"
+              mat-button 
+              color="warn"
+              (click)="deleteItem(item)"
+              matTooltip="Desactivar item">
+              <mat-icon>remove_circle</mat-icon>
+              Desactivar
+            </button>
+
+            <button 
+              *ngIf="item.status !== 'A'"
+              mat-button 
+              color="primary"
+              (click)="restoreItem(item)"
+              matTooltip="Reactivar item">
+              <mat-icon>add_circle</mat-icon>
+              Reactivar
+            </button>
+
+            <button 
+              mat-icon-button
+              [matMenuTriggerFor]="itemMenu"
+              matTooltip="Más opciones">
+              <mat-icon>more_vert</mat-icon>
+            </button>
+
+            <mat-menu #itemMenu="matMenu">
+              <button mat-menu-item>
+                <mat-icon>history</mat-icon>
+                Ver Historial
+              </button>
+              <button mat-menu-item>
+                <mat-icon>local_shipping</mat-icon>
+                Solicitar Reposición
+              </button>
+              <button mat-menu-item>
+                <mat-icon>qr_code</mat-icon>
+                Generar Etiqueta
+              </button>
+            </mat-menu>
+          </mat-card-actions>
+        </mat-card>
+      </div>
+    </mat-card-content>
+  </mat-card>
 </div>

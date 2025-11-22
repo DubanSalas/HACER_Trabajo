@@ -1,11 +1,17 @@
-// src/app/core/resolvers/customers.resolver.ts
-import { inject } from '@angular/core';
-import { ResolveFn } from '@angular/router';
-import { Customer } from '../interfaces/customer-interfaces';
+import { Injectable } from '@angular/core';
+import { Resolve } from '@angular/router';
+import { Observable } from 'rxjs';
 import { CustomerService } from '../services/customer.service';
+import { CustomerDTO } from '../interfaces/customer-interfaces';
 
-export const customersResolver: ResolveFn<Customer[]> = () => {
-  const service = inject(CustomerService);
-  // por defecto lista Activos para iniciar el dashboard
-  return service.getCustomersByStatus('A');
-};
+@Injectable({
+  providedIn: 'root'
+})
+export class CustomersResolver implements Resolve<CustomerDTO[]> {
+  
+  constructor(private customerService: CustomerService) {}
+
+  resolve(): Observable<CustomerDTO[]> {
+    return this.customerService.getAll();
+  }
+}

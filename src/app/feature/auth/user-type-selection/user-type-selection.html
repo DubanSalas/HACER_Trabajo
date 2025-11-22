@@ -1,0 +1,105 @@
+<div class="user-type-selection">
+  <div class="selection-container">
+    <!-- Header -->
+    <div class="header">
+      <div class="logo">
+        <mat-icon class="logo-icon">restaurant</mat-icon>
+        <h1>DeliPedidos</h1>
+      </div>
+      
+      <!-- Mostrar info del usuario si está autenticado -->
+      <div *ngIf="isAuthenticated && currentUser" class="user-info">
+        <p class="welcome-message">
+          ¡Bienvenido de nuevo, {{currentUser.username}}! ({{currentUser.role}})
+        </p>
+        <div class="user-actions">
+          <button mat-raised-button color="primary" (click)="navigateToDashboard()">
+            <mat-icon>dashboard</mat-icon>
+            Ir al Dashboard
+          </button>
+          <button mat-stroked-button (click)="logout()">
+            <mat-icon>logout</mat-icon>
+            Cerrar Sesión
+          </button>
+        </div>
+      </div>
+      
+      <!-- Mostrar subtitle solo si no está autenticado -->
+      <p class="subtitle" *ngIf="!isAuthenticated">Selecciona cómo quieres acceder</p>
+    </div>
+
+    <!-- User Type Cards -->
+    <div class="user-types">
+      <!-- Customer Card -->
+      <mat-card class="user-type-card customer-card" (click)="navigateToCustomerLogin()">
+        <mat-card-content>
+          <div class="card-icon">
+            <mat-icon>person</mat-icon>
+          </div>
+          <h2>Soy Cliente</h2>
+          <p>Explora nuestro menú, realiza pedidos y disfruta de la mejor comida</p>
+          <div class="features">
+            <div class="feature">
+              <mat-icon>restaurant_menu</mat-icon>
+              <span>Ver Menú</span>
+            </div>
+            <div class="feature">
+              <mat-icon>shopping_cart</mat-icon>
+              <span>Realizar Pedidos</span>
+            </div>
+            <div class="feature">
+              <mat-icon>track_changes</mat-icon>
+              <span>Seguir Entregas</span>
+            </div>
+          </div>
+        </mat-card-content>
+        <mat-card-actions>
+          <button mat-raised-button color="primary" class="access-button">
+            <mat-icon>arrow_forward</mat-icon>
+            Acceder como Cliente
+          </button>
+        </mat-card-actions>
+      </mat-card>
+
+      <!-- Admin Card -->
+      <mat-card class="user-type-card admin-card" (click)="navigateToAdminLogin()">
+        <mat-card-content>
+          <div class="card-icon">
+            <mat-icon>admin_panel_settings</mat-icon>
+          </div>
+          <h2>Soy Administrador</h2>
+          <p>Gestiona el restaurante, productos, pedidos y reportes del negocio</p>
+          <div class="features">
+            <div class="feature">
+              <mat-icon>dashboard</mat-icon>
+              <span>Dashboard</span>
+            </div>
+            <div class="feature">
+              <mat-icon>inventory</mat-icon>
+              <span>Gestionar Productos</span>
+            </div>
+            <div class="feature">
+              <mat-icon>analytics</mat-icon>
+              <span>Ver Reportes</span>
+            </div>
+          </div>
+        </mat-card-content>
+        <mat-card-actions>
+          <button mat-raised-button color="accent" class="access-button">
+            <mat-icon>login</mat-icon>
+            Iniciar Sesión
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p>¿Primera vez aquí? ¡Bienvenido a DeliPedidos!</p>
+      <p class="help-text">
+        <mat-icon>help_outline</mat-icon>
+        ¿Necesitas ayuda? Contacta con nosotros: soporte@delipedidos.com
+      </p>
+    </div>
+  </div>
+</div>

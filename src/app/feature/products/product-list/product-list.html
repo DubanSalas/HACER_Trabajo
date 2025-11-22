@@ -1,0 +1,435 @@
+<div class="products-container">
+  <!-- Header -->
+  <div class="page-header">
+    <mat-card class="header-card">
+      <mat-card-content>
+        <div class="header-content">
+          <div class="title-section">
+            <h1 class="page-title">
+              <mat-icon class="title-icon">inventory</mat-icon>
+              Gestión de Productos
+            </h1>
+            <p class="page-subtitle">Administra el inventario de productos</p>
+          </div>
+          <div class="header-actions">
+            <button 
+              mat-raised-button 
+              color="primary" 
+              class="create-btn"
+              (click)="navigateToCreate()">
+              <mat-icon>add_box</mat-icon>
+              Nuevo Producto
+            </button>
+            <button 
+              mat-stroked-button 
+              color="accent"
+              (click)="generateReport()">
+              <mat-icon>description</mat-icon>
+              Generar Reporte
+            </button>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+  <!-- Resumen de productos -->
+  <div class="summary-section" *ngIf="summary">
+    <div class="summary-grid">
+      <mat-card class="summary-card total-card">
+        <mat-card-content>
+          <div class="summary-content">
+            <div class="summary-icon">
+              <mat-icon>inventory_2</mat-icon>
+            </div>
+            <div class="summary-info">
+              <h3>Total Productos</h3>
+              <div class="summary-value">{{ summary.totalProducts }}</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+      <mat-card class="summary-card active-card">
+        <mat-card-content>
+          <div class="summary-content">
+            <div class="summary-icon">
+              <mat-icon>check_circle</mat-icon>
+            </div>
+            <div class="summary-info">
+              <h3>Disponibles</h3>
+              <div class="summary-value">{{ summary.activeProducts }}</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+      <mat-card class="summary-card warning-card">
+        <mat-card-content>
+          <div class="summary-content">
+            <div class="summary-icon">
+              <mat-icon>warning</mat-icon>
+            </div>
+            <div class="summary-info">
+              <h3>Stock Bajo</h3>
+              <div class="summary-value">{{ summary.lowStockProducts }}</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+      <mat-card class="summary-card danger-card">
+        <mat-card-content>
+          <div class="summary-content">
+            <div class="summary-icon">
+              <mat-icon>error</mat-icon>
+            </div>
+            <div class="summary-info">
+              <h3>Sin Stock</h3>
+              <div class="summary-value">{{ summary.outOfStockProducts }}</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+  <!-- Filtros Avanzados -->
+  <app-advanced-filter 
+    [config]="filterConfig"
+    searchPlaceholder="Buscar productos por nombre, código, descripción..."
+    [showStatusFilter]="true"
+    (filtersChanged)="onFiltersChanged($event)">
+  </app-advanced-filter>
+  <!-- Lista de productos -->
+  <mat-card class="products-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>list</mat-icon>
+        Lista de Productos
+      </mat-card-title>
+      <mat-card-subtitle>
+        Mostrando {{ filteredProducts.length }} de {{ products.length }} productos
+      </mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <!-- Loading -->
+      <div *ngIf="loading" class="loading-container">
+        <mat-spinner diameter="50"></mat-spinner>
+        <p>Cargando productos...</p>
+      </div>
+      <!-- Empty state -->
+      <div *ngIf="!loading && filteredProducts.length === 0" class="empty-state">
+        <mat-icon class="empty-icon">inventory</mat-icon>
+        <h3>No se encontraron productos</h3>
+        <p *ngIf="searchTerm">Intenta ajustar los filtros de búsqueda</p>
+        <p *ngIf="!searchTerm">No hay productos registrados</p>
+        <button 
+          mat-raised-button 
+          color="primary"
+          (click)="navigateToCreate()">
+          <mat-icon>add_box</mat-icon>
+          Registrar Primer Producto
+        </button>
+      </div>
+      <!-- Grid de productos -->
+      <div *ngIf="!loading && filteredProducts.length > 0" class="products-grid">
+        <mat-card 
+          *ngFor="let product of filteredProducts; trackBy: trackByProductId" 
+          class="product-card"
+          [class.inactive]="product.status !== 'A'"
+          [class.low-stock]="product.lowStock"
+          [class.out-of-stock]="product.outOfStock">
+          <mat-card-header class="product-header">
+            <div mat-card-avatar class="product-avatar">
+              <mat-icon>{{ product.category === 'Bebidas' ? 'local_drink' : 'fastfood' }}</mat-icon>
+            </div>
+            <mat-card-title class="product-name">
+              {{ product.productName }}
+            </mat-card-title>
+            <mat-card-subtitle class="product-code">
+              {{ product.productCode }}
+            </mat-card-subtitle>
+            <div class="product-status">
+              <mat-chip [class]="getStatusClass(product.status)">
+                {{ getStatusText(product.status) }}
+              </mat-chip>
+            </div>
+          </mat-card-header>
+          <mat-card-content class="product-content">
+            <div class="product-info">
+              <div class="info-row">
+                <mat-icon class="info-icon">category</mat-icon>
+                <span class="info-label">Categoría:</span>
+                <span class="info-value">{{ product.category }}</span>
+              </div>
+              <div class="info-row">
+                <mat-icon class="info-icon">description</mat-icon>
+                <span class="info-label">Descripción:</span>
+                <span class="info-value">{{ product.description }}</span>
+              </div>
+              <div class="info-row">
+                <mat-icon class="info-icon">inventory</mat-icon>
+                <span class="info-label">Stock:</span>
+                <span class="info-value" [class]="getStockClass(product)">
+                  {{ product.stock }} unidades
+                </span>
+              </div>
+              <div class="info-row">
+                <mat-icon class="info-icon">info</mat-icon>
+                <span class="info-label">Estado:</span>
+                <span class="info-value" [class]="getStockClass(product)">
+                  {{ getStockLabel(product) }}
+                </span>
+              </div>
+              <div class="info-row price-row">
+                <mat-icon class="info-icon">attach_money</mat-icon>
+                <span class="info-label">Precio:</span>
+                <span class="info-value price-value">{{ formatPrice(product.price) }}</span>
+              </div>
+            </div>
+          </mat-card-content>
+          <mat-card-actions class="product-actions">
+            <button 
+              mat-button 
+              color="primary"
+              (click)="viewProduct(product)"
+              matTooltip="Ver detalles">
+              <mat-icon>visibility</mat-icon>
+              Ver
+            </button>
+            <button 
+              mat-button 
+              color="accent"
+              (click)="editProduct(product)"
+              matTooltip="Editar producto">
+              <mat-icon>edit</mat-icon>
+              Editar
+            </button>
+            <button 
+              *ngIf="product.status === 'A'"
+              mat-button 
+              color="warn"
+              (click)="deleteProduct(product)"
+              matTooltip="Desactivar producto">
+              <mat-icon>remove_circle</mat-icon>
+              Desactivar
+            </button>
+            <button 
+              *ngIf="product.status !== 'A'"
+              mat-button 
+              color="primary"
+              (click)="restoreProduct(product)"
+              matTooltip="Reactivar producto">
+              <mat-icon>add_circle</mat-icon>
+              Reactivar
+            </button>
+            <button 
+              mat-icon-button
+              [matMenuTriggerFor]="productMenu"
+              matTooltip="Más opciones">
+              <mat-icon>more_vert</mat-icon>
+            </button>
+            <mat-menu #productMenu="matMenu">
+              <button mat-menu-item>
+                <mat-icon>history</mat-icon>
+                Ver Historial
+              </button>
+              <button mat-menu-item>
+                <mat-icon>content_copy</mat-icon>
+                Duplicar Producto
+              </button>
+              <button mat-menu-item>
+                <mat-icon>qr_code</mat-icon>
+                Generar QR
+              </button>
+            </mat-menu>
+          </mat-card-actions>
+        </mat-card>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div><
+!-- Product Detail Modal -->
+<div class="modal-overlay" *ngIf="showDetailModal" (click)="closeDetailModal()">
+  <div class="product-detail-modal" (click)="$event.stopPropagation()" *ngIf="selectedProduct">
+    <!-- Modal Header -->
+    <div class="modal-header">
+      <div class="header-left">
+        <div class="product-avatar">
+          {{ getProductInitials(selectedProduct) }}
+        </div>
+        <div class="product-info">
+          <h2>{{ selectedProduct.productName }}</h2>
+          <p class="product-code">{{ selectedProduct.productCode }}</p>
+          <mat-chip [class]="getStatusClass(selectedProduct.status)">
+            <mat-icon>{{ selectedProduct.status === 'A' ? 'check_circle' : 'cancel' }}</mat-icon>
+            {{ getStatusText(selectedProduct.status) }}
+          </mat-chip>
+        </div>
+      </div>
+      <button mat-icon-button (click)="closeDetailModal()" class="close-button">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <!-- Modal Content -->
+    <div class="modal-content">
+      <div class="detail-cards">
+        <!-- Product Information -->
+        <mat-card class="info-card">
+          <mat-card-header>
+            <div class="card-header-content">
+              <mat-icon class="card-icon">inventory</mat-icon>
+              <div class="card-title">
+                <h3>Información del Producto</h3>
+              </div>
+            </div>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="info-grid">
+              <div class="info-item">
+                <mat-icon>label</mat-icon>
+                <div class="info-content">
+                  <span class="info-label">Nombre del Producto</span>
+                  <span class="info-value">{{ selectedProduct.productName }}</span>
+                </div>
+              </div>
+              <div class="info-item">
+                <mat-icon>qr_code</mat-icon>
+                <div class="info-content">
+                  <span class="info-label">Código</span>
+                  <span class="info-value">{{ selectedProduct.productCode }}</span>
+                </div>
+              </div>
+              <div class="info-item">
+                <mat-icon>description</mat-icon>
+                <div class="info-content">
+                  <span class="info-label">Descripción</span>
+                  <span class="info-value">{{ selectedProduct.description || 'Sin descripción' }}</span>
+                </div>
+              </div>
+              <div class="info-item">
+                <mat-icon>category</mat-icon>
+                <div class="info-content">
+                  <span class="info-label">Categoría</span>
+                  <span class="info-value">{{ selectedProduct.category }}</span>
+                </div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Pricing & Stock -->
+        <mat-card class="info-card">
+          <mat-card-header>
+            <div class="card-header-content">
+              <mat-icon class="card-icon">attach_money</mat-icon>
+              <div class="card-title">
+                <h3>Precio y Stock</h3>
+              </div>
+            </div>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="info-grid">
+              <div class="info-item">
+                <mat-icon>monetization_on</mat-icon>
+                <div class="info-content">
+                  <span class="info-label">Precio Unitario</span>
+                  <span class="info-value price">S/ {{ selectedProduct.price | number:'1.2-2' }}</span>
+                </div>
+              </div>
+              <div class="info-item">
+                <mat-icon>inventory_2</mat-icon>
+                <div class="info-content">
+                  <span class="info-label">Stock Actual</span>
+                  <span class="info-value" [class]="getStockClass(selectedProduct)">{{ selectedProduct.stock }} unidades</span>
+                </div>
+              </div>
+              <div class="info-item">
+                <mat-icon>warehouse</mat-icon>
+                <div class="info-content">
+                  <span class="info-label">Stock Inicial</span>
+                  <span class="info-value">{{ selectedProduct.initialStock }} unidades</span>
+                </div>
+              </div>
+              <div class="info-item">
+                <mat-icon>calculate</mat-icon>
+                <div class="info-content">
+                  <span class="info-label">Valor Total en Stock</span>
+                  <span class="info-value price">S/ {{ selectedProduct.totalStockValue | number:'1.2-2' }}</span>
+                </div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Status Information -->
+        <mat-card class="info-card">
+          <mat-card-header>
+            <div class="card-header-content">
+              <mat-icon class="card-icon">info</mat-icon>
+              <div class="card-title">
+                <h3>Estado del Producto</h3>
+              </div>
+            </div>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="info-grid">
+              <div class="info-item">
+                <mat-icon>{{ selectedProduct.status === 'A' ? 'check_circle' : 'cancel' }}</mat-icon>
+                <div class="info-content">
+                  <span class="info-label">Estado</span>
+                  <span class="info-value" [class]="getStatusClass(selectedProduct.status)">
+                    {{ getStatusText(selectedProduct.status) }}
+                  </span>
+                </div>
+              </div>
+              <div class="info-item">
+                <mat-icon [style.color]="selectedProduct.lowStock ? '#f59e0b' : '#10b981'">
+                  {{ selectedProduct.lowStock ? 'warning' : 'check_circle' }}
+                </mat-icon>
+                <div class="info-content">
+                  <span class="info-label">Stock</span>
+                  <span class="info-value" [style.color]="selectedProduct.lowStock ? '#f59e0b' : '#10b981'">
+                    {{ selectedProduct.lowStock ? 'Stock Bajo' : 'Stock Normal' }}
+                  </span>
+                </div>
+              </div>
+              <div class="info-item">
+                <mat-icon [style.color]="selectedProduct.outOfStock ? '#ef4444' : '#10b981'">
+                  {{ selectedProduct.outOfStock ? 'remove_shopping_cart' : 'shopping_cart' }}
+                </mat-icon>
+                <div class="info-content">
+                  <span class="info-label">Disponibilidad</span>
+                  <span class="info-value" [style.color]="selectedProduct.outOfStock ? '#ef4444' : '#10b981'">
+                    {{ selectedProduct.outOfStock ? 'Agotado' : 'Disponible' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+    <!-- Modal Actions -->
+    <div class="modal-actions">
+      <button mat-raised-button color="primary" (click)="editFromModal()">
+        <mat-icon>edit</mat-icon>
+        Editar
+      </button>
+      <button mat-stroked-button (click)="generateProductReport(selectedProduct)">
+        <mat-icon>description</mat-icon>
+        Reporte
+      </button>
+      <button *ngIf="selectedProduct.status === 'A'" mat-stroked-button color="warn" (click)="deleteFromModal()">
+        <mat-icon>block</mat-icon>
+        Desactivar
+      </button>
+      <button *ngIf="selectedProduct.status !== 'A'" mat-stroked-button color="primary" (click)="restoreFromModal()">
+        <mat-icon>restore</mat-icon>
+        Reactivar
+      </button>
+      <button mat-stroked-button (click)="closeDetailModal()">
+        <mat-icon>close</mat-icon>
+        Cerrar
+      </button>
+    </div>
+  </div>
+</div>

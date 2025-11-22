@@ -1,41 +1,23 @@
-// Customer Interface - Basado en CustomerDTO del backend
-export interface Customer {
+export interface CustomerDTO {
   idCustomer?: number;
   clientCode: string;
   documentType: string;
   documentNumber: string;
   name: string;
   surname: string;
-  dateBirth: string; // LocalDate se maneja como string en frontend
+  dateBirth: string;
   phone: string;
   email: string;
+  address: string;
   locationId: number;
   department: string;
   province: string;
   district: string;
   locationAddress: string;
-  registerDate?: string; // LocalDate se maneja como string en frontend
+  registerDate?: string;
   status: string;
 }
 
-// Location Interface - Basado en Location.java del backend
-export interface Location {
-  idLocation?: number;
-  department: string;
-  province: string;
-  district: string;
-  address: string;
-}
-
-// CustomerSummaryDTO del backend
-export interface CustomerSummary {
-  totalCustomers: number;
-  activeCustomers: number;
-  inactiveCustomers: number;
-  newThisMonth: number;
-}
-
-// CustomerRequest para crear/actualizar
 export interface CustomerRequest {
   clientCode: string;
   documentType: string;
@@ -45,16 +27,17 @@ export interface CustomerRequest {
   dateBirth: string;
   phone: string;
   email: string;
+  address: string;
+  department: string;
+  province: string;
+  district: string;
   locationId: number;
-  status?: string;
+  status: string;
 }
 
-// Para filtros de búsqueda
-export interface CustomerFilters {
-  search?: string;
-  status?: string;
-  department?: string;
-  province?: string;
-  district?: string;
-  locationId?: number;
+export interface CustomerSummary {
+  totalCustomers: number;
+  activeCustomers: number;
+  inactiveCustomers: number;
+  newCustomersThisMonth: number;
 }

@@ -1,0 +1,563 @@
+// Variables
+$receipt-width: 80mm;
+$receipt-padding: 10mm;
+$primary-color: #2c3e50;
+$secondary-color: #7f8c8d;
+$border-color: #bdc3c7;
+$text-color: #2c3e50;
+$light-bg: #ecf0f1;
+
+.receipt-container {
+  background: #f5f5f5;
+  min-height: 100vh;
+  padding: 2rem;
+
+  // Screen Actions (Hidden on print)
+  .screen-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    max-width: $receipt-width + 40mm;
+    margin-left: auto;
+    margin-right: auto;
+
+    .back-btn {
+      background: white;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .print-btn {
+      mat-icon {
+        margin-right: 0.5rem;
+      }
+    }
+  }
+
+  // Loading
+  .loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 3rem;
+    text-align: center;
+    color: $secondary-color;
+  }
+
+  // Receipt Content
+  .receipt-content {
+    background: white;
+    width: $receipt-width;
+    margin: 0 auto;
+    padding: $receipt-padding;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    font-family: 'Courier New', monospace;
+    font-size: 11pt;
+    line-height: 1.4;
+    color: $text-color;
+
+    // Header
+    .receipt-header {
+      text-align: center;
+      margin-bottom: 1rem;
+
+      .company-logo {
+        margin-bottom: 0.5rem;
+
+        .logo-circle {
+          width: 60px;
+          height: 60px;
+          background: linear-gradient(135deg, #d4a574 0%, #8b6f47 100%);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0 auto;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+
+          mat-icon {
+            font-size: 36px;
+            width: 36px;
+            height: 36px;
+            color: white;
+          }
+        }
+      }
+
+      .company-info {
+        margin-bottom: 1rem;
+
+        .company-name {
+          font-size: 16pt;
+          font-weight: bold;
+          margin: 0.5rem 0;
+          color: $primary-color;
+          letter-spacing: 1px;
+        }
+
+        .company-detail {
+          font-size: 9pt;
+          margin: 0.2rem 0;
+          color: $secondary-color;
+        }
+      }
+
+      .receipt-type {
+        margin-top: 1rem;
+
+        .receipt-box {
+          border: 2px solid $primary-color;
+          padding: 0.5rem;
+          display: inline-block;
+          background: $light-bg;
+
+          h2 {
+            font-size: 12pt;
+            font-weight: bold;
+            margin: 0;
+            color: $primary-color;
+          }
+
+          .receipt-number {
+            font-size: 11pt;
+            font-weight: bold;
+            margin: 0.3rem 0 0 0;
+            color: $text-color;
+          }
+        }
+      }
+    }
+
+    // Divider
+    .divider {
+      border-top: 1px dashed $border-color;
+      margin: 0.8rem 0;
+    }
+
+    // Receipt Info
+    .receipt-info {
+      margin-bottom: 0.5rem;
+
+      .info-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.3rem;
+        font-size: 9pt;
+
+        .info-group {
+          flex: 1;
+
+          .info-label {
+            font-weight: bold;
+            color: $secondary-color;
+          }
+
+          .info-value {
+            color: $text-color;
+            margin-left: 0.3rem;
+          }
+        }
+      }
+    }
+
+    // Section Titles
+    .section-title {
+      font-size: 10pt;
+      font-weight: bold;
+      margin: 0.5rem 0;
+      color: $primary-color;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    // Customer Section
+    .customer-section {
+      .customer-info {
+        font-size: 9pt;
+
+        .info-row {
+          display: flex;
+          margin-bottom: 0.2rem;
+
+          .info-label {
+            font-weight: bold;
+            color: $secondary-color;
+            min-width: 80px;
+          }
+
+          .info-value {
+            color: $text-color;
+            flex: 1;
+          }
+        }
+      }
+    }
+
+    // Employee Section
+    .employee-section {
+      .employee-info {
+        font-size: 9pt;
+
+        .info-row {
+          display: flex;
+          margin-bottom: 0.2rem;
+
+          .info-label {
+            font-weight: bold;
+            color: $secondary-color;
+            min-width: 80px;
+          }
+
+          .info-value {
+            color: $text-color;
+            flex: 1;
+          }
+        }
+      }
+    }
+
+    // Products Section
+    .products-section {
+      .products-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 9pt;
+        margin-top: 0.5rem;
+
+        thead {
+          tr {
+            border-bottom: 1px solid $border-color;
+
+            th {
+              padding: 0.3rem 0.2rem;
+              font-weight: bold;
+              color: $primary-color;
+              text-transform: uppercase;
+              font-size: 8pt;
+
+              &.text-left {
+                text-align: left;
+              }
+
+              &.text-center {
+                text-align: center;
+              }
+
+              &.text-right {
+                text-align: right;
+              }
+            }
+          }
+        }
+
+        tbody {
+          tr {
+            border-bottom: 1px dotted $border-color;
+
+            &:last-child {
+              border-bottom: none;
+            }
+
+            td {
+              padding: 0.4rem 0.2rem;
+              vertical-align: top;
+
+              &.text-left {
+                text-align: left;
+              }
+
+              &.text-center {
+                text-align: center;
+              }
+
+              &.text-right {
+                text-align: right;
+              }
+
+              .product-name {
+                font-weight: bold;
+                color: $text-color;
+                margin-bottom: 0.1rem;
+              }
+
+              .product-code {
+                font-size: 8pt;
+                color: $secondary-color;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Totals Section
+    .totals-section {
+      margin-top: 0.5rem;
+
+      .totals-grid {
+        .total-row {
+          display: flex;
+          justify-content: space-between;
+          padding: 0.3rem 0;
+          font-size: 10pt;
+
+          .total-label {
+            font-weight: bold;
+            color: $secondary-color;
+          }
+
+          .total-value {
+            font-weight: bold;
+            color: $text-color;
+          }
+
+          &.total-final {
+            background: $primary-color;
+            color: white;
+            padding: 0.5rem;
+            margin-top: 0.3rem;
+            border-radius: 4px;
+
+            .total-label,
+            .total-value {
+              color: white;
+              font-size: 12pt;
+            }
+          }
+        }
+      }
+
+      .total-words {
+        margin-top: 0.5rem;
+        padding: 0.5rem;
+        background: $light-bg;
+        border-radius: 4px;
+        font-size: 8pt;
+        text-align: center;
+
+        .words-label {
+          font-weight: bold;
+          color: $primary-color;
+          margin-right: 0.3rem;
+        }
+
+        .words-value {
+          color: $text-color;
+        }
+      }
+    }
+
+    // Bank Section
+    .bank-section {
+      .bank-accounts {
+        font-size: 8pt;
+
+        .bank-item {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 0.2rem;
+
+          .bank-name {
+            font-weight: bold;
+            color: $secondary-color;
+          }
+
+          .bank-account {
+            color: $text-color;
+            font-family: 'Courier New', monospace;
+          }
+        }
+      }
+    }
+
+    // Terms Section
+    .terms-section {
+      .terms-text {
+        font-size: 7pt;
+        line-height: 1.3;
+        color: $secondary-color;
+        margin: 0.3rem 0;
+        text-align: justify;
+      }
+    }
+
+    // Footer
+    .receipt-footer {
+      text-align: center;
+      margin-top: 1rem;
+
+      .footer-text {
+        font-size: 10pt;
+        font-weight: bold;
+        color: $primary-color;
+        margin: 0.3rem 0;
+      }
+
+      .footer-barcode {
+        margin-top: 1rem;
+
+        .barcode-placeholder {
+          .barcode-lines {
+            display: flex;
+            justify-content: center;
+            gap: 2px;
+            height: 40px;
+            margin-bottom: 0.3rem;
+
+            .barcode-line {
+              width: 2px;
+              background: $text-color;
+              height: 100%;
+
+              &:nth-child(odd) {
+                width: 3px;
+              }
+
+              &:nth-child(3n) {
+                width: 1px;
+              }
+            }
+          }
+
+          .barcode-number {
+            font-size: 9pt;
+            color: $text-color;
+            margin: 0;
+            letter-spacing: 2px;
+          }
+        }
+      }
+    }
+  }
+
+  // No Data
+  .no-data {
+    text-align: center;
+    padding: 3rem;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    max-width: 400px;
+    margin: 0 auto;
+
+    mat-icon {
+      font-size: 4rem;
+      width: 4rem;
+      height: 4rem;
+      color: #e74c3c;
+      margin-bottom: 1rem;
+    }
+
+    h3 {
+      color: $primary-color;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      color: $secondary-color;
+      margin-bottom: 1.5rem;
+    }
+  }
+}
+
+// Print Styles
+@media print {
+  // Ocultar todo excepto la boleta
+  body * {
+    visibility: hidden;
+  }
+
+  .receipt-container,
+  .receipt-container * {
+    visibility: visible;
+  }
+
+  .receipt-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    background: white;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+
+    .no-print {
+      display: none !important;
+    }
+
+    .receipt-content {
+      width: 80mm;
+      margin: 0 auto;
+      padding: 5mm;
+      box-shadow: none;
+      page-break-after: avoid;
+
+      .divider {
+        border-top: 1px dashed #000;
+      }
+
+      .receipt-header {
+        .company-logo {
+          .logo-circle {
+            print-color-adjust: exact;
+            -webkit-print-color-adjust: exact;
+          }
+        }
+
+        .receipt-type {
+          .receipt-box {
+            border: 2px solid #000;
+            background: #f0f0f0;
+            print-color-adjust: exact;
+            -webkit-print-color-adjust: exact;
+          }
+        }
+      }
+
+      .totals-section {
+        .totals-grid {
+          .total-row.total-final {
+            background: #2c3e50;
+            print-color-adjust: exact;
+            -webkit-print-color-adjust: exact;
+          }
+        }
+
+        .total-words {
+          background: #f0f0f0;
+          print-color-adjust: exact;
+          -webkit-print-color-adjust: exact;
+        }
+      }
+    }
+  }
+
+  @page {
+    size: 80mm auto;
+    margin: 0;
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .receipt-container {
+    padding: 1rem;
+
+    .screen-actions {
+      flex-direction: column;
+      gap: 1rem;
+
+      .back-btn,
+      .print-btn {
+        width: 100%;
+      }
+    }
+
+    .receipt-content {
+      width: 100%;
+      max-width: 400px;
+    }
+  }
+}

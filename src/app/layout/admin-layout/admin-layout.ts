@@ -1,21 +1,21 @@
-import { Component } from "@angular/core";
-import { CommonModule } from "@angular/common";
-import { RouterOutlet } from "@angular/router";
-import { Header } from "../components/header/header";  // Asegúrate de que estos componentes estén correctamente importados
-import { Sidebar } from "../components/sidebar/sidebar";  // Asegúrate de que estos componentes estén correctamente importados
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterOutlet } from '@angular/router';
+import { MaterialModule } from '../../shared/material.module';
+import { HeaderComponent } from './components/header/header';
+import { SidebarComponent } from './components/sidebar/sidebar';
 
 @Component({
-  selector: "app-admin-layout",
+  selector: 'app-admin-layout',
   standalone: true,
-  imports: [
-    CommonModule, 
-    RouterOutlet, 
-    Header,  // Importa correctamente tu componente de Header
-    Sidebar  // Importa correctamente tu componente de Sidebar
-  ],
-  templateUrl: "./admin-layout.html",
-  styleUrls: ["./admin-layout.scss"],
+  imports: [CommonModule, RouterOutlet, MaterialModule, HeaderComponent, SidebarComponent],
+  templateUrl: './admin-layout.html',
+  styleUrls: ['./admin-layout.scss']
 })
-export class AdminLayout {
-  // Aquí puedes agregar la lógica de tu componente si es necesario
+export class AdminLayoutComponent {
+  sidebarCollapsed = false;
+
+  onSidebarToggle(collapsed: boolean): void {
+    this.sidebarCollapsed = collapsed;
+  }
 }

@@ -1,28 +1,39 @@
-// Buy/Purchase Interface
-export interface Purchase {
-  id?: number
-  purchaseId: string
-  supplierId: number
-  purchaseDate: Date
-  status: string
-  total: number
-  items?: PurchaseItem[]
-  createdAt?: Date
-  updatedAt?: Date
+export interface BuyDTO {
+  idBuys?: number;
+  purchaseDate: string;
+  totalAmount: number;
+  paymentType: string;
+  supplierId: number;
+  supplierName: string;
+  details?: PurchaseDetailDTO[];
 }
 
-export interface PurchaseItem {
-  id?: number
-  purchaseId?: number
-  productId: number
-  quantity: number
-  price: number
-  subtotal: number
+export interface PurchaseDetailDTO {
+  idDetail?: number;
+  productId: number;
+  productName: string;
+  amount: number;
+  subtotal: number;
 }
 
-export interface PurchaseResponse {
-  data: Purchase[]
-  total: number
-  page: number
-  pageSize: number
+export interface BuyRequest {
+  purchaseDate: string;
+  totalAmount: number;
+  paymentType: string;
+  supplierId: number;
+  details: PurchaseDetailRequest[];
+}
+
+export interface PurchaseDetailRequest {
+  productId: number;
+  amount: number;
+  subtotal: number;
+}
+
+export interface BuySummary {
+  totalPurchases: number;
+  totalAmount: number;
+  averagePurchaseAmount: number;
+  purchasesThisMonth: number;
+  amountThisMonth: number;
 }

@@ -1,0 +1,401 @@
+<div class="checkout-container">
+  <div class="checkout-header">
+    <button mat-icon-button routerLink="/customer/cart" class="back-btn">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1>Finalizar Pedido</h1>
+  </div>
+
+  <div class="checkout-content" *ngIf="!isLoading">
+    <div class="checkout-stepper">
+      <mat-stepper linear #stepper>
+        <!-- Paso 1: Información de Entrega -->
+        <mat-step [stepControl]="deliveryForm" label="Información de Entrega">
+          <form [formGroup]="deliveryForm" class="step-form">
+            <div class="step-header">
+              <mat-icon>location_on</mat-icon>
+              <h2>Datos de Entrega</h2>
+            </div>
+
+            <div class="info-box">
+              <mat-icon>info</mat-icon>
+              <p>Verifica que la información sea correcta para asegurar una entrega exitosa</p>
+            </div>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Nombre completo</mat-label>
+                <input matInput formControlName="fullName" placeholder="Ej: Juan Pérez García">
+                <mat-icon matPrefix>person</mat-icon>
+                <mat-error *ngIf="deliveryForm.get('fullName')?.hasError('required')">
+                  El nombre es requerido
+                </mat-error>
+              </mat-form-field>
+            </div>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Teléfono de contacto</mat-label>
+                <input matInput formControlName="phone" placeholder="999999999" maxlength="9">
+                <mat-icon matPrefix>phone</mat-icon>
+                <mat-error *ngIf="deliveryForm.get('phone')?.hasError('required')">
+                  El teléfono es requerido
+                </mat-error>
+                <mat-error *ngIf="deliveryForm.get('phone')?.hasError('pattern')">
+                  Debe tener 9 dígitos
+                </mat-error>
+              </mat-form-field>
+            </div>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="third-width">
+                <mat-label>Departamento</mat-label>
+                <mat-select formControlName="department" (selectionChange)="onDepartmentChange()">
+                  <mat-option *ngFor="let dept of departments" [value]="dept">
+                    {{ dept }}
+                  </mat-option>
+                </mat-select>
+                <mat-icon matPrefix>public</mat-icon>
+                <mat-error *ngIf="deliveryForm.get('department')?.hasError('required')">
+                  Selecciona un departamento
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="third-width">
+                <mat-label>Provincia</mat-label>
+                <mat-select formControlName="province" 
+                            (selectionChange)="onProvinceChange()">
+                  <mat-option *ngFor="let prov of provinces" [value]="prov">
+                    {{ prov }}
+                  </mat-option>
+                </mat-select>
+                <mat-icon matPrefix>location_city</mat-icon>
+                <mat-error *ngIf="deliveryForm.get('province')?.hasError('required')">
+                  Selecciona una provincia
+                </mat-error>
+                <mat-hint *ngIf="!deliveryForm.get('department')?.value">
+                  Primero selecciona un departamento
+                </mat-hint>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="third-width">
+                <mat-label>Distrito</mat-label>
+                <mat-select formControlName="district">
+                  <mat-option *ngFor="let dist of districts" [value]="dist">
+                    {{ dist }}
+                  </mat-option>
+                </mat-select>
+                <mat-icon matPrefix>map</mat-icon>
+                <mat-error *ngIf="deliveryForm.get('district')?.hasError('required')">
+                  Selecciona un distrito
+                </mat-error>
+                <mat-hint *ngIf="!deliveryForm.get('province')?.value">
+                  Primero selecciona una provincia
+                </mat-hint>
+              </mat-form-field>
+            </div>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Dirección completa</mat-label>
+                <textarea matInput 
+                          formControlName="address" 
+                          rows="2"
+                          placeholder="Ej: Av. Principal 123, Dpto 401"></textarea>
+                <mat-icon matPrefix>home</mat-icon>
+                <mat-error *ngIf="deliveryForm.get('address')?.hasError('required')">
+                  La dirección es requerida
+                </mat-error>
+                <mat-error *ngIf="deliveryForm.get('address')?.hasError('minlength')">
+                  Mínimo 10 caracteres
+                </mat-error>
+              </mat-form-field>
+            </div>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Referencia (opcional)</mat-label>
+                <input matInput 
+                       formControlName="reference" 
+                       placeholder="Ej: Edificio azul, frente al parque">
+                <mat-icon matPrefix>place</mat-icon>
+                <mat-hint>Ayuda al repartidor a encontrar tu ubicación</mat-hint>
+              </mat-form-field>
+            </div>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Notas adicionales (opcional)</mat-label>
+                <textarea matInput 
+                          formControlName="notes" 
+                          rows="2"
+                          placeholder="Ej: Tocar el timbre 2 veces"></textarea>
+                <mat-icon matPrefix>note</mat-icon>
+              </mat-form-field>
+            </div>
+
+            <div class="step-actions">
+              <button mat-button routerLink="/customer/cart">
+                <mat-icon>arrow_back</mat-icon>
+                Volver al Carrito
+              </button>
+              <button mat-raised-button 
+                      color="primary" 
+                      matStepperNext
+                      [disabled]="deliveryForm.invalid">
+                Continuar
+                <mat-icon>arrow_forward</mat-icon>
+              </button>
+            </div>
+          </form>
+        </mat-step>
+
+        <!-- Paso 2: Método de Pago -->
+        <mat-step [stepControl]="paymentForm" label="Método de Pago">
+          <form [formGroup]="paymentForm" class="step-form">
+            <div class="step-header">
+              <mat-icon>payment</mat-icon>
+              <h2>Selecciona tu método de pago</h2>
+            </div>
+
+            <mat-radio-group formControlName="paymentMethod" 
+                           class="payment-methods"
+                           (change)="onPaymentMethodChange()">
+              <mat-card class="payment-option">
+                <mat-radio-button value="Efectivo">
+                  <div class="payment-content">
+                    <div class="payment-icon">
+                      <mat-icon>payments</mat-icon>
+                    </div>
+                    <div class="payment-info">
+                      <h3>Efectivo</h3>
+                      <p>Paga al recibir tu pedido</p>
+                    </div>
+                  </div>
+                </mat-radio-button>
+              </mat-card>
+
+              <mat-card class="payment-option">
+                <mat-radio-button value="Tarjeta">
+                  <div class="payment-content">
+                    <div class="payment-icon">
+                      <mat-icon>credit_card</mat-icon>
+                    </div>
+                    <div class="payment-info">
+                      <h3>Tarjeta de Crédito/Débito</h3>
+                      <p>Visa, Mastercard, American Express</p>
+                    </div>
+                  </div>
+                </mat-radio-button>
+              </mat-card>
+
+              <mat-card class="payment-option">
+                <mat-radio-button value="Yape">
+                  <div class="payment-content">
+                    <div class="payment-icon">
+                      <mat-icon>phone_android</mat-icon>
+                    </div>
+                    <div class="payment-info">
+                      <h3>Yape / Plin</h3>
+                      <p>Pago por aplicación móvil</p>
+                    </div>
+                  </div>
+                </mat-radio-button>
+              </mat-card>
+
+              <mat-card class="payment-option">
+                <mat-radio-button value="Transferencia">
+                  <div class="payment-content">
+                    <div class="payment-icon">
+                      <mat-icon>account_balance</mat-icon>
+                    </div>
+                    <div class="payment-info">
+                      <h3>Transferencia Bancaria</h3>
+                      <p>BCP, Interbank, BBVA</p>
+                    </div>
+                  </div>
+                </mat-radio-button>
+              </mat-card>
+            </mat-radio-group>
+
+            <div class="change-section" *ngIf="paymentForm.get('paymentMethod')?.value === 'Efectivo'">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>¿Con cuánto vas a pagar?</mat-label>
+                <input matInput 
+                       type="number" 
+                       formControlName="changeFor" 
+                       placeholder="Ej: 50">
+                <span matPrefix>S/&nbsp;</span>
+                <mat-icon matSuffix>attach_money</mat-icon>
+                <mat-hint>Total a pagar: S/{{ total.toFixed(2) }}</mat-hint>
+                <mat-error *ngIf="paymentForm.get('changeFor')?.hasError('required')">
+                  Ingresa el monto con el que pagarás
+                </mat-error>
+                <mat-error *ngIf="paymentForm.get('changeFor')?.hasError('min')">
+                  El monto debe ser mayor o igual al total
+                </mat-error>
+              </mat-form-field>
+
+              <div class="change-info" *ngIf="getChange() > 0">
+                <mat-icon>info</mat-icon>
+                <p>Tu vuelto será: <strong>S/{{ getChange().toFixed(2) }}</strong></p>
+              </div>
+            </div>
+
+            <div class="step-actions">
+              <button mat-button matStepperPrevious>
+                <mat-icon>arrow_back</mat-icon>
+                Atrás
+              </button>
+              <button mat-raised-button 
+                      color="primary" 
+                      matStepperNext
+                      [disabled]="paymentForm.invalid">
+                Continuar
+                <mat-icon>arrow_forward</mat-icon>
+              </button>
+            </div>
+          </form>
+        </mat-step>
+
+        <!-- Paso 3: Confirmar Pedido -->
+        <mat-step label="Confirmar Pedido">
+          <div class="step-form confirmation-step">
+            <div class="step-header">
+              <mat-icon>check_circle</mat-icon>
+              <h2>Revisa tu pedido</h2>
+            </div>
+
+            <div class="confirmation-sections">
+              <!-- Resumen de Entrega -->
+              <mat-card class="confirmation-card">
+                <mat-card-header>
+                  <mat-icon>location_on</mat-icon>
+                  <mat-card-title>Información de Entrega</mat-card-title>
+                  <button mat-icon-button (click)="stepper.selectedIndex = 0">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                </mat-card-header>
+                <mat-card-content>
+                  <div class="info-item">
+                    <mat-icon>person</mat-icon>
+                    <span>{{ deliveryForm.value.fullName }}</span>
+                  </div>
+                  <div class="info-item">
+                    <mat-icon>phone</mat-icon>
+                    <span>{{ deliveryForm.value.phone }}</span>
+                  </div>
+                  <div class="info-item">
+                    <mat-icon>home</mat-icon>
+                    <span>{{ deliveryForm.value.address }}</span>
+                  </div>
+                  <div class="info-item">
+                    <mat-icon>location_on</mat-icon>
+                    <span>{{ deliveryForm.value.district }}, {{ deliveryForm.value.province }}, {{ deliveryForm.value.department }}</span>
+                  </div>
+                  <div class="info-item" *ngIf="deliveryForm.value.reference">
+                    <mat-icon>place</mat-icon>
+                    <span>{{ deliveryForm.value.reference }}</span>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+
+              <!-- Resumen de Pago -->
+              <mat-card class="confirmation-card">
+                <mat-card-header>
+                  <mat-icon>payment</mat-icon>
+                  <mat-card-title>Método de Pago</mat-card-title>
+                  <button mat-icon-button (click)="stepper.selectedIndex = 1">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                </mat-card-header>
+                <mat-card-content>
+                  <div class="payment-summary">
+                    <mat-icon>
+                      {{ paymentForm.value.paymentMethod === 'EFECTIVO' ? 'payments' : 
+                         paymentForm.value.paymentMethod === 'TARJETA' ? 'credit_card' :
+                         paymentForm.value.paymentMethod === 'YAPE' ? 'phone_android' : 'account_balance' }}
+                    </mat-icon>
+                    <div>
+                      <strong>
+                        {{ paymentForm.value.paymentMethod === 'EFECTIVO' ? 'Efectivo' : 
+                           paymentForm.value.paymentMethod === 'TARJETA' ? 'Tarjeta' :
+                           paymentForm.value.paymentMethod === 'YAPE' ? 'Yape/Plin' : 'Transferencia' }}
+                      </strong>
+                      <p *ngIf="paymentForm.value.paymentMethod === 'EFECTIVO' && paymentForm.value.changeFor">
+                        Pagarás con: S/{{ paymentForm.value.changeFor }} | Vuelto: S/{{ getChange().toFixed(2) }}
+                      </p>
+                    </div>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+
+              <!-- Resumen de Productos -->
+              <mat-card class="confirmation-card products-card">
+                <mat-card-header>
+                  <mat-icon>shopping_bag</mat-icon>
+                  <mat-card-title>Tu Pedido ({{ cartItems.length }} productos)</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                  <div class="product-item" *ngFor="let item of cartItems">
+                    <img [src]="item.product.image" [alt]="item.product.name">
+                    <div class="product-details">
+                      <h4>{{ item.product.name }}</h4>
+                      <p>Cantidad: {{ item.quantity }}</p>
+                      <p class="notes" *ngIf="item.notes">
+                        <mat-icon>note</mat-icon>
+                        {{ item.notes }}
+                      </p>
+                    </div>
+                    <div class="product-price">
+                      S/{{ (item.product.price * item.quantity).toFixed(2) }}
+                    </div>
+                  </div>
+
+                  <mat-divider></mat-divider>
+
+                  <div class="order-totals">
+                    <div class="total-row">
+                      <span>Subtotal</span>
+                      <span>S/{{ subtotal.toFixed(2) }}</span>
+                    </div>
+                    <div class="total-row">
+                      <span>Costo de envío</span>
+                      <span>S/{{ deliveryFee.toFixed(2) }}</span>
+                    </div>
+                    <mat-divider></mat-divider>
+                    <div class="total-row final-total">
+                      <span>Total a Pagar</span>
+                      <span>S/{{ total.toFixed(2) }}</span>
+                    </div>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            </div>
+
+            <div class="step-actions">
+              <button mat-button matStepperPrevious>
+                <mat-icon>arrow_back</mat-icon>
+                Atrás
+              </button>
+              <button mat-raised-button 
+                      color="primary" 
+                      (click)="onConfirmOrder()"
+                      [disabled]="isProcessing"
+                      class="confirm-btn">
+                <mat-spinner *ngIf="isProcessing" diameter="20"></mat-spinner>
+                <mat-icon *ngIf="!isProcessing">check_circle</mat-icon>
+                {{ isProcessing ? 'Procesando...' : 'Confirmar Pedido' }}
+              </button>
+            </div>
+          </div>
+        </mat-step>
+      </mat-stepper>
+    </div>
+  </div>
+
+  <div class="loading-container" *ngIf="isLoading">
+    <mat-spinner></mat-spinner>
+    <p>Cargando información...</p>
+  </div>
+</div>

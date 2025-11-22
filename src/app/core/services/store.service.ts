@@ -1,247 +1,82 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { BehaviorSubject, Observable, throwError } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import {
-  StoreItem,
-  CreateStoreItemRequest,
-  UpdateStoreItemRequest,
-  StoreStats,
-  StoreFilters,
-  StockMovement,
-  CreateStockMovementRequest,
-  StoreProduct,
-  StoreSupplier
-} from '../interfaces/store-interfaces';
+import { StoreItemDTO, StoreItemRequest, StoreItemSummary } from '../interfaces/store-interfaces';
 
 @Injectable({
   providedIn: 'root'
 })
 export class StoreService {
-  private readonly url = `${environment.urlBackEnd}/v1/api/store-item`;
+  private apiUrl = `${environment.urlBackEnd}/v1/api/store-item`;
 
-  private storeItemsSubject = new BehaviorSubject<StoreItem[]>([]);
-  private statsSubject = new BehaviorSubject<StoreStats>({
-    total_products: 0,
-    low_stock: 0,
-    out_of_stock: 0,
-    expiring_soon: 0,
-    total_value: 0
-  });
-  private loadingSubject = new BehaviorSubject<boolean>(false);
+  constructor(private http: HttpClient) {}
 
-  public storeItems$ = this.storeItemsSubject.asObservable();
-  public stats$ = this.statsSubject.asObservable();
-  public loading$ = this.loadingSubject.asObservable();
-
-  constructor(private http: HttpClient) { }
-
-  // Obtener todos los items del almacén
-  getStoreItems(filters?: StoreFilters): Observable<StoreItem[]> {
-    this.loadingSubject.next(true);
-
-    let params = new HttpParams();
-    if (filters) {
-      Object.keys(filters).forEach(key => {
-        const value = filters[key as keyof StoreFilters];
-        if (value !== undefined && value !== null && value !== '') {
-          params = params.set(key, value.toString());
-        }
-      });
-    }
-
-    return this.http.get<StoreItem[]>(this.url, { params }).pipe(
-      tap(items => {
-        this.storeItemsSubject.next(items);
-        this.loadingSubject.next(false);
-      }),
-      catchError(error => {
-        this.loadingSubject.next(false);
-        console.error('Error fetching store items:', error);
-        return throwError(() => error);
-      })
-    );
+  getAll(): Observable<StoreItemDTO[]> {
+    return this.http.get<StoreItemDTO[]>(this.apiUrl);
   }
 
-  // Obtener item por ID
-  getStoreItemById(id: number): Observable<StoreItem> {
-    return this.http.get<StoreItem>(`${this.url}/${id}`).pipe(
-      catchError(error => {
-        console.error('Error fetching store item:', error);
-        return throwError(() => error);
-      })
-    );
+  getById(id: number): Observable<StoreItemDTO> {
+    return this.http.get<StoreItemDTO>(`${this.apiUrl}/${id}`);
   }
 
-  // Crear nuevo item en almacén
-  createStoreItem(item: CreateStoreItemRequest): Observable<StoreItem> {
-    this.loadingSubject.next(true);
-
-    return this.http.post<StoreItem>(this.url, item).pipe(
-      tap(newItem => {
-        const currentItems = this.storeItemsSubject.value;
-        this.storeItemsSubject.next([newItem, ...currentItems]);
-        this.updateStats();
-        this.loadingSubject.next(false);
-      }),
-      catchError(error => {
-        this.loadingSubject.next(false);
-        console.error('Error creating store item:', error);
-        return throwError(() => error);
-      })
-    );
+  getByItemCode(itemCode: string): Observable<StoreItemDTO> {
+    return this.http.get<StoreItemDTO>(`${this.apiUrl}/code/${itemCode}`);
   }
 
-  // Actualizar item del almacén
-  updateStoreItem(id: number, item: UpdateStoreItemRequest): Observable<StoreItem> {
-    this.loadingSubject.next(true);
-
-    return this.http.put<StoreItem>(`${this.url}/${id}`, item).pipe(
-      tap(updatedItem => {
-        const currentItems = this.storeItemsSubject.value;
-        const index = currentItems.findIndex(i => i.id_store === id);
-        if (index !== -1) {
-          currentItems[index] = updatedItem;
-          this.storeItemsSubject.next([...currentItems]);
-        }
-        this.updateStats();
-        this.loadingSubject.next(false);
-      }),
-      catchError(error => {
-        this.loadingSubject.next(false);
-        console.error('Error updating store item:', error);
-        return throwError(() => error);
-      })
-    );
+  getByStatus(status: string): Observable<StoreItemDTO[]> {
+    return this.http.get<StoreItemDTO[]>(`${this.apiUrl}/status/${status}`);
   }
 
-  // Eliminar item del almacén
-  deleteStoreItem(id: number): Observable<void> {
-    this.loadingSubject.next(true);
-
-    return this.http.delete<void>(`${this.url}/${id}`).pipe(
-      tap(() => {
-        const currentItems = this.storeItemsSubject.value;
-        const filteredItems = currentItems.filter(item => item.id_store !== id);
-        this.storeItemsSubject.next(filteredItems);
-        this.updateStats();
-        this.loadingSubject.next(false);
-      }),
-      catchError(error => {
-        this.loadingSubject.next(false);
-        console.error('Error deleting store item:', error);
-        return throwError(() => error);
-      })
-    );
+  getByCategory(category: string): Observable<StoreItemDTO[]> {
+    return this.http.get<StoreItemDTO[]>(`${this.apiUrl}/category/${category}`);
   }
 
-  // Obtener estadísticas del almacén
-  getStats(): Observable<StoreStats> {
-    return this.http.get<StoreStats>(`${this.url}/stats`).pipe(
-      tap(stats => this.statsSubject.next(stats)),
-      catchError(error => {
-        console.error('Error fetching stats:', error);
-        return throwError(() => error);
-      })
-    );
+  getLowStockItems(): Observable<StoreItemDTO[]> {
+    return this.http.get<StoreItemDTO[]>(`${this.apiUrl}/low-stock`);
   }
 
-  // Obtener movimientos de stock
-  getStockMovements(storeId?: number): Observable<StockMovement[]> {
-    let params = new HttpParams();
-    if (storeId) {
-      params = params.set('store_id', storeId.toString());
-    }
-
-    return this.http.get<StockMovement[]>(`${this.url}/movements`, { params }).pipe(
-      catchError(error => {
-        console.error('Error fetching stock movements:', error);
-        return throwError(() => error);
-      })
-    );
+  getNearExpiryItems(): Observable<StoreItemDTO[]> {
+    return this.http.get<StoreItemDTO[]>(`${this.apiUrl}/near-expiry`);
   }
 
-  // Crear movimiento de stock
-  createStockMovement(movement: CreateStockMovementRequest): Observable<StockMovement> {
-    return this.http.post<StockMovement>(`${this.url}/movements`, movement).pipe(
-      tap(() => {
-        // Recargar items para actualizar stock
-        this.getStoreItems().subscribe();
-      }),
-      catchError(error => {
-        console.error('Error creating stock movement:', error);
-        return throwError(() => error);
-      })
-    );
+  search(searchTerm: string, status: string = 'A'): Observable<StoreItemDTO[]> {
+    return this.http.get<StoreItemDTO[]>(`${this.apiUrl}/search?search=${searchTerm}&status=${status}`);
   }
 
-  // Obtener productos disponibles para almacén
-  getProductsForStore(): Observable<StoreProduct[]> {
-    return this.http.get<StoreProduct[]>(`${environment.urlBackEnd}/v1/api/product/status/A`).pipe(
-      catchError(error => {
-        console.error('Error fetching products for store:', error);
-        return throwError(() => error);
-      })
-    );
+  getSummary(): Observable<StoreItemSummary> {
+    return this.http.get<StoreItemSummary>(`${this.apiUrl}/summary`);
   }
 
-  // Obtener proveedores para almacén
-  getSuppliersForStore(): Observable<StoreSupplier[]> {
-    return this.http.get<StoreSupplier[]>(`${environment.urlBackEnd}/v1/api/supplier/status/A`).pipe(
-      catchError(error => {
-        console.error('Error fetching suppliers for store:', error);
-        return throwError(() => error);
-      })
-    );
+  create(item: StoreItemRequest): Observable<StoreItemDTO> {
+    return this.http.post<StoreItemDTO>(`${this.apiUrl}/save`, item);
   }
 
-  // Actualizar estadísticas localmente
-  private updateStats(): void {
-    const items = this.storeItemsSubject.value;
-    const today = new Date();
-    const sevenDaysFromNow = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
-
-    const stats: StoreStats = {
-      total_products: items.length,
-      low_stock: items.filter(item => item.current_stock <= item.min_stock && item.current_stock > 0).length,
-      out_of_stock: items.filter(item => item.current_stock === 0).length,
-      expiring_soon: items.filter(item => {
-        const expiryDate = new Date(item.expiry_date);
-        return expiryDate <= sevenDaysFromNow && expiryDate >= today;
-      }).length,
-      total_value: items.reduce((sum, item) => sum + (item.current_stock * item.unit_price), 0)
-    };
-
-    this.statsSubject.next(stats);
+  update(id: number, item: StoreItemRequest): Observable<StoreItemDTO> {
+    return this.http.put<StoreItemDTO>(`${this.apiUrl}/update/${id}`, item);
   }
 
-  // Obtener categorías únicas
-  getCategories(): string[] {
-    const items = this.storeItemsSubject.value;
-    const categories = [...new Set(items.map(item => item.category))];
-    return categories.sort();
+  delete(id: number): Observable<void> {
+    return this.http.patch<void>(`${this.apiUrl}/delete/${id}`, {});
   }
 
-  // Obtener estados únicos
-  getStatuses(): string[] {
-    return ['Disponible', 'Agotado', 'Próximo a Vencer', 'Vencido', 'En Revisión'];
+  restore(id: number): Observable<void> {
+    return this.http.patch<void>(`${this.apiUrl}/restore/${id}`, {});
   }
 
-  // Obtener unidades de medida
-  getUnits(): string[] {
-    return ['kg', 'g', 'L', 'ml', 'unidad', 'caja', 'paquete', 'bolsa'];
+  updateStock(id: number, newStock: number): Observable<StoreItemDTO> {
+    return this.http.put<StoreItemDTO>(`${this.apiUrl}/${id}/stock?newStock=${newStock}`, {});
   }
 
-  // Limpiar datos
-  clearData(): void {
-    this.storeItemsSubject.next([]);
-    this.statsSubject.next({
-      total_products: 0,
-      low_stock: 0,
-      out_of_stock: 0,
-      expiring_soon: 0,
-      total_value: 0
-    });
+  addStock(id: number, quantity: number): Observable<StoreItemDTO> {
+    return this.http.put<StoreItemDTO>(`${this.apiUrl}/${id}/add-stock?quantity=${quantity}`, {});
+  }
+
+  reduceStock(id: number, quantity: number): Observable<StoreItemDTO> {
+    return this.http.put<StoreItemDTO>(`${this.apiUrl}/${id}/reduce-stock?quantity=${quantity}`, {});
+  }
+
+  generatePdfReport(): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/pdf`, { responseType: 'blob' });
   }
 }

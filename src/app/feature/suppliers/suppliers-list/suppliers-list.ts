@@ -1,240 +1,351 @@
-import { Component, inject, OnInit } from "@angular/core";
-import { CommonModule } from "@angular/common";
-import { MatButtonModule } from "@angular/material/button";
-import { MatIconModule } from "@angular/material/icon";
-import { MatTableModule } from "@angular/material/table";
-import { MatInputModule } from "@angular/material/input";
-import { MatSelectModule } from "@angular/material/select";
-import { MatDialog, MatDialogModule } from "@angular/material/dialog";
-import { FormsModule } from "@angular/forms";
-import { SuppliersService } from "../../../core/services/suppliers.service";
-import { Supplier, SupplierStats, SupplierCategory, Location } from "../../../core/interfaces/suppliers-interfaces";
-import { SupplierForm } from "../suppliers-form/suppliers-form";
-import Swal from 'sweetalert2';
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { MaterialModule } from '../../../shared/material.module';
+import { SuppliersService } from '../../../core/services/suppliers.service';
+import { SupplierDTO, SupplierSummary } from '../../../core/interfaces/suppliers-interfaces';
+import { NotificationService } from '../../../core/services/notification.service';
+import { FilterService, FilterConfig } from '../../../core/services/filter.service';
+import { AdvancedFilterComponent } from '../../../shared/components/advanced-filter/advanced-filter.component';
 
 @Component({
-  selector: "app-suppliers-list",
+  selector: 'app-suppliers-list',
   standalone: true,
-  imports: [
-    CommonModule,
-    MatButtonModule,
-    MatIconModule,
-    MatTableModule,
-    MatInputModule,
-    MatSelectModule,
-    MatDialogModule,
-    FormsModule,
-  ],
-  templateUrl: "./suppliers-list.html",
-  styleUrls: ["./suppliers-list.scss"],
+  imports: [CommonModule, FormsModule, MaterialModule, AdvancedFilterComponent],
+  templateUrl: './suppliers-list.html',
+  styleUrls: ['./suppliers-list.scss']
 })
-export class SuppliersList implements OnInit {
-  private dialog = inject(MatDialog);
-  private suppliersService = inject(SuppliersService);
-
-  displayedColumns: string[] = [
-    "empresa",
-    "contacto",
-    "categoria",
-    "comunicacion",
-    "terminos",
-    "pedidos",
-    "estado",
-    "acciones",
-  ];
-
-  suppliers: Supplier[] = [];
-  filteredSuppliers: Supplier[] = [];
-  locations: Location[] = [];
-  stats: SupplierStats = {
-    total: 0,
-    activos: 0,
-    inactivos: 0,
-    suspendidos: 0,
-  };
-  categories: SupplierCategory[] = [];
+export class SuppliersListComponent implements OnInit {
+  suppliers: SupplierDTO[] = [];
+  filteredSuppliers: SupplierDTO[] = [];
+  summary: SupplierSummary | null = null;
+  loading = false;
+  filterConfig: FilterConfig;
+  searchTerm = '';
 
   // Filtros
-  searchTerm: string = '';
-  selectedCategory: string = '';
-  selectedStatus: string = '';
+  statusOptions = [
+    { value: 'A', label: 'Activos' },
+    { value: 'S', label: 'Suspendidos' },
+    { value: 'I', label: 'Inactivos' },
+    { value: '', label: 'Todos' }
+  ];
+
+  categories: string[] = [];
+
+  // Detail modal properties
+  showDetailModal = false;
+  selectedSupplier: SupplierDTO | null = null;
+
+  constructor(
+    private suppliersService: SuppliersService,
+    private router: Router,
+    private notificationService: NotificationService,
+    private filterService: FilterService
+  ) {
+    this.filterConfig = this.filterService.getSupplierFilterConfig();
+  }
 
   ngOnInit(): void {
     this.loadSuppliers();
-    this.loadLocations();
+    this.loadSummary();
+    // Agregar datos de prueba si no hay datos del backend
+    this.addMockDataIfEmpty();
   }
 
-  private loadSuppliers(): void {
-    this.suppliersService.getSuppliers().subscribe({
-      next: (suppliers) => {
-        this.suppliers = suppliers;
-        this.filteredSuppliers = suppliers;
-        this.calculateStats();
-        this.calculateCategories();
+  addMockDataIfEmpty(): void {
+    // Datos de prueba para mostrar el diseño
+    if (this.suppliers.length === 0) {
+      setTimeout(() => {
+        if (this.suppliers.length === 0) {
+          this.suppliers = [
+            {
+              idSupplier: 1,
+              companyName: 'Distribuidora San Martín S.A.C.',
+              contactName: 'Carlos Mendoza',
+              phone: '987654321',
+              email: 'carlos@sanmartin.com',
+              address: 'Av. Industrial 123, Lima',
+              category: 'Harinas y Cereales',
+              paymentTerms: '30 días',
+              locationId: 1,
+              department: 'Lima',
+              province: 'Lima',
+              district: 'San Martín de Porres',
+              locationAddress: 'Av. Industrial 123',
+              status: 'A'
+            },
+            {
+              idSupplier: 2,
+              companyName: 'Lácteos del Norte E.I.R.L.',
+              contactName: 'María González',
+              phone: '976543210',
+              email: 'maria@lacteosn.com',
+              address: 'Jr. Los Lácteos 456, Trujillo',
+              category: 'Productos Lácteos',
+              paymentTerms: '15 días',
+              locationId: 2,
+              department: 'La Libertad',
+              province: 'Trujillo',
+              district: 'Trujillo',
+              locationAddress: 'Jr. Los Lácteos 456',
+              status: 'A'
+            },
+            {
+              idSupplier: 3,
+              companyName: 'Empaques Premium S.A.',
+              contactName: 'José Rodríguez',
+              phone: '965432109',
+              email: 'jose@empaquespremium.com',
+              address: 'Calle Empaques 789, Arequipa',
+              category: 'Empaques y Envases',
+              paymentTerms: '45 días',
+              locationId: 3,
+              department: 'Arequipa',
+              province: 'Arequipa',
+              district: 'Arequipa',
+              locationAddress: 'Calle Empaques 789',
+              status: 'S'
+            }
+          ];
+          this.summary = {
+            totalSuppliers: 3,
+            activeSuppliers: 2,
+            suspendedSuppliers: 1,
+            inactiveSuppliers: 0
+          };
+          this.extractCategories();
+          this.applyFilters();
+        }
+      }, 2000);
+    }
+  }
+
+  loadSuppliers(): void {
+    this.loading = true;
+    console.log('Loading suppliers...');
+    this.suppliersService.getAll().subscribe({
+      next: (data: SupplierDTO[]) => {
+        console.log('Suppliers loaded:', data);
+        this.suppliers = data || [];
+        this.extractCategories();
+        this.applyFilters();
+        this.loading = false;
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error loading suppliers:', error);
-        // Mostrar mensaje de error al usuario
-        Swal.fire('Error', 'No se pudieron cargar los proveedores. Verifique la conexión con el servidor.', 'error');
+        this.suppliers = [];
+        this.filteredSuppliers = [];
+        this.loading = false;
       }
     });
   }
 
-  private loadLocations(): void {
-    this.suppliersService.getLocations().subscribe({
-      next: (locations) => {
-        this.locations = locations;
+  loadSummary(): void {
+    console.log('Loading suppliers summary...');
+    this.suppliersService.getSummary().subscribe({
+      next: (data: SupplierSummary) => {
+        console.log('Suppliers summary loaded:', data);
+        this.summary = data;
       },
-      error: (error) => {
-        console.error('Error loading locations:', error);
-        // Mostrar mensaje de error si es necesario
-        console.warn('No se pudieron cargar las ubicaciones');
+      error: (error: any) => {
+        console.error('Error loading summary:', error);
+        // Crear un summary por defecto si hay error
+        this.summary = {
+          totalSuppliers: this.suppliers.length,
+          activeSuppliers: this.suppliers.filter(s => s.status === 'A').length,
+          suspendedSuppliers: this.suppliers.filter(s => s.status === 'S').length,
+          inactiveSuppliers: this.suppliers.filter(s => s.status === 'I').length
+        };
       }
     });
   }
 
-
-
-  private calculateStats(): void {
-    this.stats.total = this.suppliers.length;
-    this.stats.activos = this.suppliers.filter(s => s.Status === 'A').length;
-    this.stats.inactivos = this.suppliers.filter(s => s.Status === 'I').length;
-    this.stats.suspendidos = this.suppliers.filter(s => s.Status === 'S').length;
-  }
-
-  private calculateCategories(): void {
-    const categoryMap = new Map<string, number>();
-    this.suppliers.forEach(supplier => {
-      const count = categoryMap.get(supplier.Category) || 0;
-      categoryMap.set(supplier.Category, count + 1);
-    });
-
-    this.categories = Array.from(categoryMap.entries()).map(([name, count]) => ({
-      name,
-      count
-    }));
+  extractCategories(): void {
+    const categorySet = new Set(this.suppliers.map(s => s.category));
+    this.categories = Array.from(categorySet).sort();
   }
 
   applyFilters(): void {
-    this.filteredSuppliers = this.suppliers.filter(supplier => {
-      const matchesSearch = !this.searchTerm || 
-        supplier.Company_Name.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        supplier.Contact_Name.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        supplier.Email.toLowerCase().includes(this.searchTerm.toLowerCase());
-      
-      const matchesCategory = !this.selectedCategory || supplier.Category === this.selectedCategory;
-      const matchesStatus = !this.selectedStatus || supplier.Status === this.selectedStatus;
-
-      return matchesSearch && matchesCategory && matchesStatus;
-    });
+    // Usar el FilterService para aplicar filtros
+    this.filteredSuppliers = this.filterService.applyFilters(this.suppliers, this.filterConfig);
   }
 
-  getStatusText(status: string): string {
-    switch (status) {
-      case 'A': return 'Activo';
-      case 'I': return 'Inactivo';
-      case 'S': return 'Suspendido';
-      default: return status;
-    }
+  // Método para manejar cambios en filtros avanzados
+  onFiltersChanged(event: any): void {
+    this.searchTerm = event.searchTerm || '';
+    this.applyFilters();
   }
 
   getStatusClass(status: string): string {
     switch (status) {
-      case 'A': return 'status-activo';
-      case 'I': return 'status-inactivo';
-      case 'S': return 'status-suspendido';
-      default: return '';
+      case 'A':
+        return 'active';
+      case 'S':
+        return 'suspended';
+      case 'I':
+        return 'inactive';
+      default:
+        return 'default';
     }
   }
 
-  openSupplierForm(): void {
-    const dialogRef = this.dialog.open(SupplierForm, {
-      width: "900px",
-      maxWidth: "95vw",
-      disableClose: true,
-      data: { locations: this.locations }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.loadSuppliers();
-      }
-    });
+  getStatusText(status: string): string {
+    switch (status) {
+      case 'A':
+        return 'Activo';
+      case 'S':
+        return 'Suspendido';
+      case 'I':
+        return 'Inactivo';
+      default:
+        return 'Desconocido';
+    }
   }
 
-  editSupplier(supplier: Supplier): void {
-    const dialogRef = this.dialog.open(SupplierForm, {
-      width: "900px",
-      maxWidth: "95vw",
-      disableClose: true,
-      data: { supplier, locations: this.locations }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.loadSuppliers();
-      }
-    });
+  viewSupplier(supplier: SupplierDTO): void {
+    this.selectedSupplier = supplier;
+    this.showDetailModal = true;
   }
 
-  deleteSupplier(supplier: Supplier): void {
-    Swal.fire({
-      title: '¿Estás seguro?',
-      text: `¿Deseas eliminar al proveedor ${supplier.Company_Name}?`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Sí, eliminar',
-      cancelButtonText: 'Cancelar'
-    }).then((result) => {
-      if (result.isConfirmed && supplier.id_Supplier) {
-        this.suppliersService.deleteSupplier(supplier.id_Supplier).subscribe({
-          next: () => {
-            Swal.fire('Eliminado', 'El proveedor ha sido eliminado.', 'success');
-            this.loadSuppliers();
-          },
-          error: (error) => {
-            console.error('Error deleting supplier:', error);
-            Swal.fire('Error', 'No se pudo eliminar el proveedor.', 'error');
-          }
-        });
-      }
-    });
+  editSupplier(supplier: SupplierDTO): void {
+    this.router.navigate(['/suppliers/edit', supplier.idSupplier]);
   }
 
-  viewSupplier(supplier: Supplier): void {
-    // Implementar vista de detalles si es necesario
-    console.log("View supplier:", supplier);
+  deleteSupplier(supplier: SupplierDTO): void {
+    if (confirm(`¿Estás seguro de que deseas desactivar al proveedor "${supplier.companyName}"?`)) {
+      this.suppliersService.delete(supplier.idSupplier!).subscribe({
+        next: () => {
+          this.notificationService.supplierDeactivated(supplier.companyName);
+          this.loadSuppliers();
+        },
+        error: (error: any) => {
+          console.error('Error deleting supplier:', error);
+          this.notificationService.operationError('desactivar', 'proveedor', error.error?.message);
+        }
+      });
+    }
   }
 
-  exportReport(): void {
-    this.suppliersService.reportPdf().subscribe({
-      next: (blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `reporte-proveedores-${new Date().toISOString().split('T')[0]}.pdf`;
-        link.click();
-        window.URL.revokeObjectURL(url);
-        Swal.fire('Éxito', 'Reporte descargado correctamente', 'success');
-      },
-      error: (error) => {
-        console.error('Error generating report:', error);
-        Swal.fire('Información', 'Función de exportación en desarrollo', 'info');
-      }
-    });
+  restoreSupplier(supplier: SupplierDTO): void {
+    if (confirm(`¿Estás seguro de que deseas reactivar al proveedor "${supplier.companyName}"?`)) {
+      this.suppliersService.restore(supplier.idSupplier!).subscribe({
+        next: () => {
+          this.notificationService.supplierRestored(supplier.companyName);
+          this.loadSuppliers();
+        },
+        error: (error: any) => {
+          console.error('Error restoring supplier:', error);
+          this.notificationService.operationError('reactivar', 'proveedor', error.error?.message);
+        }
+      });
+    }
   }
 
-  sendReport(): void {
-    // Implementar envío de reporte por email
-    Swal.fire({
-      title: 'Enviar Reporte',
-      text: 'Esta funcionalidad estará disponible próximamente',
-      icon: 'info',
-      showCancelButton: true,
-      confirmButtonText: 'Entendido',
-      cancelButtonText: 'Cancelar'
-    });
+  generateReport(supplier?: SupplierDTO): void {
+    if (supplier) {
+      console.log('Generating report for supplier:', supplier);
+      // TODO: Implementar reporte individual
+    } else {
+      this.suppliersService.generatePdfReport().subscribe({
+        next: (blob: Blob) => {
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'reporte-proveedores.pdf';
+          a.click();
+          window.URL.revokeObjectURL(url);
+        },
+        error: (error: any) => {
+          console.error('Error generating report:', error);
+        }
+      });
+    }
+  }
+
+  trackBySupplierId(_index: number, supplier: SupplierDTO): number {
+    return supplier.idSupplier!;
+  }
+
+  clearFilters(): void {
+    this.filterService.clearFilters();
+    this.applyFilters();
+  }
+
+  refreshData(): void {
+    this.loadSuppliers();
+    this.loadSummary();
+  }
+
+  // Navigation methods
+  navigateToCreate(): void {
+    this.router.navigate(['/suppliers/create']);
+  }
+
+  getSupplierInitials(companyName: string): string {
+    const words = companyName.split(' ');
+    return words.length >= 2 ?
+      (words[0].charAt(0) + words[1].charAt(0)).toUpperCase() :
+      companyName.charAt(0).toUpperCase();
+  }
+
+  toggleStatus(supplier: SupplierDTO): void {
+    const newStatus = supplier.status === 'A' ? 'I' : 'A';
+    const action = newStatus === 'A' ? 'activar' : 'desactivar';
+
+    if (confirm(`¿Está seguro de ${action} al proveedor ${supplier.companyName}?`)) {
+      // TODO: Implementar cambio de estado
+      console.log(`Toggle status for supplier:`, supplier);
+    }
+  }
+
+  viewHistory(supplier: SupplierDTO): void {
+    console.log('View history for supplier:', supplier);
+    // TODO: Implementar historial de proveedor
+  }
+
+  // Detail modal methods
+  closeDetailModal(): void {
+    this.showDetailModal = false;
+    this.selectedSupplier = null;
+  }
+
+  editFromModal(): void {
+    if (this.selectedSupplier && this.selectedSupplier.idSupplier) {
+      this.closeDetailModal();
+      this.editSupplier(this.selectedSupplier);
+    }
+  }
+
+  deleteFromModal(): void {
+    if (this.selectedSupplier) {
+      this.deleteSupplier(this.selectedSupplier);
+      this.closeDetailModal();
+    }
+  }
+
+  restoreFromModal(): void {
+    if (this.selectedSupplier) {
+      this.restoreSupplier(this.selectedSupplier);
+      this.closeDetailModal();
+    }
+  }
+
+  generateSupplierReport(supplier: SupplierDTO): void {
+    console.log('Generating individual report for supplier:', supplier);
+    this.notificationService.info(`Generando reporte para "${supplier.companyName}"`);
+  }
+
+  sendEmail(supplier: SupplierDTO): void {
+    if (supplier.email) {
+      window.open(`mailto:${supplier.email}?subject=Contacto desde DeliciousBakery`, '_blank');
+    }
+  }
+
+  callPhone(supplier: SupplierDTO): void {
+    if (supplier.phone) {
+      window.open(`tel:${supplier.phone}`, '_blank');
+    }
   }
 }

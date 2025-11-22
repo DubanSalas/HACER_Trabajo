@@ -1,0 +1,230 @@
+<div class="receipt-container">
+  <!-- Screen Actions (No Print) -->
+  <div class="screen-actions no-print">
+    <button mat-icon-button (click)="goBack()" class="back-btn">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <button mat-raised-button color="primary" (click)="printReceipt()" class="print-btn">
+      <mat-icon>print</mat-icon>
+      Imprimir Boleta
+    </button>
+  </div>
+
+  <!-- Loading -->
+  @if (loading) {
+    <div class="loading-container no-print">
+      <mat-spinner diameter="50"></mat-spinner>
+      <p>Cargando boleta...</p>
+    </div>
+  }
+
+  <!-- Receipt Content -->
+  @if (!loading && sale) {
+    <div class="receipt-content">
+      <!-- Header -->
+      <div class="receipt-header">
+        <div class="company-logo">
+          <div class="logo-circle">
+            <mat-icon>bakery_dining</mat-icon>
+          </div>
+        </div>
+        
+        <div class="company-info">
+          <h1 class="company-name">{{ companyInfo.name }}</h1>
+          <p class="company-detail">RUC: {{ companyInfo.ruc }}</p>
+          <p class="company-detail">{{ companyInfo.address }}</p>
+          <p class="company-detail">Teléfono: {{ companyInfo.phone }}</p>
+          <p class="company-detail">Email: {{ companyInfo.email }}</p>
+        </div>
+
+        <div class="receipt-type">
+          <div class="receipt-box">
+            <h2>BOLETA DE VENTA</h2>
+            <p class="receipt-number">{{ sale.saleCode }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Sale Info -->
+      <div class="receipt-info">
+        <div class="info-row">
+          <div class="info-group">
+            <span class="info-label">Fecha y Hora:</span>
+            <span class="info-value">{{ formatDate(sale.saleDate) }}</span>
+          </div>
+          <div class="info-group">
+            <span class="info-label">Condición de Pago:</span>
+            <span class="info-value">{{ sale.paymentMethod }}</span>
+          </div>
+        </div>
+        
+        <div class="info-row">
+          <div class="info-group">
+            <span class="info-label">Fecha de Emisión:</span>
+            <span class="info-value">{{ formatDate(currentDate) }}</span>
+          </div>
+          <div class="info-group">
+            <span class="info-label">Estado:</span>
+            <span class="info-value">{{ sale.status }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Customer Info -->
+      <div class="customer-section">
+        <h3 class="section-title">DATOS DEL CLIENTE</h3>
+        <div class="customer-info">
+          <div class="info-row">
+            <span class="info-label">Cliente:</span>
+            <span class="info-value">{{ sale.customerFullName || (sale.customerName + ' ' + sale.customerSurname) }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">ID Cliente:</span>
+            <span class="info-value">{{ sale.customerId }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Employee Info -->
+      <div class="employee-section">
+        <h3 class="section-title">VENDEDOR</h3>
+        <div class="employee-info">
+          <div class="info-row">
+            <span class="info-label">Vendedor(a):</span>
+            <span class="info-value">{{ sale.employeeFullName || (sale.employeeName + ' ' + sale.employeeSurname) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Products Table -->
+      <div class="products-section">
+        <h3 class="section-title">DETALLE DE PRODUCTOS</h3>
+        <table class="products-table">
+          <thead>
+            <tr>
+              <th class="text-left">Producto</th>
+              <th class="text-center">Cant.</th>
+              <th class="text-right">P. Unit.</th>
+              <th class="text-right">Dscto.</th>
+              <th class="text-right">Importe</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (detail of sale.details; track detail.idSaleDetail) {
+              <tr>
+                <td class="text-left">
+                  <div class="product-name">{{ detail.productName }}</div>
+                  <div class="product-code">{{ detail.productCode }}</div>
+                </td>
+                <td class="text-center">{{ detail.quantity }}</td>
+                <td class="text-right">{{ formatCurrency(detail.unitPrice) }}</td>
+                <td class="text-right">{{ formatCurrency(0.00) }}</td>
+                <td class="text-right">{{ formatCurrency(detail.quantity * detail.unitPrice) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Totals Section -->
+      <div class="totals-section">
+        <div class="totals-grid">
+          <div class="total-row">
+            <span class="total-label">Subtotal:</span>
+            <span class="total-value">{{ formatCurrency(calculateSubtotal()) }}</span>
+          </div>
+          <div class="total-row">
+            <span class="total-label">IGV (18%):</span>
+            <span class="total-value">{{ formatCurrency(calculateTax()) }}</span>
+          </div>
+          <div class="total-row total-final">
+            <span class="total-label">TOTAL:</span>
+            <span class="total-value">{{ formatCurrency(calculateTotal()) }}</span>
+          </div>
+        </div>
+
+        <div class="total-words">
+          <span class="words-label">SON:</span>
+          <span class="words-value">{{ convertNumberToWords(calculateTotal()) }}</span>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Bank Accounts -->
+      <div class="bank-section">
+        <h3 class="section-title">CUENTAS BANCARIAS</h3>
+        <div class="bank-accounts">
+          <div class="bank-item">
+            <span class="bank-name">BCP SOLES:</span>
+            <span class="bank-account">255-2679743-0-68</span>
+          </div>
+          <div class="bank-item">
+            <span class="bank-name">BBVA SOLES:</span>
+            <span class="bank-account">0011-0051-0200978556</span>
+          </div>
+          <div class="bank-item">
+            <span class="bank-name">CTA DE DETRACCIONES:</span>
+            <span class="bank-account">00572084163</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Terms and Conditions -->
+      <div class="terms-section">
+        <p class="terms-text">
+          No se aceptan cambios ni devoluciones que no sean por fallas o defectos de fabricación. 
+          Términos de condiciones y garantía.
+        </p>
+        <p class="terms-text">
+          Toda venta final es considerada no reembolsable. 
+          Se asume que el cliente conoce el producto, compatibilidad en la aplicación. No hay 
+          devolución de dinero, solo cambio de producto.
+        </p>
+        <p class="terms-text">
+          Garantía de 48 horas, previa presentación del producto y boleta de 15 a 20 días.
+        </p>
+      </div>
+
+      <!-- Footer -->
+      <div class="receipt-footer">
+        <p class="footer-text">¡Gracias por su compra!</p>
+        <p class="footer-text">Vuelva pronto</p>
+        <div class="footer-barcode">
+          <div class="barcode-placeholder">
+            <div class="barcode-lines">
+              @for (i of [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]; track i) {
+                <div class="barcode-line"></div>
+              }
+            </div>
+            <p class="barcode-number">{{ sale.saleCode }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- No Data -->
+  @if (!loading && !sale) {
+    <div class="no-data no-print">
+      <mat-icon>error_outline</mat-icon>
+      <h3>Boleta no encontrada</h3>
+      <p>No se pudo cargar la información de la boleta.</p>
+      <button mat-raised-button color="primary" (click)="goBack()">
+        Volver
+      </button>
+    </div>
+  }
+</div>

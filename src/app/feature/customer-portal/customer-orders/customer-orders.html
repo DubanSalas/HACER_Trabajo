@@ -1,0 +1,186 @@
+<div class="customer-orders" *ngIf="!isLoading; else loadingTemplate">
+  <!-- Header -->
+  <div class="orders-header">
+    <h1>Mis Pedidos</h1>
+    <p>Revisa el estado de tus pedidos y vuelve a pedir tus favoritos</p>
+  </div>
+
+  <!-- Orders Tabs -->
+  <mat-tab-group class="orders-tabs" animationDuration="300ms">
+    <!-- Active Orders Tab -->
+    <mat-tab label="Activos ({{ activeOrders.length }})">
+      <div class="tab-content">
+        <div *ngIf="activeOrders.length > 0; else noActiveOrdersTemplate" class="orders-list">
+          <mat-card *ngFor="let order of activeOrders" class="order-card active-order">
+            <mat-card-content>
+              <!-- Order Header -->
+              <div class="order-header">
+                <div class="order-info">
+                  <h3>Pedido #{{ order.id }}</h3>
+                  <p class="order-date">{{ order.orderDate | date:'dd/MM/yyyy HH:mm' }}</p>
+                </div>
+                <div class="order-status">
+                  <mat-chip [color]="getStatusColor(order.status)" selected>
+                    <mat-icon>{{ getStatusIcon(order.status) }}</mat-icon>
+                    {{ getStatusText(order.status) }}
+                  </mat-chip>
+                </div>
+              </div>
+
+              <!-- Estimated Delivery -->
+              <div class="delivery-estimate" *ngIf="order.estimatedDelivery">
+                <mat-icon>schedule</mat-icon>
+                <span>Entrega estimada: {{ order.estimatedDelivery | date:'HH:mm' }}</span>
+              </div>
+
+              <!-- Order Items -->
+              <div class="order-items">
+                <div *ngFor="let item of order.items.slice(0, 2)" class="order-item">
+                  <img [src]="item.product.image" [alt]="item.product.name" class="item-image">
+                  <div class="item-details">
+                    <span class="item-name">{{ item.product.name }}</span>
+                    <span class="item-quantity">x{{ item.quantity }}</span>
+                  </div>
+                  <span class="item-price">S/{{ (item.price * item.quantity).toFixed(2) }}</span>
+                </div>
+                <div *ngIf="order.items.length > 2" class="more-items">
+                  <span>+ {{ order.items.length - 2 }} productos más</span>
+                </div>
+              </div>
+
+              <mat-divider></mat-divider>
+
+              <!-- Order Footer -->
+              <div class="order-footer">
+                <div class="order-total">
+                  <span class="total-label">Total:</span>
+                  <span class="total-amount">S/{{ order.total.toFixed(2) }}</span>
+                </div>
+                <div class="order-actions">
+                  <button mat-button 
+                          [routerLink]="['/customer/order', order.id]"
+                          class="view-details-btn">
+                    <mat-icon>visibility</mat-icon>
+                    Ver Detalles
+                  </button>
+                  <button mat-button 
+                          color="warn"
+                          (click)="cancelOrder(order)"
+                          *ngIf="canCancelOrder(order)"
+                          class="cancel-btn">
+                    <mat-icon>cancel</mat-icon>
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- Completed Orders Tab -->
+    <mat-tab label="Historial ({{ completedOrders.length }})">
+      <div class="tab-content">
+        <div *ngIf="completedOrders.length > 0; else noCompletedOrdersTemplate" class="orders-list">
+          <mat-card *ngFor="let order of completedOrders" class="order-card completed-order">
+            <mat-card-content>
+              <!-- Order Header -->
+              <div class="order-header">
+                <div class="order-info">
+                  <h3>Pedido #{{ order.id }}</h3>
+                  <p class="order-date">{{ order.orderDate | date:'dd/MM/yyyy HH:mm' }}</p>
+                </div>
+                <div class="order-status">
+                  <mat-chip [color]="getStatusColor(order.status)" selected>
+                    <mat-icon>{{ getStatusIcon(order.status) }}</mat-icon>
+                    {{ getStatusText(order.status) }}
+                  </mat-chip>
+                </div>
+              </div>
+
+              <!-- Order Items -->
+              <div class="order-items">
+                <div *ngFor="let item of order.items.slice(0, 3)" class="order-item">
+                  <img [src]="item.product.image" [alt]="item.product.name" class="item-image">
+                  <div class="item-details">
+                    <span class="item-name">{{ item.product.name }}</span>
+                    <span class="item-quantity">x{{ item.quantity }}</span>
+                  </div>
+                  <span class="item-price">S/{{ (item.price * item.quantity).toFixed(2) }}</span>
+                </div>
+                <div *ngIf="order.items.length > 3" class="more-items">
+                  <span>+ {{ order.items.length - 3 }} productos más</span>
+                </div>
+              </div>
+
+              <mat-divider></mat-divider>
+
+              <!-- Order Footer -->
+              <div class="order-footer">
+                <div class="order-total">
+                  <span class="total-label">Total:</span>
+                  <span class="total-amount">S/{{ order.total.toFixed(2) }}</span>
+                </div>
+                <div class="order-actions">
+                  <button mat-button 
+                          [routerLink]="['/customer/order', order.id]"
+                          class="view-details-btn">
+                    <mat-icon>visibility</mat-icon>
+                    Ver Detalles
+                  </button>
+                  <button mat-raised-button 
+                          color="primary"
+                          (click)="reorderItems(order)"
+                          *ngIf="order.status === 'DELIVERED'"
+                          class="reorder-btn">
+                    <mat-icon>refresh</mat-icon>
+                    Volver a Pedir
+                  </button>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div>
+
+<!-- No Active Orders Template -->
+<ng-template #noActiveOrdersTemplate>
+  <div class="no-orders">
+    <div class="no-orders-content">
+      <mat-icon class="no-orders-icon">receipt_long</mat-icon>
+      <h2>No tienes pedidos activos</h2>
+      <p>Cuando realices un pedido, aparecerá aquí para que puedas seguir su estado</p>
+      <button mat-raised-button color="primary" routerLink="/customer/menu" class="browse-menu-btn">
+        <mat-icon>restaurant_menu</mat-icon>
+        Explorar Menú
+      </button>
+    </div>
+  </div>
+</ng-template>
+
+<!-- No Completed Orders Template -->
+<ng-template #noCompletedOrdersTemplate>
+  <div class="no-orders">
+    <div class="no-orders-content">
+      <mat-icon class="no-orders-icon">history</mat-icon>
+      <h2>Aún no tienes historial</h2>
+      <p>Tus pedidos completados aparecerán aquí</p>
+      <button mat-raised-button color="primary" routerLink="/customer/menu" class="browse-menu-btn">
+        <mat-icon>restaurant_menu</mat-icon>
+        Hacer tu Primer Pedido
+      </button>
+    </div>
+  </div>
+</ng-template>
+
+<!-- Loading Template -->
+<ng-template #loadingTemplate>
+  <div class="loading-container">
+    <mat-spinner></mat-spinner>
+    <p>Cargando tus pedidos...</p>
+  </div>
+</ng-template>

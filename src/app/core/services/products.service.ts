@@ -1,108 +1,90 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { catchError } from 'rxjs/operators';
-import { Product, ProductFormData } from '../interfaces/products-interfaces';
+import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { ProductDTO, ProductRequest, ProductSummary, TopProduct } from '../interfaces/products-interfaces';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProductsService {
-  private readonly url = `${environment.urlBackEnd}/v1/api/product`;
+  private apiUrl = `${environment.urlBackEnd}/v1/api/product`;
 
+  constructor(private http: HttpClient) {}
 
-
-  constructor(private http: HttpClient) { }
-
-  // Producto seleccionado
-  private selectedProductSubject = new BehaviorSubject<Product | null>(null);
-  selectedProduct$ = this.selectedProductSubject.asObservable();
-
-  setSelectedProduct(product: Product | null): void {
-    this.selectedProductSubject.next(product);
+  getAll(): Observable<ProductDTO[]> {
+    return this.http.get<ProductDTO[]>(this.apiUrl);
   }
 
-  // CRUD productos
-  findByStatus(status: 'A' | 'I'): Observable<Product[]> {
-    return this.http.get<Product[]>(`${this.url}/status/${status}`);
+  getById(id: number): Observable<ProductDTO> {
+    return this.http.get<ProductDTO>(`${this.apiUrl}/${id}`);
   }
 
-  // Obtener todos los productos
-  getProducts(): Observable<Product[]> {
-    return this.http.get<Product[]>(`${environment.urlBackEnd}/v1/api/products-simple`);
+  getByProductCode(productCode: string): Observable<ProductDTO> {
+    return this.http.get<ProductDTO>(`${this.apiUrl}/code/${productCode}`);
   }
 
-  // Obtener producto por ID
-  getProductById(id: number): Observable<Product> {
-    return this.http.get<Product>(`${this.url}/${id}`);
+  getByStatus(status: string): Observable<ProductDTO[]> {
+    return this.http.get<ProductDTO[]>(`${this.apiUrl}/status/${status}`);
   }
 
-  // Crear nuevo producto
-  create(product: ProductFormData): Observable<Product> {
-    return this.http.post<Product>(`${this.url}/save`, product);
+  getByCategory(category: string): Observable<ProductDTO[]> {
+    return this.http.get<ProductDTO[]>(`${this.apiUrl}/category/${category}`);
   }
 
-  // Actualizar producto
-  update(product: Product): Observable<Product> {
-    return this.http.put<Product>(`${this.url}/update/${product.id_Product}`, product);
+  search(searchTerm: string, status: string = 'A'): Observable<ProductDTO[]> {
+    return this.http.get<ProductDTO[]>(`${this.apiUrl}/search?search=${searchTerm}&status=${status}`);
   }
 
-  // Eliminar producto (cambiar status a inactivo)
-  delete(idProduct: number): Observable<void> {
-    return this.http.patch<void>(`${this.url}/delete/${idProduct}`, {});
+  getSummary(): Observable<ProductSummary> {
+    return this.http.get<ProductSummary>(`${this.apiUrl}/summary`);
   }
 
-  // Restaurar producto (cambiar status a activo)
-  restore(idProduct: number): Observable<void> {
-    return this.http.patch<void>(`${this.url}/restore/${idProduct}`, {});
+  getTopProductsByStock(limit: number = 4): Observable<TopProduct[]> {
+    return this.http.get<TopProduct[]>(`${this.apiUrl}/top-stock?limit=${limit}`);
   }
 
-  // Generar reporte PDF de productos
-  reportPdf(): Observable<Blob> {
-    return this.http.get(`${this.url}/pdf`, { responseType: 'blob' });
+  create(product: ProductRequest): Observable<ProductDTO> {
+    return this.http.post<ProductDTO>(`${this.apiUrl}/save`, product);
   }
 
-  // Generar reporte PDF filtrado por categoría
-  reportPdfByCategory(category: string): Observable<Blob> {
-    return this.http.get(`${this.url}/pdf/category/${category}`, { responseType: 'blob' });
+  update(id: number, product: ProductRequest): Observable<ProductDTO> {
+    return this.http.put<ProductDTO>(`${this.apiUrl}/update/${id}`, product);
   }
 
-  // Obtener categorías disponibles
-  getCategories(): Observable<string[]> {
-    return this.http.get<string[]>(`${this.url}/categories`);
+  delete(id: number): Observable<void> {
+    return this.http.patch<void>(`${this.apiUrl}/delete/${id}`, {});
   }
 
-  // Filtros por categoría
-  getByCategory(category: string): Observable<Product[]> {
-    return this.http.get<Product[]>(`${this.url}/category/${category}`);
+  restore(id: number): Observable<void> {
+    return this.http.patch<void>(`${this.apiUrl}/restore/${id}`, {});
   }
 
-  // Filtros por stock bajo
-  getLowStock(): Observable<Product[]> {
-    return this.http.get<Product[]>(`${this.url}/low-stock`);
+  updateStock(id: number, newStock: number): Observable<ProductDTO> {
+    return this.http.put<ProductDTO>(`${this.apiUrl}/${id}/stock?newStock=${newStock}`, {});
   }
 
-  // Filtros por sin stock
-  getOutOfStock(): Observable<Product[]> {
-    return this.http.get<Product[]>(`${this.url}/out-of-stock`);
+  addStock(id: number, quantity: number): Observable<ProductDTO> {
+    return this.http.put<ProductDTO>(`${this.apiUrl}/${id}/add-stock?quantity=${quantity}`, {});
   }
 
-  // Métodos de conveniencia para mantener compatibilidad
-  createProduct(product: ProductFormData): Observable<Product> {
-    return this.create(product);
+  reduceStock(id: number, quantity: number): Observable<ProductDTO> {
+    return this.http.put<ProductDTO>(`${this.apiUrl}/${id}/reduce-stock?quantity=${quantity}`, {});
   }
 
-  updateProduct(id: number, productData: ProductFormData): Observable<Product> {
-    const product: Product = {
-      id_Product: id,
-      ...productData,
-      Status: productData.Status || 'A'
-    };
-    return this.update(product);
+  generateNextProductCode(): Observable<string> {
+    return this.http.get<string>(`${this.apiUrl}/generate-code`);
   }
 
-  deleteProduct(id: number): Observable<void> {
-    return this.delete(id);
+  existsByProductCode(productCode: string): Observable<boolean> {
+    return this.http.get<boolean>(`${this.apiUrl}/exists/code/${productCode}`);
+  }
+
+  existsByProductName(productName: string): Observable<boolean> {
+    return this.http.get<boolean>(`${this.apiUrl}/exists/name/${productName}`);
+  }
+
+  generatePdfReport(): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/pdf`, { responseType: 'blob' });
   }
 }

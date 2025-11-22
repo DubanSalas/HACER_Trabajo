@@ -1,0 +1,426 @@
+<div class="customer-profile-container">
+  <!-- Loading State -->
+  <div class="loading-container" *ngIf="isLoading">
+    <mat-spinner></mat-spinner>
+    <p>Cargando perfil...</p>
+  </div>
+
+  <!-- Profile Content -->
+  <div class="profile-content" *ngIf="!isLoading">
+    <!-- Profile Header -->
+    <mat-card class="profile-header-card">
+      <div class="profile-header">
+        <div class="profile-avatar">
+          <div class="avatar-circle">
+            {{ getInitials() }}
+          </div>
+        </div>
+        <div class="profile-info">
+          <h1>{{ customerData?.name }} {{ customerData?.surname }}</h1>
+          <p class="customer-code" *ngIf="customerData?.clientCode">
+            <mat-icon>badge</mat-icon>
+            Código: {{ customerData.clientCode }}
+          </p>
+          <p class="customer-email">
+            <mat-icon>email</mat-icon>
+            {{ customerData?.email }}
+          </p>
+        </div>
+      </div>
+    </mat-card>
+
+    <!-- Profile Tabs -->
+    <mat-tab-group class="profile-tabs">
+      <!-- Información Personal -->
+      <mat-tab label="Información Personal">
+        <mat-card class="tab-content-card">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>person</mat-icon>
+              Datos Personales
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <form [formGroup]="profileForm" (ngSubmit)="onSaveProfile()">
+              <div class="info-message">
+                <mat-icon>info</mat-icon>
+                <p>Tu información personal está protegida y no puede ser modificada desde aquí. Si necesitas actualizar algún dato, por favor contacta con nuestro equipo de soporte en la pestaña "Soporte y Reclamos".</p>
+              </div>
+
+              <div class="form-row">
+                <mat-form-field appearance="outline" class="form-field">
+                  <mat-label>Nombre</mat-label>
+                  <input matInput formControlName="name" placeholder="Ingresa tu nombre" readonly>
+                  <mat-icon matPrefix>person</mat-icon>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="form-field">
+                  <mat-label>Apellido</mat-label>
+                  <input matInput formControlName="surname" placeholder="Ingresa tu apellido" readonly>
+                  <mat-icon matPrefix>person</mat-icon>
+                </mat-form-field>
+              </div>
+
+              <div class="form-row">
+                <mat-form-field appearance="outline" class="form-field">
+                  <mat-label>Email</mat-label>
+                  <input matInput formControlName="email" type="email" placeholder="correo@ejemplo.com" readonly>
+                  <mat-icon matPrefix>email</mat-icon>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="form-field">
+                  <mat-label>Teléfono</mat-label>
+                  <input matInput formControlName="phone" placeholder="999 999 999" readonly>
+                  <mat-icon matPrefix>phone</mat-icon>
+                </mat-form-field>
+              </div>
+
+              <div class="form-row">
+                <mat-form-field appearance="outline" class="form-field">
+                  <mat-label>Documento de Identidad</mat-label>
+                  <input matInput formControlName="documentNumber" placeholder="12345678" readonly>
+                  <mat-icon matPrefix>badge</mat-icon>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="form-field">
+                  <mat-label>Dirección</mat-label>
+                  <input matInput formControlName="address" placeholder="Av. Principal 123" readonly>
+                  <mat-icon matPrefix>location_on</mat-icon>
+                </mat-form-field>
+              </div>
+            </form>
+          </mat-card-content>
+        </mat-card>
+      </mat-tab>
+
+      <!-- Cambiar Contraseña -->
+      <mat-tab label="Seguridad">
+        <mat-card class="tab-content-card">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>lock</mat-icon>
+              Cambiar Contraseña
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <form [formGroup]="passwordForm" (ngSubmit)="onChangePassword()">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Contraseña Actual</mat-label>
+                <input matInput formControlName="currentPassword" type="password">
+                <mat-icon matPrefix>lock</mat-icon>
+                <mat-error *ngIf="passwordForm.get('currentPassword')?.hasError('required')">
+                  La contraseña actual es requerida
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Nueva Contraseña</mat-label>
+                <input matInput formControlName="newPassword" type="password">
+                <mat-icon matPrefix>lock_open</mat-icon>
+                <mat-error *ngIf="passwordForm.get('newPassword')?.hasError('required')">
+                  La nueva contraseña es requerida
+                </mat-error>
+                <mat-error *ngIf="passwordForm.get('newPassword')?.hasError('minlength')">
+                  Mínimo 6 caracteres
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Confirmar Nueva Contraseña</mat-label>
+                <input matInput formControlName="confirmPassword" type="password">
+                <mat-icon matPrefix>lock_open</mat-icon>
+                <mat-error *ngIf="passwordForm.get('confirmPassword')?.hasError('required')">
+                  Confirma la nueva contraseña
+                </mat-error>
+                <mat-error *ngIf="passwordForm.hasError('mismatch')">
+                  Las contraseñas no coinciden
+                </mat-error>
+              </mat-form-field>
+
+              <div class="form-actions">
+                <button mat-raised-button 
+                        color="accent" 
+                        type="submit"
+                        [disabled]="passwordForm.invalid || isSaving">
+                  <mat-icon>vpn_key</mat-icon>
+                  {{ isSaving ? 'Cambiando...' : 'Cambiar Contraseña' }}
+                </button>
+              </div>
+            </form>
+          </mat-card-content>
+        </mat-card>
+      </mat-tab>
+
+      <!-- Soporte y Reclamos -->
+      <mat-tab label="Soporte y Reclamos">
+        <mat-card class="tab-content-card">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>support_agent</mat-icon>
+              Centro de Ayuda
+            </mat-card-title>
+            <mat-card-subtitle>
+              ¿Tienes alguna consulta o problema con tu pedido? Estamos aquí para ayudarte
+            </mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <!-- Formulario de Soporte -->
+            <form [formGroup]="supportForm" (ngSubmit)="onSubmitSupport()">
+              <div class="support-form">
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Tipo de Consulta</mat-label>
+                  <mat-select formControlName="type">
+                    <mat-option value="PEDIDO_NO_LLEGA">
+                      <mat-icon>local_shipping</mat-icon>
+                      Mi pedido no ha llegado
+                    </mat-option>
+                    <mat-option value="PRODUCTO_DEFECTUOSO">
+                      <mat-icon>report_problem</mat-icon>
+                      Producto defectuoso o incorrecto
+                    </mat-option>
+                    <mat-option value="DEVOLUCION">
+                      <mat-icon>keyboard_return</mat-icon>
+                      Solicitud de devolución
+                    </mat-option>
+                    <mat-option value="CAMBIO">
+                      <mat-icon>swap_horiz</mat-icon>
+                      Solicitud de cambio
+                    </mat-option>
+                    <mat-option value="FACTURACION">
+                      <mat-icon>receipt</mat-icon>
+                      Problema con facturación
+                    </mat-option>
+                    <mat-option value="CONSULTA_GENERAL">
+                      <mat-icon>help_outline</mat-icon>
+                      Consulta general
+                    </mat-option>
+                    <mat-option value="OTRO">
+                      <mat-icon>more_horiz</mat-icon>
+                      Otro
+                    </mat-option>
+                  </mat-select>
+                  <mat-icon matPrefix>category</mat-icon>
+                  <mat-error *ngIf="supportForm.get('type')?.hasError('required')">
+                    Selecciona el tipo de consulta
+                  </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Número de Pedido (Opcional)</mat-label>
+                  <input matInput formControlName="orderNumber" placeholder="Ej: ORD-12345">
+                  <mat-icon matPrefix>confirmation_number</mat-icon>
+                  <mat-hint>Si tu consulta es sobre un pedido específico, ingresa el número aquí</mat-hint>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Asunto</mat-label>
+                  <input matInput formControlName="subject" placeholder="Describe brevemente tu consulta">
+                  <mat-icon matPrefix>subject</mat-icon>
+                  <mat-error *ngIf="supportForm.get('subject')?.hasError('required')">
+                    El asunto es requerido
+                  </mat-error>
+                  <mat-error *ngIf="supportForm.get('subject')?.hasError('minlength')">
+                    Mínimo 5 caracteres
+                  </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Descripción Detallada</mat-label>
+                  <textarea matInput 
+                            formControlName="description" 
+                            rows="6"
+                            placeholder="Describe tu problema o consulta con el mayor detalle posible. Esto nos ayudará a resolver tu caso más rápidamente."></textarea>
+                  <mat-icon matPrefix>description</mat-icon>
+                  <mat-error *ngIf="supportForm.get('description')?.hasError('required')">
+                    La descripción es requerida
+                  </mat-error>
+                  <mat-error *ngIf="supportForm.get('description')?.hasError('minlength')">
+                    Mínimo 20 caracteres
+                  </mat-error>
+                  <mat-hint align="end">{{ supportForm.get('description')?.value?.length || 0 }} / 500</mat-hint>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Prioridad</mat-label>
+                  <mat-select formControlName="priority">
+                    <mat-option value="BAJA">
+                      <mat-icon class="priority-low">flag</mat-icon>
+                      Baja - Consulta general
+                    </mat-option>
+                    <mat-option value="MEDIA">
+                      <mat-icon class="priority-medium">flag</mat-icon>
+                      Media - Requiere atención
+                    </mat-option>
+                    <mat-option value="ALTA">
+                      <mat-icon class="priority-high">flag</mat-icon>
+                      Alta - Urgente
+                    </mat-option>
+                  </mat-select>
+                  <mat-icon matPrefix>priority_high</mat-icon>
+                </mat-form-field>
+
+                <div class="support-info-box">
+                  <mat-icon>info</mat-icon>
+                  <div class="info-content">
+                    <strong>Tiempo de respuesta estimado:</strong>
+                    <ul>
+                      <li>Prioridad Alta: 2-4 horas</li>
+                      <li>Prioridad Media: 24 horas</li>
+                      <li>Prioridad Baja: 48 horas</li>
+                    </ul>
+                    <p>Recibirás una notificación por email cuando respondamos tu consulta.</p>
+                  </div>
+                </div>
+
+                <div class="form-actions">
+                  <button mat-raised-button 
+                          color="primary" 
+                          type="submit"
+                          [disabled]="supportForm.invalid || isSaving">
+                    <mat-icon>send</mat-icon>
+                    {{ isSaving ? 'Enviando...' : 'Enviar Consulta' }}
+                  </button>
+                  <button mat-button 
+                          type="button"
+                          (click)="resetSupportForm()">
+                    <mat-icon>refresh</mat-icon>
+                    Limpiar Formulario
+                  </button>
+                </div>
+              </div>
+            </form>
+
+            <!-- Historial de Tickets -->
+            <div class="support-history" *ngIf="supportTickets && supportTickets.length > 0">
+              <h3>
+                <mat-icon>history</mat-icon>
+                Mis Consultas Anteriores
+              </h3>
+              <div class="tickets-list">
+                <mat-card *ngFor="let ticket of supportTickets" class="ticket-card">
+                  <div class="ticket-header">
+                    <div class="ticket-info">
+                      <span class="ticket-id">#{{ ticket.id }}</span>
+                      <span class="ticket-type">{{ getTicketTypeLabel(ticket.type) }}</span>
+                      <span class="ticket-status" [ngClass]="'status-' + ticket.status.toLowerCase()">
+                        {{ getStatusLabel(ticket.status) }}
+                      </span>
+                    </div>
+                    <span class="ticket-date">{{ ticket.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+                  </div>
+                  <div class="ticket-content">
+                    <h4>{{ ticket.subject }}</h4>
+                    <p>{{ ticket.description }}</p>
+                    <div class="ticket-response" *ngIf="ticket.response">
+                      <mat-icon>reply</mat-icon>
+                      <div>
+                        <strong>Respuesta del equipo:</strong>
+                        <p>{{ ticket.response }}</p>
+                        <span class="response-date">{{ ticket.respondedAt | date:'dd/MM/yyyy HH:mm' }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </mat-card>
+              </div>
+            </div>
+
+            <!-- Contacto Directo -->
+            <div class="contact-options">
+              <h3>
+                <mat-icon>contact_support</mat-icon>
+                Otras Formas de Contacto
+              </h3>
+              <div class="contact-grid">
+                <div class="contact-item">
+                  <mat-icon>phone</mat-icon>
+                  <div>
+                    <strong>Teléfono</strong>
+                    <p>(01) 234-5678</p>
+                    <span>Lun - Vie: 9:00 AM - 6:00 PM</span>
+                  </div>
+                </div>
+                <div class="contact-item">
+                  <mat-icon>email</mat-icon>
+                  <div>
+                    <strong>Email</strong>
+                    <p>soporte@delipedidos.com</p>
+                    <span>Respuesta en 24 horas</span>
+                  </div>
+                </div>
+                <div class="contact-item">
+                  <mat-icon>chat</mat-icon>
+                  <div>
+                    <strong>Chat en Vivo</strong>
+                    <p>Disponible ahora</p>
+                    <button mat-stroked-button color="primary">
+                      <mat-icon>chat_bubble</mat-icon>
+                      Iniciar Chat
+                    </button>
+                  </div>
+                </div>
+                <div class="contact-item">
+                  <mat-icon>help_center</mat-icon>
+                  <div>
+                    <strong>Centro de Ayuda</strong>
+                    <p>Preguntas frecuentes</p>
+                    <button mat-stroked-button color="primary">
+                      <mat-icon>open_in_new</mat-icon>
+                      Ver FAQ
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </mat-tab>
+
+      <!-- Estadísticas -->
+      <mat-tab label="Mis Estadísticas">
+        <mat-card class="tab-content-card">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>analytics</mat-icon>
+              Resumen de Actividad
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="stats-grid">
+              <div class="stat-item">
+                <mat-icon>shopping_bag</mat-icon>
+                <div class="stat-info">
+                  <span class="stat-value">{{ customerData?.totalOrders || 0 }}</span>
+                  <span class="stat-label">Pedidos Realizados</span>
+                </div>
+              </div>
+
+              <div class="stat-item">
+                <mat-icon>attach_money</mat-icon>
+                <div class="stat-info">
+                  <span class="stat-value">S/ {{ customerData?.totalSpent || 0 }}</span>
+                  <span class="stat-label">Total Gastado</span>
+                </div>
+              </div>
+
+              <div class="stat-item">
+                <mat-icon>calendar_today</mat-icon>
+                <div class="stat-info">
+                  <span class="stat-value">{{ customerData?.registerDate | date:'dd/MM/yyyy' }}</span>
+                  <span class="stat-label">Miembro Desde</span>
+                </div>
+              </div>
+
+              <div class="stat-item">
+                <mat-icon>star</mat-icon>
+                <div class="stat-info">
+                  <span class="stat-value">{{ customerData?.reviewsCount || 0 }}</span>
+                  <span class="stat-label">Reseñas Escritas</span>
+                </div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </mat-tab>
+    </mat-tab-group>
+  </div>
+</div>

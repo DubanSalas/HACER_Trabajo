@@ -1,70 +1,56 @@
-// Employee Interface - Basado en la tabla employee de Oracle
-export interface Employee {
-  id_Employee?: number
-  Employee_Code: string
-  Document_Type: string
-  Document_Number: string
-  Name: string
-  Surname: string
-  Hire_Date: Date
-  Phone: string
-  id_Location: number
-  Salary: number
-  Email: string
-  id_Position: number
-  Status: string
-  createdAt?: Date
-  updatedAt?: Date
+export interface EmployeeDTO {
+  idEmployee: number;
+  employeeCode: string;
+  documentType: string;
+  documentNumber: string;
+  name: string;
+  surname: string;
+  hireDate: string;
+  phone: string;
+  salary: number;
+  email: string;
+  status: string;
+  locationId: number;
+  department: string;
+  province: string;
+  district: string;
+  address: string;
+  positionId: number;
+  positionName: string;
 }
 
-// Position Interface - Basado en la tabla position de Oracle
-export interface Position {
-  id_Position: number
-  Position_Name: string
-  Description: string
-  Status: string
+export interface EmployeeRequest {
+  employeeCode: string;
+  documentType: string;
+  documentNumber: string;
+  name: string;
+  surname: string;
+  hireDate: string;
+  phone: string;
+  salary: number;
+  email: string;
+  idPosition: number;
+  idLocation: number;
 }
 
-// Location Interface - Reutilizada de suppliers
-export interface Location {
-  identifier_Location: number
-  department: string
-  province: string
-  district: string
-  address: string
+export interface PositionDTO {
+  idPosition: number;
+  positionName: string;
+  description: string;
+  status: string;
 }
 
-export interface EmployeeResponse {
-  data: Employee[]
-  total: number
-  page: number
-  pageSize: number
+export interface LocationDTO {
+  idLocation: number;
+  department: string;
+  province: string;
+  district: string;
+  address: string;
 }
 
-export interface EmployeeStats {
-  total: number
-  activos: number
-  inactivos: number
-  salarioPromedio: number
-}
-
-export interface EmployeePosition {
-  name: string
-  count: number
-}
-
-// Para el formulario
-export interface EmployeeFormData {
-  Employee_Code: string
-  Document_Type: string
-  Document_Number: string
-  Name: string
-  Surname: string
-  Hire_Date: Date
-  Phone: string
-  id_Location: number
-  Salary: number
-  Email: string
-  id_Position: number
-  Status?: string
+export interface EmployeeSummary {
+  totalEmployees: number;
+  activeEmployees: number;
+  inactiveEmployees: number;
+  averageSalary: number;
 }

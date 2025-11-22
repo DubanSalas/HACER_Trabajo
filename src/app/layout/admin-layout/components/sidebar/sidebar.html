@@ -1,0 +1,93 @@
+<div class="sidebar-container">
+  <!-- Logo y título -->
+  <div class="sidebar-header">
+    <div class="logo-section">
+      <div class="logo-container">
+        <mat-icon class="logo-icon">bakery_dining</mat-icon>
+      </div>
+      <div class="brand-info" [class.collapsed]="collapsed">
+        <h2 class="brand-title">DeliciousBakery</h2>
+        <p class="brand-subtitle">Sistema de Gestión</p>
+      </div>
+    </div>
+    
+    <!-- Botón de colapsar -->
+    <button 
+      mat-icon-button 
+      class="collapse-btn"
+      (click)="onToggleSidebar()"
+      matTooltip="Colapsar menú">
+      <mat-icon>{{ collapsed ? 'menu_open' : 'menu' }}</mat-icon>
+    </button>
+  </div>
+
+  <mat-divider class="header-divider"></mat-divider>
+
+  <!-- Navegación principal -->
+  <nav class="sidebar-nav">
+    <mat-nav-list class="nav-list">
+      <mat-list-item 
+        *ngFor="let item of menuItems" 
+        class="nav-item"
+        [routerLink]="item.route"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{exact: item.route === '/dashboard'}"
+        (click)="toggleMenu(item)">
+        
+        <div class="nav-item-content">
+          <div class="nav-icon">
+            <mat-icon>{{ item.icon }}</mat-icon>
+          </div>
+          
+          <span class="nav-label" [class.collapsed]="collapsed">
+            {{ item.label }}
+          </span>
+          
+          <mat-icon 
+            *ngIf="item.children && !collapsed" 
+            class="expand-icon"
+            [class.expanded]="item.expanded">
+            expand_more
+          </mat-icon>
+        </div>
+
+        <!-- Submenu (si existe) -->
+        <div 
+          *ngIf="item.children && item.expanded && !collapsed" 
+          class="submenu">
+          <mat-list-item 
+            *ngFor="let child of item.children"
+            class="submenu-item"
+            [routerLink]="child.route"
+            routerLinkActive="active">
+            <div class="submenu-content">
+              <mat-icon class="submenu-icon">{{ child.icon }}</mat-icon>
+              <span class="submenu-label">{{ child.label }}</span>
+            </div>
+          </mat-list-item>
+        </div>
+      </mat-list-item>
+    </mat-nav-list>
+  </nav>
+
+  <!-- Información del usuario -->
+  <div class="sidebar-footer">
+    <mat-divider class="footer-divider"></mat-divider>
+    
+    <div class="user-info" [class.collapsed]="collapsed">
+      <div class="user-avatar">
+        <mat-icon>account_circle</mat-icon>
+      </div>
+      <div class="user-details" *ngIf="!collapsed">
+        <span class="user-name">Usuario Admin</span>
+        <span class="user-role">Administrador</span>
+      </div>
+      <button 
+        mat-icon-button 
+        class="logout-btn"
+        matTooltip="Cerrar sesión">
+        <mat-icon>logout</mat-icon>
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,165 @@
+<div class="customer-home" *ngIf="!isLoading; else loadingTemplate">
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-content">
+      <h1>¡Bienvenido a DeliPedidos!</h1>
+      <p>Descubre los mejores sabores de la ciudad, entregados directamente a tu puerta</p>
+      <button mat-raised-button color="primary" routerLink="/customer/menu" class="cta-button">
+        <mat-icon>restaurant_menu</mat-icon>
+        Ver Menú Completo
+      </button>
+    </div>
+    <div class="hero-image">
+      <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600" alt="Delicious Food">
+    </div>
+  </section>
+
+  <!-- Customer Stats -->
+  <section class="stats-section" *ngIf="customerStats">
+    <div class="stats-container">
+      <div class="stat-card">
+        <mat-icon>receipt_long</mat-icon>
+        <div class="stat-info">
+          <span class="stat-number">{{ customerStats.totalOrders }}</span>
+          <span class="stat-label">Pedidos Realizados</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <mat-icon>attach_money</mat-icon>
+        <div class="stat-info">
+          <span class="stat-number">S/{{ customerStats.totalSpent.toFixed(2) }}</span>
+          <span class="stat-label">Total Gastado</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <mat-icon>favorite</mat-icon>
+        <div class="stat-info">
+          <span class="stat-number">{{ customerStats.favoriteCategory }}</span>
+          <span class="stat-label">Categoría Favorita</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Categories -->
+  <section class="categories-section">
+    <h2>Explora por Categorías</h2>
+    <div class="categories-container">
+      <mat-chip-set>
+        <mat-chip *ngFor="let category of categories" 
+                  [routerLink]="['/customer/menu']" 
+                  [queryParams]="{category: category}"
+                  class="category-chip">
+          {{ category }}
+        </mat-chip>
+      </mat-chip-set>
+    </div>
+  </section>
+
+  <!-- Featured Products -->
+  <section class="featured-section">
+    <div class="section-header">
+      <h2>Productos Destacados</h2>
+      <button mat-button color="primary" routerLink="/customer/menu">
+        Ver Todos
+        <mat-icon>arrow_forward</mat-icon>
+      </button>
+    </div>
+    
+    <div class="products-grid">
+      <mat-card *ngFor="let product of featuredProducts" class="product-card">
+        <div class="product-image" [routerLink]="['/customer/product', product.id]">
+          <img [src]="product.image" [alt]="product.name">
+          <div class="product-overlay">
+            <mat-icon>visibility</mat-icon>
+          </div>
+        </div>
+        
+        <mat-card-content>
+          <div class="product-info">
+            <h3 class="product-name">{{ product.name }}</h3>
+            <p class="product-description">{{ product.description }}</p>
+            
+            <div class="product-rating" *ngIf="product.rating">
+              <div class="stars">
+                <mat-icon *ngFor="let star of [1,2,3,4,5]" 
+                          [class.filled]="star <= product.rating!">
+                  star
+                </mat-icon>
+              </div>
+              <span class="rating-text">{{ product.rating }} ({{ product.reviews }} reseñas)</span>
+            </div>
+            
+            <div class="product-footer">
+              <span class="product-price">S/{{ product.price.toFixed(2) }}</span>
+              <button mat-raised-button 
+                      color="primary" 
+                      (click)="addToCart(product)"
+                      [disabled]="!product.isAvailable">
+                <mat-icon>add_shopping_cart</mat-icon>
+                Agregar
+              </button>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </section>
+
+  <!-- Popular Products -->
+  <section class="popular-section">
+    <div class="section-header">
+      <h2>Más Populares</h2>
+      <button mat-button color="primary" routerLink="/customer/menu">
+        Ver Todos
+        <mat-icon>arrow_forward</mat-icon>
+      </button>
+    </div>
+    
+    <div class="products-grid">
+      <mat-card *ngFor="let product of popularProducts" class="product-card">
+        <div class="product-image" [routerLink]="['/customer/product', product.id]">
+          <img [src]="product.image" [alt]="product.name">
+          <div class="product-overlay">
+            <mat-icon>visibility</mat-icon>
+          </div>
+        </div>
+        
+        <mat-card-content>
+          <div class="product-info">
+            <h3 class="product-name">{{ product.name }}</h3>
+            <p class="product-description">{{ product.description }}</p>
+            
+            <div class="product-rating" *ngIf="product.rating">
+              <div class="stars">
+                <mat-icon *ngFor="let star of [1,2,3,4,5]" 
+                          [class.filled]="star <= product.rating!">
+                  star
+                </mat-icon>
+              </div>
+              <span class="rating-text">{{ product.rating }} ({{ product.reviews }} reseñas)</span>
+            </div>
+            
+            <div class="product-footer">
+              <span class="product-price">S/{{ product.price.toFixed(2) }}</span>
+              <button mat-raised-button 
+                      color="primary" 
+                      (click)="addToCart(product)"
+                      [disabled]="!product.isAvailable">
+                <mat-icon>add_shopping_cart</mat-icon>
+                Agregar
+              </button>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </section>
+</div>
+
+<ng-template #loadingTemplate>
+  <div class="loading-container">
+    <mat-spinner></mat-spinner>
+    <p>Cargando contenido...</p>
+  </div>
+</ng-template>

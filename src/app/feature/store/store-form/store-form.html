@@ -1,188 +1,299 @@
-<div class="modal-overlay" (click)="onCancel()">
-  <div class="modal-container" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h2>{{ isEditMode ? 'Editar Producto' : 'Agregar Producto' }}</h2>
-      <button mat-icon-button (click)="onCancel()" class="close-btn">
-        <mat-icon>close</mat-icon>
-      </button>
-    </div>
-
-    <form [formGroup]="storeForm" (ngSubmit)="onSubmit()" class="store-form">
-      <div class="form-content">
-        <!-- Product Information -->
-        <div class="form-section">
-          <div class="form-row">
-            <div class="form-group">
-              <label for="product">Nombre del Producto <span class="required">*</span></label>
-              <mat-select 
-                formControlName="id_Product" 
-                placeholder="Seleccionar producto..."
-                (selectionChange)="onProductChange()"
-                [class.error]="isFieldInvalid('id_Product')">
-                <mat-option *ngFor="let product of products" [value]="product.id_Product">
-                  {{ product.Product_Name }}
-                </mat-option>
-              </mat-select>
-              <div *ngIf="isFieldInvalid('id_Product')" class="error-message">
-                {{ getFieldError('id_Product') }}
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label for="category">Categoría</label>
-              <mat-select placeholder="Ingredientes Básicos" disabled>
-                <mat-option value="Ingredientes Básicos">Ingredientes Básicos</mat-option>
-              </mat-select>
-            </div>
+<div class="store-form-container">
+  <!-- Header -->
+  <div class="page-header">
+    <mat-card class="header-card">
+      <mat-card-content>
+        <div class="header-content">
+          <div class="title-section">
+            <h1 class="page-title">
+              <mat-icon class="title-icon">{{ isEditMode ? 'edit' : 'store' }}</mat-icon>
+              {{ isEditMode ? 'Editar Inventario' : 'Nuevo Item de Inventario' }}
+            </h1>
+            <p class="page-subtitle">
+              {{ isEditMode ? 'Modifica los datos del inventario' : 'Registra un nuevo item en el inventario' }}
+            </p>
           </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="current_stock">Stock Actual <span class="required">*</span></label>
-              <input 
-                matInput 
-                type="number" 
-                formControlName="current_stock"
-                min="0"
-                [class.error]="isFieldInvalid('current_stock')"
-                class="stock-input">
-              <div *ngIf="isFieldInvalid('current_stock')" class="error-message">
-                {{ getFieldError('current_stock') }}
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label for="min_stock">Stock Mínimo <span class="required">*</span></label>
-              <input 
-                matInput 
-                type="number" 
-                formControlName="min_stock"
-                min="0"
-                [class.error]="isFieldInvalid('min_stock')"
-                class="stock-input">
-              <div *ngIf="isFieldInvalid('min_stock')" class="error-message">
-                {{ getFieldError('min_stock') }}
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label for="unit">Unidad <span class="required">*</span></label>
-              <mat-select 
-                formControlName="unit" 
-                placeholder="kg"
-                [class.error]="isFieldInvalid('unit')">
-                <mat-option *ngFor="let unit of units" [value]="unit">
-                  {{ unit }}
-                </mat-option>
-              </mat-select>
-              <div *ngIf="isFieldInvalid('unit')" class="error-message">
-                {{ getFieldError('unit') }}
-              </div>
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="unit_price">Precio Unitario <span class="required">*</span></label>
-              <input 
-                matInput 
-                type="number" 
-                formControlName="unit_price"
-                min="0"
-                step="0.01"
-                [class.error]="isFieldInvalid('unit_price')"
-                class="price-input">
-              <div *ngIf="isFieldInvalid('unit_price')" class="error-message">
-                {{ getFieldError('unit_price') }}
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label for="supplier">Proveedor <span class="required">*</span></label>
-              <mat-select 
-                formControlName="id_Supplier" 
-                placeholder="Seleccionar proveedor..."
-                [class.error]="isFieldInvalid('id_Supplier')">
-                <mat-option *ngFor="let supplier of suppliers" [value]="supplier.id_Supplier">
-                  {{ supplier.Company_Name }}
-                </mat-option>
-              </mat-select>
-              <div *ngIf="isFieldInvalid('id_Supplier')" class="error-message">
-                {{ getFieldError('id_Supplier') }}
-              </div>
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group full-width">
-              <label for="expiry_date">Fecha de Vencimiento <span class="required">*</span></label>
-              <input 
-                matInput 
-                type="date" 
-                formControlName="expiry_date"
-                [class.error]="isFieldInvalid('expiry_date')"
-                class="date-input">
-              <div *ngIf="isFieldInvalid('expiry_date')" class="error-message">
-                {{ getFieldError('expiry_date') }}
-              </div>
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group full-width">
-              <label for="location">Ubicación <span class="required">*</span></label>
-              <input 
-                matInput 
-                type="text" 
-                formControlName="location"
-                placeholder="Ej: Estante A-1, Refrigerador 2, etc."
-                [class.error]="isFieldInvalid('location')"
-                class="location-input">
-              <div *ngIf="isFieldInvalid('location')" class="error-message">
-                {{ getFieldError('location') }}
-              </div>
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="status">Estado <span class="required">*</span></label>
-              <mat-select 
-                formControlName="status" 
-                [class.error]="isFieldInvalid('status')">
-                <mat-option *ngFor="let status of statuses" [value]="status">
-                  {{ status }}
-                </mat-option>
-              </mat-select>
-              <div *ngIf="isFieldInvalid('status')" class="error-message">
-                {{ getFieldError('status') }}
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label>Valor Total</label>
-              <div class="total-value">
-                S/ {{ calculateTotalValue().toFixed(2) }}
-              </div>
-            </div>
+          <div class="header-actions">
+            <button 
+              mat-stroked-button 
+              color="warn"
+              (click)="onCancel()"
+              [disabled]="loading || submitting">
+              <mat-icon>arrow_back</mat-icon>
+              Volver
+            </button>
           </div>
         </div>
-      </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
 
-      <!-- Form Actions -->
-      <div class="form-actions">
-        <button type="button" mat-button (click)="onCancel()" class="cancel-btn">
-          Cancelar
-        </button>
-        <button 
-          type="submit" 
-          mat-raised-button 
-          [disabled]="loading || storeForm.invalid"
-          class="submit-btn">
-          <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
-          <span *ngIf="!loading">{{ isEditMode ? 'Actualizar' : 'Crear Producto' }}</span>
-        </button>
-      </div>
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-card>
+      <mat-card-content>
+        <div class="loading-content">
+          <mat-spinner diameter="50"></mat-spinner>
+          <p>Cargando datos del inventario...</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Form -->
+  <div *ngIf="!loading" class="form-section">
+    <form [formGroup]="storeForm" (ngSubmit)="onSubmit()">
+      <!-- Información del Producto -->
+      <mat-card class="form-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>inventory_2</mat-icon>
+            Información del Producto
+          </mat-card-title>
+          <mat-card-subtitle>
+            Selecciona el producto y su ubicación
+          </mat-card-subtitle>
+        </mat-card-header>
+        
+        <mat-card-content>
+          <div class="form-grid">
+            <!-- Producto -->
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Producto</mat-label>
+              <mat-select formControlName="productId">
+                <mat-option *ngFor="let product of products" [value]="product.idProduct">
+                  {{ product.productName }} - {{ product.category }}
+                </mat-option>
+              </mat-select>
+              <mat-icon matPrefix>inventory_2</mat-icon>
+              <mat-error *ngIf="isFieldInvalid('productId')">
+                {{ getErrorMessage('productId') }}
+              </mat-error>
+            </mat-form-field>
+
+            <!-- Ubicación -->
+            <mat-form-field appearance="outline">
+              <mat-label>Ubicación</mat-label>
+              <mat-select formControlName="location">
+                <mat-option *ngFor="let location of locations" [value]="location">
+                  {{ location }}
+                </mat-option>
+              </mat-select>
+              <mat-icon matPrefix>place</mat-icon>
+              <mat-error *ngIf="isFieldInvalid('location')">
+                {{ getErrorMessage('location') }}
+              </mat-error>
+            </mat-form-field>
+
+            <!-- Proveedor -->
+            <mat-form-field appearance="outline">
+              <mat-label>Proveedor (Opcional)</mat-label>
+              <mat-select formControlName="supplier">
+                <mat-option value="">Sin proveedor</mat-option>
+                <mat-option *ngFor="let supplier of suppliers" [value]="supplier.companyName">
+                  {{ supplier.companyName }}
+                </mat-option>
+              </mat-select>
+              <mat-icon matPrefix>business</mat-icon>
+            </mat-form-field>
+          </div>
+
+          <!-- Product Info Display -->
+          <div *ngIf="selectedProduct" class="product-info">
+            <mat-card class="info-card">
+              <mat-card-content>
+                <div class="product-details">
+                  <div class="product-avatar">
+                    <mat-icon>{{ selectedProduct.category === 'Bebidas' ? 'local_drink' : 'fastfood' }}</mat-icon>
+                  </div>
+                  <div class="product-data">
+                    <h3>{{ selectedProduct.productName }}</h3>
+                    <p>{{ selectedProduct.category }} - {{ selectedProduct.productCode }}</p>
+                    <p class="price">Precio: S/. {{ selectedProduct.price | number:'1.2-2' }}</p>
+                  </div>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Control de Stock -->
+      <mat-card class="form-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>assessment</mat-icon>
+            Control de Stock
+          </mat-card-title>
+          <mat-card-subtitle>
+            Gestiona las cantidades del inventario
+          </mat-card-subtitle>
+        </mat-card-header>
+        
+        <mat-card-content>
+          <div class="form-grid">
+            <!-- Stock Actual -->
+            <mat-form-field appearance="outline">
+              <mat-label>Stock Actual</mat-label>
+              <input 
+                matInput 
+                formControlName="currentStock"
+                type="number"
+                min="0"
+                placeholder="0">
+              <mat-icon matPrefix>inventory</mat-icon>
+              <mat-error *ngIf="isFieldInvalid('currentStock')">
+                {{ getErrorMessage('currentStock') }}
+              </mat-error>
+            </mat-form-field>
+
+            <!-- Stock Mínimo -->
+            <mat-form-field appearance="outline">
+              <mat-label>Stock Mínimo</mat-label>
+              <input 
+                matInput 
+                formControlName="minimumStock"
+                type="number"
+                min="0"
+                placeholder="0">
+              <mat-icon matPrefix>warning</mat-icon>
+              <mat-hint>Cantidad mínima antes de reposición</mat-hint>
+              <mat-error *ngIf="isFieldInvalid('minimumStock')">
+                {{ getErrorMessage('minimumStock') }}
+              </mat-error>
+            </mat-form-field>
+
+            <!-- Última Reposición -->
+            <mat-form-field appearance="outline">
+              <mat-label>Última Reposición</mat-label>
+              <input 
+                matInput 
+                [matDatepicker]="restockDatePicker"
+                formControlName="lastRestockDate">
+              <mat-datepicker-toggle matIconSuffix [for]="restockDatePicker"></mat-datepicker-toggle>
+              <mat-datepicker #restockDatePicker></mat-datepicker>
+              <mat-icon matPrefix>history</mat-icon>
+            </mat-form-field>
+
+            <!-- Fecha de Vencimiento -->
+            <mat-form-field appearance="outline">
+              <mat-label>Fecha de Vencimiento</mat-label>
+              <input 
+                matInput 
+                [matDatepicker]="expirationDatePicker"
+                formControlName="expirationDate">
+              <mat-datepicker-toggle matIconSuffix [for]="expirationDatePicker"></mat-datepicker-toggle>
+              <mat-datepicker #expirationDatePicker></mat-datepicker>
+              <mat-icon matPrefix>schedule</mat-icon>
+            </mat-form-field>
+
+            <!-- Notas -->
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Notas (Opcional)</mat-label>
+              <textarea 
+                matInput 
+                formControlName="notes"
+                rows="3"
+                placeholder="Observaciones adicionales sobre el inventario...">
+              </textarea>
+              <mat-icon matPrefix>note</mat-icon>
+            </mat-form-field>
+          </div>
+
+          <!-- Stock Analysis -->
+          <div class="stock-analysis" *ngIf="storeForm.get('currentStock')?.value !== null && storeForm.get('minimumStock')?.value !== null">
+            <div class="analysis-grid">
+              <!-- Stock Status -->
+              <mat-card class="analysis-card status-card">
+                <mat-card-content>
+                  <div class="analysis-content">
+                    <div class="analysis-icon" [class]="getStockStatusClass()">
+                      <mat-icon>{{ getStockDifference() >= 0 ? 'check_circle' : 'warning' }}</mat-icon>
+                    </div>
+                    <div class="analysis-info">
+                      <h4>Estado del Stock</h4>
+                      <p [class]="getStockStatusClass()">{{ getStockStatus() }}</p>
+                    </div>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+
+              <!-- Stock Difference -->
+              <mat-card class="analysis-card difference-card">
+                <mat-card-content>
+                  <div class="analysis-content">
+                    <div class="analysis-icon">
+                      <mat-icon>calculate</mat-icon>
+                    </div>
+                    <div class="analysis-info">
+                      <h4>Diferencia</h4>
+                      <p [class]="getStockDifferenceClass()">
+                        {{ getStockDifference() >= 0 ? '+' : '' }}{{ getStockDifference() }} unidades
+                      </p>
+                    </div>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+
+              <!-- Stock Percentage -->
+              <mat-card class="analysis-card percentage-card">
+                <mat-card-content>
+                  <div class="analysis-content">
+                    <div class="analysis-icon">
+                      <mat-icon>pie_chart</mat-icon>
+                    </div>
+                    <div class="analysis-info">
+                      <h4>Nivel de Stock</h4>
+                      <p>{{ getStockPercentage() | number:'1.0-0' }}% del mínimo</p>
+                      <mat-progress-bar 
+                        mode="determinate" 
+                        [value]="getStockPercentage()"
+                        [color]="getStockPercentage() >= 100 ? 'primary' : 'warn'">
+                      </mat-progress-bar>
+                    </div>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            </div>
+
+            <!-- Stock Alert -->
+            <mat-card *ngIf="showStockAlert()" class="alert-card" [class]="getStockAlertClass()">
+              <mat-card-content>
+                <div class="alert-content">
+                  <mat-icon class="alert-icon">{{ getStockDifference() < -10 ? 'error' : 'warning' }}</mat-icon>
+                  <p>{{ getStockAlertMessage() }}</p>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Actions -->
+      <mat-card class="actions-card">
+        <mat-card-content>
+          <div class="form-actions">
+            <button 
+              mat-stroked-button 
+              type="button"
+              (click)="onCancel()"
+              [disabled]="submitting">
+              <mat-icon>cancel</mat-icon>
+              Cancelar
+            </button>
+            
+            <button 
+              mat-raised-button 
+              color="primary"
+              type="submit"
+              [disabled]="storeForm.invalid || submitting"
+              class="submit-btn">
+              <mat-icon>{{ submitting ? 'hourglass_empty' : 'save' }}</mat-icon>
+              {{ submitting ? 'Guardando...' : (isEditMode ? 'Actualizar' : 'Guardar') }}
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
     </form>
   </div>
 </div>

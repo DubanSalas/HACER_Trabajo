@@ -1,75 +1,74 @@
-export interface Sale {
-  id_venta: number;
-  idCustomer: number;
-  id_Employee: number;
-  fecha_venta: string;
-  metodo_pago: string;
+export interface SaleDTO {
+  idSale: number;
+  saleCode: string;
+  saleDate: string;
+  paymentMethod: string;
   total: number;
-  estado: string;
-  created_at?: string;
-  updated_at?: string;
+  status: string;
+  customerId: number;
+  customerName: string;
+  customerSurname: string;
+  customerFullName: string;
+  employeeId: number;
+  employeeName: string;
+  employeeSurname: string;
+  employeeFullName: string;
+  details: SaleDetailDTO[];
 }
 
-export interface SaleDetail {
-  id_detalle: number;
-  id_venta: number;
-  id_Product: number;
-  cantidad: number;
-  precio_unitario: number;
+export interface SaleRequest {
+  saleCode: string;
+  saleDate: string;
+  customerId: number;
+  employeeId: number;
+  paymentMethod: string;
+  status: string;
+  details: SaleDetailRequest[];
+}
+
+export interface SaleDetailDTO {
+  idSaleDetail: number;
+  saleId: number;
+  productId: number;
+  productName: string;
+  productCode: string;
+  quantity: number;
+  unitPrice: number;
   subtotal: number;
 }
 
-export interface SaleWithDetails extends Sale {
-  detalles: SaleDetail[];
-  cliente_nombre?: string;
-  empleado_nombre?: string;
+export interface SaleDetailRequest {
+  productId: number;
+  quantity: number;
+  unitPrice: number;
 }
 
-export interface CreateSaleRequest {
+export interface CustomerBasicDTO {
   idCustomer: number;
-  id_Employee: number;
-  metodo_pago: string;
-  estado: string;
-  detalles: {
-    id_Product: number;
-    cantidad: number;
-    precio_unitario: number;
-  }[];
+  name: string;
+  surname: string;
+  clientCode: string;
 }
 
-export interface UpdateSaleRequest {
-  idCustomer?: number;
-  id_Employee?: number;
-  metodo_pago?: string;
-  estado?: string;
-  detalles?: {
-    id_Product: number;
-    cantidad: number;
-    precio_unitario: number;
-  }[];
+export interface EmployeeBasicDTO {
+  idEmployee: number;
+  name: string;
+  surname: string;
+  employeeCode: string;
 }
 
-export interface SaleStats {
-  ventas_totales: number;
-  ventas_hoy: number;
-  completadas: number;
-  pendientes: number;
-  total_ventas: number;
-  total_hoy: number;
+export interface ProductBasicDTO {
+  idProduct: number;
+  productName: string;
+  productCode: string;
+  price: number;
 }
 
-export interface SaleFilters {
-  estado?: string;
-  metodo_pago?: string;
-  fecha_inicio?: string;
-  fecha_fin?: string;
-  idCustomer?: number;
-  id_Employee?: number;
-}
-
-export interface SaleProduct {
-  id_Product: number;
-  Name: string;
-  Price: number;
-  Stock: number;
+export interface SaleSummary {
+  totalSales: number;
+  todaySales: number;
+  completedSales: number;
+  pendingSales: number;
+  totalRevenue: number;
+  todayRevenue: number;
 }

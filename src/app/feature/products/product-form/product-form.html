@@ -1,0 +1,310 @@
+<div class="product-form-container">
+  <!-- Header -->
+  <div class="page-header">
+    <mat-card class="header-card">
+      <div class="header-content">
+        <div class="title-section">
+          <div class="page-title">
+            <mat-icon class="title-icon">bakery_dining</mat-icon>
+            {{ isEditMode ? 'Editar Producto' : 'Registrar Producto' }}
+          </div>
+          <p class="page-subtitle">
+            {{ isEditMode ? 'Modifica los datos del producto existente' : 'Agrega un nuevo producto al catálogo' }}
+          </p>
+        </div>
+        <div class="header-actions">
+          <button mat-stroked-button color="primary" (click)="onCancel()">
+            <mat-icon>arrow_back</mat-icon>
+            Volver
+          </button>
+        </div>
+      </div>
+    </mat-card>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-card>
+      <div class="loading-content">
+        <mat-spinner diameter="60"></mat-spinner>
+        <p>Cargando información del producto...</p>
+      </div>
+    </mat-card>
+  </div>
+
+  <!-- Formulario -->
+  <div *ngIf="!loading" class="form-section">
+    <form [formGroup]="productForm" (ngSubmit)="onSubmit()">
+      <mat-card class="form-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>inventory_2</mat-icon>
+            Información del Producto
+          </mat-card-title>
+          <mat-card-subtitle>Completa los detalles básicos del producto</mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+          <div class="form-grid">
+            <!-- Código -->
+            <mat-form-field appearance="outline">
+              <mat-label>Código del producto</mat-label>
+              <input
+                matInput
+                formControlName="productCode"
+                placeholder="Ej: PAN1234"
+                readonly
+              />
+              <mat-icon matPrefix>confirmation_number</mat-icon>
+              <mat-error *ngIf="isFieldInvalid('productCode')">
+                {{ getFieldError('productCode') }}
+              </mat-error>
+            </mat-form-field>
+
+            <!-- Nombre -->
+            <mat-form-field appearance="outline">
+              <mat-label>Nombre del producto</mat-label>
+              <input
+                matInput
+                formControlName="productName"
+                placeholder="Ej: Pan francés"
+              />
+              <mat-icon matPrefix>inventory</mat-icon>
+              <mat-error *ngIf="isFieldInvalid('productName')">
+                {{ getFieldError('productName') }}
+              </mat-error>
+            </mat-form-field>
+
+            <!-- Categoría -->
+            <mat-form-field appearance="outline">
+              <mat-label>Categoría</mat-label>
+              <mat-select formControlName="category" (selectionChange)="onCategoryChange()">
+                <mat-option *ngFor="let category of categories" [value]="category">
+                  {{ category }}
+                </mat-option>
+              </mat-select>
+              <mat-icon matPrefix>category</mat-icon>
+              <mat-error *ngIf="isFieldInvalid('category')">
+                {{ getFieldError('category') }}
+              </mat-error>
+            </mat-form-field>
+
+            <!-- Precio -->
+            <mat-form-field appearance="outline">
+              <mat-label>Precio (S/)</mat-label>
+              <input
+                matInput
+                type="number"
+                min="0"
+                step="0.01"
+                formControlName="price"
+                placeholder="Ej: 3.50"
+              />
+              <span matPrefix>S/ &nbsp;</span>
+              <mat-error *ngIf="isFieldInvalid('price')">
+                {{ getFieldError('price') }}
+              </mat-error>
+            </mat-form-field>
+
+            <!-- Stock actual -->
+            <mat-form-field appearance="outline">
+              <mat-label>Stock actual</mat-label>
+              <input
+                matInput
+                type="number"
+                min="0"
+                formControlName="stock"
+                placeholder="Ej: 50"
+              />
+              <mat-icon matPrefix>inventory</mat-icon>
+              <mat-error *ngIf="isFieldInvalid('stock')">
+                {{ getFieldError('stock') }}
+              </mat-error>
+            </mat-form-field>
+
+            <!-- Stock inicial -->
+            <mat-form-field appearance="outline">
+              <mat-label>Stock inicial</mat-label>
+              <input
+                matInput
+                type="number"
+                min="0"
+                formControlName="initialStock"
+                placeholder="Ej: 100"
+              />
+              <mat-icon matPrefix>inventory_2</mat-icon>
+              <mat-error *ngIf="isFieldInvalid('initialStock')">
+                {{ getFieldError('initialStock') }}
+              </mat-error>
+            </mat-form-field>
+
+            <!-- Descripción -->
+            <mat-form-field class="full-width" appearance="outline">
+              <mat-label>Descripción</mat-label>
+              <textarea
+                matInput
+                rows="3"
+                formControlName="description"
+                placeholder="Detalles del producto, ingredientes o notas adicionales"
+              ></textarea>
+              <mat-icon matPrefix>description</mat-icon>
+              <mat-hint align="end">
+                {{ productForm.get('description')?.value?.length || 0 }}/500
+              </mat-hint>
+              <mat-error *ngIf="isFieldInvalid('description')">
+                {{ getFieldError('description') }}
+              </mat-error>
+            </mat-form-field>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Sección de Imagen -->
+      <mat-card class="form-card image-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>image</mat-icon>
+            Imagen del Producto
+          </mat-card-title>
+          <mat-card-subtitle>Agrega una imagen atractiva del producto</mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+          <div class="image-section">
+            <!-- Vista previa de imagen -->
+            <div class="image-preview-container">
+              <div class="image-preview" *ngIf="imagePreview">
+                <img [src]="imagePreview" alt="Vista previa del producto" />
+                <button
+                  mat-mini-fab
+                  color="warn"
+                  class="remove-image-btn"
+                  type="button"
+                  (click)="clearImage()"
+                  matTooltip="Eliminar imagen"
+                >
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+              <div class="no-image-placeholder" *ngIf="!imagePreview">
+                <mat-icon>image_not_supported</mat-icon>
+                <p>Sin imagen</p>
+              </div>
+            </div>
+
+            <!-- Opciones de carga -->
+            <div class="image-upload-options">
+              <!-- Opción 1: URL directa -->
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>URL de la imagen</mat-label>
+                <input
+                  matInput
+                  formControlName="imageUrl"
+                  placeholder="https://ejemplo.com/imagen.jpg"
+                  (blur)="onImageUrlChange()"
+                />
+                <mat-icon matPrefix>link</mat-icon>
+                <mat-hint>Pega la URL de una imagen o genera una de ejemplo</mat-hint>
+                <mat-error *ngIf="isFieldInvalid('imageUrl')">
+                  {{ getFieldError('imageUrl') }}
+                </mat-error>
+              </mat-form-field>
+
+              <!-- Botones de acción -->
+              <div class="image-actions">
+                <button
+                  mat-raised-button
+                  color="accent"
+                  type="button"
+                  (click)="generateExampleImage()"
+                  [disabled]="!productForm.get('category')?.value"
+                >
+                  <mat-icon>auto_awesome</mat-icon>
+                  Generar Imagen de Ejemplo
+                </button>
+
+                <!-- Opción 2: Subir archivo (futuro) -->
+                <input
+                  #fileInput
+                  type="file"
+                  accept="image/*"
+                  style="display: none"
+                  (change)="onFileSelected($event)"
+                />
+                <button
+                  mat-stroked-button
+                  color="primary"
+                  type="button"
+                  (click)="fileInput.click()"
+                  [disabled]="uploadingImage"
+                >
+                  <mat-icon>upload</mat-icon>
+                  {{ uploadingImage ? 'Subiendo...' : 'Subir Imagen' }}
+                </button>
+              </div>
+
+              <!-- Mensaje de ayuda -->
+              <mat-hint class="image-hint">
+                <mat-icon>info</mat-icon>
+                <span>
+                  Puedes pegar una URL de imagen o generar una de ejemplo según la categoría.
+                  Las imágenes deben ser JPG, PNG, GIF o WEBP (máx. 5MB).
+                </span>
+              </mat-hint>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Indicadores de stock -->
+      <div class="stock-indicators">
+        <div class="indicator-grid">
+          <div class="stock-card current-stock">
+            <mat-icon>inventory</mat-icon>
+            <div class="stock-info">
+              <span class="stock-label">Stock actual</span>
+              <span class="stock-value">
+                {{ productForm.get('stock')?.value || 0 }}
+              </span>
+            </div>
+          </div>
+          <div class="stock-card initial-stock">
+            <mat-icon>inventory_2</mat-icon>
+            <div class="stock-info">
+              <span class="stock-label">Stock inicial</span>
+              <span class="stock-value">
+                {{ productForm.get('initialStock')?.value || 0 }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Acciones -->
+      <mat-card class="actions-card">
+        <div class="form-actions">
+          <button
+            mat-raised-button
+            color="primary"
+            class="submit-btn"
+            type="submit"
+            [disabled]="submitting"
+          >
+            <mat-icon>save</mat-icon>
+            {{ isEditMode ? 'Actualizar' : 'Registrar' }}
+          </button>
+          <button
+            mat-stroked-button
+            color="warn"
+            type="button"
+            (click)="onCancel()"
+            [disabled]="submitting"
+          >
+            <mat-icon>cancel</mat-icon>
+            Cancelar
+          </button>
+        </div>
+      </mat-card>
+    </form>
+  </div>
+</div>

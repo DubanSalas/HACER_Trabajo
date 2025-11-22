@@ -1,0 +1,190 @@
+// Paleta de colores profesional de panadería
+$bakery-primary: #d4a574;
+$bakery-secondary: #8b6f47;
+$bakery-accent: #f4e4c1;
+$bakery-dark: #5d4e37;
+$bakery-light: #faf6f0;
+$bakery-success: #7cb342;
+
+.supplier-form-container {
+  padding: 1.5rem;
+  background: linear-gradient(135deg, $bakery-light 0%, #fff8f0 100%);
+  min-height: 100vh;
+
+  // Header
+  .page-header {
+    margin-bottom: 2rem;
+    
+    .header-card {
+      background: linear-gradient(135deg, rgba(212, 165, 116, 0.15) 0%, rgba(244, 228, 193, 0.25) 100%) !important;
+      border: 1px solid rgba(212, 165, 116, 0.3);
+      box-shadow: 0 4px 20px rgba(93, 78, 55, 0.1) !important;
+      border-radius: 16px !important;
+      
+      .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        
+        .title-section {
+          .page-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 2rem;
+            font-weight: 700;
+            color: $bakery-dark;
+            margin: 0 0 0.5rem 0;
+            
+            .title-icon {
+              font-size: 2.5rem;
+              color: $bakery-primary;
+            }
+          }
+          
+          .page-subtitle {
+            color: $bakery-secondary;
+            font-size: 1.1rem;
+            margin: 0;
+          }
+        }
+        
+        .header-actions {
+          display: flex;
+          gap: 1rem;
+        }
+      }
+    }
+  }
+
+  // Form Section
+  .form-section {
+    .form-card {
+      margin-bottom: 2rem;
+      border-radius: 16px !important;
+      box-shadow: 0 4px 16px rgba(93, 78, 55, 0.08) !important;
+      border: 1px solid rgba(212, 165, 116, 0.1);
+      background: white;
+      
+      .mat-mdc-card-header {
+        background: linear-gradient(135deg, rgba(244, 228, 193, 0.3) 0%, rgba(250, 246, 240, 0.5) 100%);
+        border-radius: 16px 16px 0 0;
+        border-bottom: 2px solid rgba(212, 165, 116, 0.15);
+        
+        .mat-mdc-card-title {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-size: 1.3rem;
+          font-weight: 600;
+          color: $bakery-dark;
+          
+          mat-icon {
+            color: $bakery-primary;
+          }
+        }
+        
+        .mat-mdc-card-subtitle {
+          color: $bakery-secondary;
+          margin-top: 0.25rem;
+        }
+      }
+      
+      .mat-mdc-card-content {
+        padding: 2rem !important;
+      }
+    }
+
+    // Form Grid
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      
+      .full-width {
+        grid-column: 1 / -1;
+      }
+    }
+
+    // Form Fields
+    .mat-mdc-form-field {
+      width: 100%;
+      
+      &.mat-form-field-appearance-outline {
+        .mat-mdc-form-field-outline {
+          color: rgba(212, 165, 116, 0.3);
+        }
+        
+        &.mat-focused .mat-mdc-form-field-outline-thick {
+          color: $bakery-primary;
+        }
+        
+        .mat-mdc-form-field-icon-prefix {
+          color: $bakery-primary;
+          margin-right: 0.75rem;
+        }
+      }
+      
+      .mat-mdc-form-field-label {
+        color: #666;
+      }
+      
+      &.mat-focused .mat-mdc-form-field-label {
+        color: $bakery-primary;
+      }
+    }
+
+    // Actions Card
+    .actions-card {
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+      border-radius: 12px !important;
+      
+      .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        padding: 1rem 0;
+        
+        button {
+          min-width: 120px;
+          height: 48px;
+          font-weight: 600;
+          
+          &.submit-btn {
+            background: linear-gradient(135deg, $bakery-primary 0%, $bakery-secondary 100%) !important;
+            color: white !important;
+          }
+          
+          mat-icon {
+            margin-right: 0.5rem;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Custom styles for select
+.mat-mdc-select-arrow {
+  color: $bakery-primary;
+}
+
+// Success states
+.mat-mdc-form-field.mat-form-field-valid {
+  .mat-mdc-form-field-outline-thick {
+    color: $bakery-success;
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .supplier-form-container {
+    padding: 1rem;
+    
+    .form-section {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  }
+}

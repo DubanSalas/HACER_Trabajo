@@ -1,50 +1,45 @@
-// Product Interface - Basado en la tabla product de Oracle
-export interface Product {
-  id_Product?: number
-  Product_Code: string
-  Product_Name: string
-  Category: string
-  Description: string
-  Price: number
-  Stock: number
-  Initial_Stock: number
-  Image_Url?: string
-  Status: string
-  createdAt?: Date
-  updatedAt?: Date
+export interface ProductDTO {
+  idProduct: number;
+  productCode: string;
+  productName: string;
+  description: string;
+  category: string;
+  price: number;
+  stock: number;
+  initialStock: number;
+  imageUrl: string;
+  status: string;
+  totalStockValue: number;
+  lowStock: boolean;
+  outOfStock: boolean;
 }
 
-export interface ProductResponse {
-  data: Product[]
-  total: number
-  page: number
-  pageSize: number
+export interface ProductRequest {
+  productCode: string;
+  productName: string;
+  description: string;
+  category: string;
+  price: number;
+  stock: number;
+  initialStock: number;
 }
 
-export interface ProductStats {
-  total: number
-  disponibles: number
-  stockBajo: number
-  sinStock: number
-  valorTotal: number
-  precioPromedio: number
+export interface ProductSummary {
+  totalProducts: number;
+  activeProducts: number;
+  lowStockProducts: number;
+  outOfStockProducts: number;
+  totalInventoryValue: number;
+  averagePrice: number;
 }
 
-export interface ProductTopStock {
-  id: number
-  name: string
-  stock: number
+export interface TopProduct {
+  product: ProductDTO;
+  totalSold?: number;
+  revenue?: number;
 }
 
-// Para el formulario
-export interface ProductFormData {
-  Product_Code: string
-  Product_Name: string
-  Category: string
-  Description: string
-  Price: number
-  Stock: number
-  Initial_Stock: number
-  Image_Url?: string
-  Status?: string
+export interface TopProductByStock {
+  product: ProductDTO;
+  stockLevel: number;
 }

@@ -1,0 +1,158 @@
+<div class="order-confirmation">
+  <div class="confirmation-container">
+    <!-- Success Animation -->
+    <div class="success-animation">
+      <div class="success-circle">
+        <mat-icon class="success-icon">check_circle</mat-icon>
+      </div>
+      <div class="success-ripple"></div>
+    </div>
+
+    <!-- Confirmation Message -->
+    <div class="confirmation-message">
+      <h1>¡Pedido Confirmado!</h1>
+      <p class="subtitle">Tu pedido ha sido recibido y está siendo preparado</p>
+    </div>
+
+    <!-- Order Details Card -->
+    <mat-card class="order-details-card">
+      <mat-card-content>
+        <div class="order-header">
+          <div class="order-info">
+            <h2>Pedido #{{ orderId }}</h2>
+            <p class="order-total">Total: S/{{ total.toFixed(2) }}</p>
+          </div>
+          <div class="order-status">
+            <div class="status-badge confirmed">
+              <mat-icon>restaurant</mat-icon>
+              <span>Confirmado</span>
+            </div>
+          </div>
+        </div>
+
+        <mat-divider></mat-divider>
+
+        <div class="delivery-info">
+          <div class="info-item">
+            <mat-icon>schedule</mat-icon>
+            <div>
+              <h4>Tiempo estimado de entrega</h4>
+              <p>{{ estimatedDeliveryTime }}</p>
+            </div>
+          </div>
+          
+          <div class="info-item">
+            <mat-icon>notifications</mat-icon>
+            <div>
+              <h4>Te mantendremos informado</h4>
+              <p>Recibirás notificaciones sobre el estado de tu pedido</p>
+            </div>
+          </div>
+          
+          <div class="info-item">
+            <mat-icon>delivery_dining</mat-icon>
+            <div>
+              <h4>Preparación y entrega</h4>
+              <p>Nuestro equipo está preparando tu pedido con mucho cuidado</p>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Order Timeline -->
+    <mat-card class="timeline-card">
+      <mat-card-header>
+        <mat-card-title>Estado del Pedido</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="order-timeline">
+          <div class="timeline-item active">
+            <div class="timeline-icon">
+              <mat-icon>check_circle</mat-icon>
+            </div>
+            <div class="timeline-content">
+              <h4>Pedido Confirmado</h4>
+              <p>Tu pedido ha sido recibido exitosamente</p>
+              <span class="timeline-time">Ahora</span>
+            </div>
+          </div>
+          
+          <div class="timeline-item pending">
+            <div class="timeline-icon">
+              <mat-icon>restaurant</mat-icon>
+            </div>
+            <div class="timeline-content">
+              <h4>Preparando</h4>
+              <p>Nuestros chefs están preparando tu pedido</p>
+              <span class="timeline-time">5-10 min</span>
+            </div>
+          </div>
+          
+          <div class="timeline-item pending">
+            <div class="timeline-icon">
+              <mat-icon>delivery_dining</mat-icon>
+            </div>
+            <div class="timeline-content">
+              <h4>En camino</h4>
+              <p>Tu pedido está siendo entregado</p>
+              <span class="timeline-time">25-35 min</span>
+            </div>
+          </div>
+          
+          <div class="timeline-item pending">
+            <div class="timeline-icon">
+              <mat-icon>home</mat-icon>
+            </div>
+            <div class="timeline-content">
+              <h4>Entregado</h4>
+              <p>¡Disfruta tu deliciosa comida!</p>
+              <span class="timeline-time">30-45 min</span>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+      <button mat-raised-button 
+              color="primary" 
+              routerLink="/customer/orders"
+              class="track-button">
+        <mat-icon>track_changes</mat-icon>
+        Rastrear Pedido
+      </button>
+      
+      <button mat-stroked-button 
+              routerLink="/customer/menu"
+              class="continue-button">
+        <mat-icon>restaurant_menu</mat-icon>
+        Seguir Comprando
+      </button>
+    </div>
+
+    <!-- Additional Info -->
+    <div class="additional-info">
+      <mat-card class="info-card">
+        <mat-card-content>
+          <div class="info-header">
+            <mat-icon>help_outline</mat-icon>
+            <h3>¿Necesitas ayuda?</h3>
+          </div>
+          <p>Si tienes alguna pregunta sobre tu pedido, no dudes en contactarnos:</p>
+          <div class="contact-info">
+            <div class="contact-item">
+              <mat-icon>phone</mat-icon>
+              <span>+51 999 888 777</span>
+            </div>
+            <div class="contact-item">
+              <mat-icon>email</mat-icon>
+              <span>soporte@delipedidos.com</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>

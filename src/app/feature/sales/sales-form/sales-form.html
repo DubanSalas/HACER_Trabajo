@@ -1,188 +1,361 @@
-<div class="modal-overlay" (click)="onCancel()">
-  <div class="modal-container" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h2>{{ isEditMode ? 'Editar Venta' : 'Nueva Venta' }}</h2>
-      <button mat-icon-button (click)="onCancel()" class="close-btn">
-        <mat-icon>close</mat-icon>
-      </button>
-    </div>
-
-    <form [formGroup]="saleForm" (ngSubmit)="onSubmit()" class="sale-form">
-      <div class="form-content">
-        <!-- Basic Information -->
-        <div class="form-section">
-          <div class="form-row">
-            <div class="form-group">
-              <label for="cliente">Cliente <span class="required">*</span></label>
-              <mat-select 
-                formControlName="id_cliente" 
-                placeholder="Seleccionar..."
-                [class.error]="isFieldInvalid('id_cliente')">
-                <mat-option *ngFor="let customer of customers" [value]="customer.idCustomer">
-                  {{ customer.name }} {{ customer.surname }}
-                </mat-option>
-              </mat-select>
-              <div *ngIf="isFieldInvalid('id_cliente')" class="error-message">
-                {{ getFieldError('id_cliente') }}
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label for="empleado">Empleado <span class="required">*</span></label>
-              <mat-select 
-                formControlName="id_empleado" 
-                placeholder="Seleccionar..."
-                [class.error]="isFieldInvalid('id_empleado')">
-                <mat-option *ngFor="let employee of employees" [value]="employee.id_Employee">
-                  {{ employee.Name }} {{ employee.Surname }}
-                </mat-option>
-              </mat-select>
-              <div *ngIf="isFieldInvalid('id_empleado')" class="error-message">
-                {{ getFieldError('id_empleado') }}
-              </div>
-            </div>
+<div class="sales-form-container">
+  <!-- Header -->
+  <div class="page-header">
+    <mat-card class="header-card">
+      <mat-card-content>
+        <div class="header-content">
+          <div class="title-section">
+            <h1 class="page-title">
+              <mat-icon class="title-icon">{{ isEditMode ? 'edit' : 'add_shopping_cart' }}</mat-icon>
+              {{ isEditMode ? 'Editar Venta' : 'Nueva Venta' }}
+            </h1>
+            <p class="page-subtitle">
+              {{ isEditMode ? 'Modifica los datos de la venta' : 'Registra una nueva venta en el sistema' }}
+            </p>
           </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="metodo_pago">Método de Pago <span class="required">*</span></label>
-              <mat-select 
-                formControlName="metodo_pago" 
-                placeholder="Seleccionar..."
-                [class.error]="isFieldInvalid('metodo_pago')">
-                <mat-option *ngFor="let metodo of metodosPago" [value]="metodo">
-                  {{ metodo }}
-                </mat-option>
-              </mat-select>
-              <div *ngIf="isFieldInvalid('metodo_pago')" class="error-message">
-                {{ getFieldError('metodo_pago') }}
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label for="estado">Estado <span class="required">*</span></label>
-              <mat-select 
-                formControlName="estado" 
-                placeholder="Seleccionar..."
-                [class.error]="isFieldInvalid('estado')">
-                <mat-option *ngFor="let estado of estados" [value]="estado">
-                  {{ estado }}
-                </mat-option>
-              </mat-select>
-              <div *ngIf="isFieldInvalid('estado')" class="error-message">
-                {{ getFieldError('estado') }}
-              </div>
-            </div>
+          <div class="header-actions">
+            <button mat-stroked-button color="warn" (click)="onCancel()" [disabled]="loading || submitting">
+              <mat-icon>arrow_back</mat-icon>
+              Volver
+            </button>
           </div>
         </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
 
-        <!-- Products Section -->
-        <div class="products-section">
-          <div class="section-header">
-            <h3>Producto</h3>
-            <button type="button" mat-raised-button (click)="addProduct()" class="add-product-btn">
-              <mat-icon>add_circle</mat-icon>
+  <!-- Loading -->
+  @if (loading) {
+    <div class="loading-container">
+      <mat-card>
+        <mat-card-content>
+          <div class="loading-content">
+            <mat-spinner diameter="50"></mat-spinner>
+            <p>Cargando datos de la venta...</p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  }
+
+  <!-- Form -->
+  @if (!loading) {
+    <div class="form-section">
+    <form [formGroup]="saleForm" (ngSubmit)="onSubmit()">
+      <!-- Información de la Venta -->
+      <mat-card class="form-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>info</mat-icon>
+            Información de la Venta
+          </mat-card-title>
+          <mat-card-subtitle>
+            Datos básicos de la transacción
+          </mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+          <!-- Mensaje informativo en modo edición -->
+          @if (isEditMode) {
+            <div class="edit-mode-notice">
+              <mat-icon>info</mat-icon>
+              <div class="notice-content">
+                <strong>Modo Edición:</strong>
+                <p>El código de venta, cliente y fecha no pueden modificarse. Puedes cambiar el empleado, método de pago y las notas.</p>
+              </div>
+            </div>
+          }
+
+          <div class="form-grid">
+            <!-- Código de Venta -->
+            <mat-form-field appearance="outline">
+              <mat-label>Código de Venta</mat-label>
+              <input matInput formControlName="saleCode" readonly>
+              <mat-icon matPrefix>receipt</mat-icon>
+              <button mat-icon-button matSuffix 
+                      (click)="regenerateSaleCode()" 
+                      [disabled]="isEditMode || generatingCode"
+                      matTooltip="Regenerar código">
+                @if (!generatingCode) {
+                  <mat-icon>refresh</mat-icon>
+                }
+                @if (generatingCode) {
+                  <mat-spinner diameter="20"></mat-spinner>
+                }
+              </button>
+              <mat-hint>Código generado automáticamente</mat-hint>
+              @if (isFieldInvalid('saleCode')) {
+                <mat-error>
+                  {{ getErrorMessage('saleCode') }}
+                </mat-error>
+              }
+            </mat-form-field>
+
+            <!-- Cliente -->
+            @if (isEditMode) {
+              <!-- En modo edición: mostrar input de solo lectura con el nombre del cliente -->
+              <mat-form-field appearance="outline">
+                <mat-label>Cliente</mat-label>
+                <input matInput [value]="selectedCustomerName || 'Cargando...'" readonly>
+                <mat-icon matPrefix>person</mat-icon>
+                <mat-hint>Cliente registrado (no modificable)</mat-hint>
+              </mat-form-field>
+            } @else {
+              <!-- En modo creación: mostrar select normal -->
+              <mat-form-field appearance="outline">
+                <mat-label>Cliente *</mat-label>
+                <mat-select formControlName="customerId" required>
+                  @for (customer of customers; track customer.idCustomer) {
+                    <mat-option [value]="customer.idCustomer">
+                      {{ customer.name }} {{ customer.surname }} - {{ customer.clientCode }}
+                    </mat-option>
+                  }
+                </mat-select>
+                <mat-icon matPrefix>person</mat-icon>
+                @if (isFieldInvalid('customerId')) {
+                  <mat-error>
+                    {{ getErrorMessage('customerId') }}
+                  </mat-error>
+                }
+              </mat-form-field>
+            }
+
+            <!-- Empleado -->
+            <mat-form-field appearance="outline">
+              <mat-label>Empleado que realiza la venta *</mat-label>
+              <mat-select formControlName="employeeId" required>
+                @for (employee of employees; track employee.idEmployee) {
+                  <mat-option [value]="employee.idEmployee">
+                    {{ employee.name }} {{ employee.surname }} - {{ employee.position }}
+                  </mat-option>
+                }
+              </mat-select>
+              <mat-icon matPrefix>badge</mat-icon>
+              <mat-hint>Selecciona el empleado responsable de esta venta</mat-hint>
+              @if (isFieldInvalid('employeeId')) {
+                <mat-error>
+                  {{ getErrorMessage('employeeId') }}
+                </mat-error>
+              }
+            </mat-form-field>
+
+            <!-- Método de Pago -->
+            <mat-form-field appearance="outline">
+              <mat-label>Método de Pago *</mat-label>
+              <mat-select formControlName="paymentMethod" required>
+                @for (method of paymentMethods; track method) {
+                  <mat-option [value]="method">
+                    {{ method }}
+                  </mat-option>
+                }
+              </mat-select>
+              <mat-icon matPrefix>payment</mat-icon>
+              @if (isFieldInvalid('paymentMethod')) {
+                <mat-error>
+                  {{ getErrorMessage('paymentMethod') }}
+                </mat-error>
+              }
+            </mat-form-field>
+
+            <!-- Fecha de Venta -->
+            <mat-form-field appearance="outline">
+              <mat-label>Fecha de Venta</mat-label>
+              <input matInput formControlName="saleDate" readonly>
+              <mat-icon matPrefix>event</mat-icon>
+              <mat-hint>Fecha actual (no modificable)</mat-hint>
+              @if (isFieldInvalid('saleDate')) {
+                <mat-error>
+                  {{ getErrorMessage('saleDate') }}
+                </mat-error>
+              }
+            </mat-form-field>
+
+            <!-- Notas -->
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Notas (Opcional)</mat-label>
+              <textarea matInput formControlName="notes" rows="2"
+                placeholder="Observaciones adicionales sobre la venta...">
+              </textarea>
+              <mat-icon matPrefix>note</mat-icon>
+            </mat-form-field>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Productos -->
+      <mat-card class="form-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>shopping_cart</mat-icon>
+            Productos de la Venta
+          </mat-card-title>
+          <mat-card-subtitle>
+            Agrega los productos vendidos
+          </mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+          <!-- Add Product Button -->
+          <div class="add-product-section">
+            <button mat-raised-button color="accent" type="button" (click)="addDetail()">
+              <mat-icon>add</mat-icon>
               Agregar Producto
             </button>
           </div>
 
-          <div class="products-table">
-            <div class="table-header">
-              <div class="col-product">Producto<span class="required">*</span></div>
-              <div class="col-quantity">Cantidad<span class="required">*</span></div>
-              <div class="col-price">Precio<span class="required">*</span></div>
-              <div class="col-subtotal">Subtotal<span class="required">*</span></div>
-              <div class="col-actions"></div>
+          <!-- Products List -->
+          @if (details.length === 0) {
+            <div class="empty-products">
+              <mat-icon class="empty-icon">shopping_cart</mat-icon>
+              <h3>No hay productos agregados</h3>
+              <p>Haz clic en "Agregar Producto" para comenzar</p>
             </div>
+          }
 
-            <div formArrayName="detalles" class="table-body">
-              <div *ngFor="let detalle of detallesArray.controls; let i = index" 
-                   [formGroupName]="i" 
-                   class="table-row">
-                
-                <div class="col-product">
-                  <mat-select 
-                    formControlName="id_producto" 
-                    placeholder="Seleccionar..."
-                    (selectionChange)="onProductChange(i)"
-                    [class.error]="isDetalleFieldInvalid(i, 'id_producto')">
-                    <mat-option *ngFor="let product of products" [value]="product.id_Product">
-                      {{ product.Name }} (Stock: {{ product.Stock }})
-                    </mat-option>
-                  </mat-select>
-                  <div *ngIf="isDetalleFieldInvalid(i, 'id_producto')" class="error-message">
-                    {{ getDetalleFieldError(i, 'id_producto') }}
-                  </div>
-                </div>
+          @if (details.length > 0) {
+            <div class="products-list">
+              @for (detail of details.controls; track i; let i = $index) {
+                <div class="product-item" [formGroup]="$any(detail)">
+                  <mat-card class="product-card">
+                    <mat-card-content>
+                      <div class="product-header">
+                        <h4>Producto {{ i + 1 }}</h4>
+                        <button mat-icon-button color="warn" type="button" (click)="removeDetail(i)"
+                          matTooltip="Eliminar producto">
+                          <mat-icon>delete</mat-icon>
+                        </button>
+                      </div>
 
-                <div class="col-quantity">
-                  <input 
-                    type="number" 
-                    formControlName="cantidad"
-                    min="1"
-                    (input)="onQuantityChange(i)"
-                    [class.error]="isDetalleFieldInvalid(i, 'cantidad')"
-                    class="quantity-input">
-                  <div *ngIf="isDetalleFieldInvalid(i, 'cantidad')" class="error-message">
-                    {{ getDetalleFieldError(i, 'cantidad') }}
-                  </div>
-                </div>
+                      <div class="product-form-grid">
+                        <!-- Producto -->
+                        <mat-form-field appearance="outline">
+                          <mat-label>Producto *</mat-label>
+                          <mat-select formControlName="productId" required>
+                            @for (product of products; track product.idProduct) {
+                              <mat-option [value]="product.idProduct">
+                                {{ product.productName }} - Stock: {{ product.stock }}
+                              </mat-option>
+                            }
+                          </mat-select>
+                          <mat-icon matPrefix>inventory_2</mat-icon>
+                          @if (isDetailFieldInvalid(detail, 'productId')) {
+                            <mat-error>
+                              {{ getDetailErrorMessage(detail, 'productId') }}
+                            </mat-error>
+                          }
+                        </mat-form-field>
 
-                <div class="col-price">
-                  <input 
-                    type="number" 
-                    formControlName="precio_unitario"
-                    min="0"
-                    step="0.01"
-                    (input)="onPriceChange(i)"
-                    [class.error]="isDetalleFieldInvalid(i, 'precio_unitario')"
-                    class="price-input">
-                  <div *ngIf="isDetalleFieldInvalid(i, 'precio_unitario')" class="error-message">
-                    {{ getDetalleFieldError(i, 'precio_unitario') }}
-                  </div>
-                </div>
+                        <!-- Cantidad -->
+                        <mat-form-field appearance="outline">
+                          <mat-label>Cantidad *</mat-label>
+                          <input matInput formControlName="quantity" type="number" min="1" step="1"
+                            [max]="getProductStock(detail.get('productId')?.value)"
+                            placeholder="Ingrese cantidad">
+                          <mat-icon matPrefix>add_box</mat-icon>
+                          @if (detail.get('productId')?.value && !isDetailFieldInvalid(detail, 'quantity')) {
+                            <mat-hint>
+                              Stock disponible: {{ getProductStock(detail.get('productId')?.value) }}
+                            </mat-hint>
+                          }
+                          @if (isDetailFieldInvalid(detail, 'quantity')) {
+                            <mat-error>
+                              {{ getDetailErrorMessage(detail, 'quantity') }}
+                            </mat-error>
+                          }
+                        </mat-form-field>
 
-                <div class="col-subtotal">
-                  <span class="subtotal-value">S/ {{ getSubtotal(i).toFixed(2) }}</span>
-                </div>
+                        <!-- Precio Unitario -->
+                        <mat-form-field appearance="outline">
+                          <mat-label>Precio Unitario *</mat-label>
+                          <input matInput formControlName="unitPrice" type="number" step="0.01" min="0.01"
+                            placeholder="0.00">
+                          <span matTextPrefix>S/. </span>
+                          <mat-icon matPrefix>attach_money</mat-icon>
+                          <mat-hint>Mínimo S/. 0.01</mat-hint>
+                          @if (isDetailFieldInvalid(detail, 'unitPrice')) {
+                            <mat-error>
+                              {{ getDetailErrorMessage(detail, 'unitPrice') }}
+                            </mat-error>
+                          }
+                        </mat-form-field>
 
-                <div class="col-actions">
-                  <button 
-                    type="button" 
-                    mat-icon-button 
-                    (click)="removeProduct(i)"
-                    [disabled]="detallesArray.length === 1"
-                    class="remove-btn">
-                    <mat-icon>delete</mat-icon>
-                  </button>
+                        <!-- Subtotal -->
+                        <mat-form-field appearance="outline">
+                          <mat-label>Subtotal</mat-label>
+                          <input matInput formControlName="subtotal" readonly>
+                          <span matTextPrefix>S/. </span>
+                          <mat-icon matPrefix>calculate</mat-icon>
+                        </mat-form-field>
+                      </div>
+                    </mat-card-content>
+                  </mat-card>
                 </div>
+              }
+            </div>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Total -->
+      @if (details.length > 0) {
+        <mat-card class="total-card">
+          <mat-card-content>
+            <div class="total-section">
+              <div class="total-info">
+                <h2>Total de la Venta</h2>
+                <div class="total-amount">S/. {{ calculateTotal() | number:'1.2-2' }}</div>
+              </div>
+              <div class="total-details">
+                <p>{{ details.length }} producto(s)</p>
+                @if (saleForm.get('customerId')?.value) {
+                  <p>Cliente: {{ getCustomerName(saleForm.get('customerId')?.value) }}</p>
+                }
+                @if (saleForm.get('paymentMethod')?.value) {
+                  <p>Pago: {{ saleForm.get('paymentMethod')?.value }}</p>
+                }
               </div>
             </div>
-          </div>
+          </mat-card-content>
+        </mat-card>
+      }
 
-          <!-- Total -->
-          <div class="total-section">
-            <div class="total-row">
-              <span class="total-label">Total: S/ {{ calculateTotal().toFixed(2) }}</span>
+      <!-- Actions -->
+      <mat-card class="actions-card">
+        <mat-card-content>
+          <div class="form-actions">
+            <div class="debug-actions">
+              <button mat-stroked-button type="button" (click)="testBackendConnection()" color="accent">
+                <mat-icon>wifi</mat-icon>
+                Test
+              </button>
+
+              <button mat-stroked-button type="button" (click)="checkAvailableData()" color="warn">
+                <mat-icon>storage</mat-icon>
+                Datos
+              </button>
+
+              <button mat-stroked-button type="button" (click)="validateSaleData()" color="primary">
+                <mat-icon>check_circle</mat-icon>
+                Validar
+              </button>
+            </div>
+
+            <div class="main-actions">
+              <button mat-stroked-button type="button" (click)="onCancel()" [disabled]="submitting">
+                <mat-icon>cancel</mat-icon>
+                Cancelar
+              </button>
+
+              <button mat-raised-button color="primary" type="submit"
+                [disabled]="details.length === 0 || submitting" class="submit-btn">
+                <mat-icon>{{ submitting ? 'hourglass_empty' : 'save' }}</mat-icon>
+                {{ submitting ? 'Guardando...' : (isEditMode ? 'Actualizar' : 'Guardar Venta') }}
+              </button>
             </div>
           </div>
-        </div>
-      </div>
-
-      <!-- Form Actions -->
-      <div class="form-actions">
-        <button type="button" mat-button (click)="onCancel()" class="cancel-btn">
-          Cancelar
-        </button>
-        <button 
-          type="submit" 
-          mat-raised-button 
-          [disabled]="loading || saleForm.invalid"
-          class="submit-btn">
-          <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
-          <span *ngIf="!loading">{{ isEditMode ? 'Actualizar' : 'Crear Venta' }}</span>
-        </button>
-      </div>
+        </mat-card-content>
+      </mat-card>
     </form>
-  </div>
+    </div>
+  }
 </div>

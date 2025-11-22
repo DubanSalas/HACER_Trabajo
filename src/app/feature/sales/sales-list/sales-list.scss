@@ -1,468 +1,705 @@
-.sales-container {
+// Paleta de colores profesional de panadería - Diseño consistente
+$bakery-primary: #d4a574;
+$bakery-secondary: #8b6f47;
+$bakery-accent: #f4e4c1;
+$bakery-dark: #5d4e37;
+$bakery-light: #faf6f0;
+$bakery-success: #7cb342;
+$bakery-warning: #ff8f00;
+$bakery-danger: #d32f2f;
+
+.modern-sales-container {
   padding: 24px;
-  background-color: #f8f9fa;
+  background: #f5f5f5;
   min-height: 100vh;
 
-  .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 32px;
-
+  // Modern Header
+  .modern-header {
+    margin-bottom: 24px;
+    
     .header-content {
-      h1 {
-        font-size: 32px;
-        font-weight: 700;
-        color: #2c3e50;
-        margin: 0 0 8px 0;
+      background: linear-gradient(135deg, $bakery-secondary 0%, $bakery-dark 100%);
+      color: white;
+      padding: 28px 32px;
+      border-radius: 20px;
+      box-shadow: 0 6px 24px rgba(93, 78, 55, 0.2);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+
+      &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: 
+          radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.05) 0%, transparent 50%),
+          radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+        pointer-events: none;
       }
+      
+      .title-section {
+        position: relative;
+        z-index: 1;
 
-      .subtitle {
-        color: #6c757d;
-        font-size: 16px;
-        margin: 0;
-      }
-    }
-
-    .header-actions {
-      .report-btn {
-        background-color: #4a90e2;
-        color: white;
-        padding: 12px 24px;
-        border-radius: 8px;
-        font-weight: 600;
-
-        mat-icon {
-          margin-right: 8px;
+        .title-with-icon {
+          display: flex;
+          align-items: center;
+          gap: 20px;
+          
+          .icon-wrapper {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            
+            mat-icon {
+              font-size: 2rem;
+              width: 2rem;
+              height: 2rem;
+              color: white;
+            }
+          }
+          
+          .title-text {
+            h1 {
+              margin: 0 0 8px 0;
+              font-size: 28px;
+              font-weight: 700;
+              color: white;
+              letter-spacing: -0.5px;
+            }
+            
+            p {
+              margin: 0;
+              font-size: 14px;
+              opacity: 0.9;
+              font-weight: 500;
+            }
+          }
         }
-
-        &:hover {
-          background-color: #357abd;
+      }
+      
+      .header-actions {
+        display: flex;
+        gap: 12px;
+        position: relative;
+        z-index: 1;
+        
+        .action-btn {
+          padding: 12px 24px;
+          border-radius: 28px;
+          font-weight: 600;
+          font-size: 1rem;
+          text-transform: none;
+          height: 48px;
+          transition: all 0.3s ease;
+          
+          &.primary-btn {
+            background: rgba(255, 255, 255, 0.15) !important;
+            color: white !important;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            
+            &:hover {
+              background: rgba(255, 255, 255, 0.25) !important;
+              transform: translateY(-2px);
+              box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+            }
+          }
+          
+          &.secondary-btn {
+            background: transparent !important;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white !important;
+            
+            &:hover {
+              background: rgba(255, 255, 255, 0.1) !important;
+              border-color: rgba(255, 255, 255, 0.5);
+              transform: translateY(-2px);
+            }
+          }
         }
       }
     }
   }
 
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 24px;
-    margin-bottom: 32px;
-
-    .stat-card {
-      background: white;
-      border-radius: 16px;
-      padding: 24px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-
-      &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-      }
-
-      .stat-content {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-
-        .stat-info {
-          h3 {
-            font-size: 14px;
-            font-weight: 600;
-            color: #6c757d;
-            margin: 0 0 8px 0;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+  // Modern Stats Section
+  .stats-section {
+    margin-bottom: 24px;
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      
+      .stat-card {
+        border-radius: 20px;
+        border: 1px solid rgba(212, 165, 116, 0.15);
+        box-shadow: 0 6px 20px rgba(93, 78, 55, 0.1);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow: hidden;
+        position: relative;
+        background: white;
+        
+        &:hover {
+          transform: translateY(-6px);
+          box-shadow: 0 10px 30px rgba(93, 78, 55, 0.15);
+          border-color: rgba(212, 165, 116, 0.3);
+        }
+        
+        &.total-sales {
+          .stat-icon {
+            background: linear-gradient(135deg, $bakery-primary 0%, #c99a6a 100%);
           }
-
-          .stat-value {
-            font-size: 28px;
-            font-weight: 700;
-            margin: 0 0 4px 0;
+        }
+        
+        &.today-sales {
+          .stat-icon {
+            background: linear-gradient(135deg, $bakery-secondary 0%, $bakery-dark 100%);
           }
-
-          .stat-subtitle {
-            font-size: 14px;
-            color: #6c757d;
-            margin: 0;
+        }
+        
+        &.revenue {
+          .stat-icon {
+            background: linear-gradient(135deg, $bakery-success 0%, #689f38 100%);
           }
+        }
+        
+        &.pending {
+          .stat-icon {
+            background: linear-gradient(135deg, $bakery-warning 0%, #f57c00 100%);
+          }
+        }
+        
+        .stat-header-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 16px;
         }
 
         .stat-icon {
-          width: 60px;
-          height: 60px;
-          border-radius: 12px;
+          width: 70px;
+          height: 70px;
+          border-radius: 16px;
           display: flex;
           align-items: center;
           justify-content: center;
-
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+          transition: transform 0.3s ease;
+          
           mat-icon {
-            font-size: 32px;
-            width: 32px;
-            height: 32px;
+            font-size: 2rem;
+            width: 2rem;
+            height: 2rem;
             color: white;
           }
         }
-      }
 
-      &.total {
-        .stat-value {
-          color: #28a745;
-        }
-        .stat-icon {
-          background: linear-gradient(135deg, #28a745, #20c997);
-        }
-      }
-
-      &.today {
-        .stat-value {
-          color: #4a90e2;
-        }
-        .stat-icon {
-          background: linear-gradient(135deg, #4a90e2, #357abd);
-        }
-      }
-
-      &.completed {
-        .stat-value {
-          color: #28a745;
-        }
-        .stat-icon {
-          background: linear-gradient(135deg, #28a745, #20c997);
-        }
-      }
-
-      &.pending {
-        .stat-value {
-          color: #ffc107;
-        }
-        .stat-icon {
-          background: linear-gradient(135deg, #ffc107, #e0a800);
-        }
-      }
-    }
-  }
-
-  .filters-section {
-    background: white;
-    border-radius: 16px;
-    padding: 24px;
-    margin-bottom: 24px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-
-    .search-container {
-      position: relative;
-      margin-bottom: 24px;
-
-      .search-icon {
-        position: absolute;
-        left: 16px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #6c757d;
-        z-index: 1;
-      }
-
-      .search-input {
-        width: 100%;
-        padding: 16px 16px 16px 48px;
-        border: 2px solid #e9ecef;
-        border-radius: 12px;
-        font-size: 16px;
-        transition: border-color 0.2s ease;
-
-        &:focus {
-          outline: none;
-          border-color: #7c1d3b;
+        &:hover .stat-icon {
+          transform: scale(1.05);
         }
 
-        &::placeholder {
-          color: #6c757d;
-        }
-      }
-    }
-
-    .filters-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-      margin-bottom: 24px;
-
-      .filter-field {
-        ::ng-deep {
-          .mat-mdc-form-field-outline {
-            border-radius: 12px;
-          }
-
-          .mat-mdc-form-field-focus-overlay {
-            border-radius: 12px;
+        // Circular Progress
+        .stat-percentage {
+          .circular-progress {
+            width: 60px;
+            height: 60px;
+            transform: rotate(-90deg);
+            
+            .circle-bg {
+              fill: none;
+              stroke: rgba(0, 0, 0, 0.05);
+              stroke-width: 3;
+            }
+            
+            .circle {
+              fill: none;
+              stroke-width: 3;
+              stroke-linecap: round;
+              animation: progress 1.5s ease-out forwards;
+            }
+            
+            .percentage {
+              fill: $bakery-dark;
+              font-size: 7px;
+              font-weight: 700;
+              text-anchor: middle;
+              transform: rotate(90deg);
+              transform-origin: center;
+            }
           }
         }
-      }
-    }
 
-    .action-buttons {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      justify-content: flex-end;
+        &.total-sales .circular-progress .circle {
+          stroke: $bakery-primary;
+        }
 
-      .view-toggle {
-        color: #6c757d;
+        &.today-sales .circular-progress .circle {
+          stroke: $bakery-secondary;
+        }
+
+        &.revenue .circular-progress .circle {
+          stroke: $bakery-success;
+        }
+
+        &.pending .circular-progress .circle {
+          stroke: $bakery-warning;
+        }
         
-        &:hover {
-          color: #7c1d3b;
-        }
-      }
-
-      .view-label {
-        color: #6c757d;
-        font-size: 14px;
-      }
-
-      .new-sale-btn {
-        background-color: #7c1d3b;
-        color: white;
-        padding: 12px 24px;
-        border-radius: 12px;
-        font-weight: 600;
-
-        mat-icon {
-          margin-right: 8px;
-        }
-
-        &:hover {
-          background-color: #6a1830;
+        .stat-info {
+          .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: $bakery-dark;
+          }
+          
+          .stat-label {
+            font-size: 0.9rem;
+            color: #888;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          }
         }
       }
     }
   }
 
-  .loading-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 64px;
-    background: white;
-    border-radius: 16px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-
-    p {
-      margin-top: 16px;
-      color: #6c757d;
-      font-size: 16px;
+  // Animation for circular progress
+  @keyframes progress {
+    0% {
+      stroke-dasharray: 0, 100;
     }
   }
 
-  .table-container {
+  // Modern Sales List
+  .sales-list-card {
+    border-radius: 20px;
+    box-shadow: 0 6px 20px rgba(93, 78, 55, 0.1);
+    border: 1px solid rgba(212, 165, 116, 0.15);
     background: white;
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-
-    .sales-table {
-      width: 100%;
-      border-collapse: collapse;
-
-      thead {
-        background-color: #f8f9fa;
-
-        th {
-          padding: 20px 16px;
-          text-align: left;
-          font-weight: 600;
-          color: #495057;
-          font-size: 12px;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-          border-bottom: 2px solid #e9ecef;
+    
+    .list-header {
+      padding: 24px 28px;
+      background: linear-gradient(135deg, rgba(244, 228, 193, 0.4) 0%, rgba(250, 246, 240, 0.6) 100%);
+      border-bottom: 2px solid rgba(212, 165, 116, 0.15);
+      
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        
+        .list-icon {
+          font-size: 26px;
+          width: 26px;
+          height: 26px;
+          color: $bakery-primary;
+        }
+        
+        .header-text {
+          mat-card-title {
+            font-size: 19px;
+            font-weight: 700;
+            color: $bakery-dark;
+            margin-bottom: 4px;
+          }
+          
+          mat-card-subtitle {
+            color: $bakery-secondary;
+            font-size: 14px;
+            font-weight: 500;
+          }
         }
       }
-
-      tbody {
-        .sale-row {
-          transition: background-color 0.2s ease;
+      
+      .header-actions {
+        button {
+          width: 48px;
+          height: 48px;
+          border-radius: 12px;
+          background: rgba(212, 165, 116, 0.1);
+          color: $bakery-secondary;
+          transition: all 0.3s ease;
 
           &:hover {
-            background-color: #f8f9fa;
-          }
-
-          td {
-            padding: 20px 16px;
-            border-bottom: 1px solid #e9ecef;
-            vertical-align: middle;
-
-            .sale-id {
-              display: flex;
-              align-items: center;
-              gap: 8px;
-
-              .sale-icon {
-                color: #7c1d3b;
-                font-size: 20px;
-              }
-            }
-
-            .total-cell {
-              font-weight: 600;
-              color: #28a745;
-            }
-
-            .status-badge {
-              padding: 6px 12px;
-              border-radius: 20px;
-              font-size: 12px;
-              font-weight: 600;
-              text-transform: uppercase;
-
-              &.status-completed {
-                background-color: #d4edda;
-                color: #155724;
-              }
-
-              &.status-pending {
-                background-color: #fff3cd;
-                color: #856404;
-              }
-
-              &.status-cancelled {
-                background-color: #f8d7da;
-                color: #721c24;
-              }
-            }
-
-            .action-buttons {
-              display: flex;
-              gap: 8px;
-
-              button {
-                width: 36px;
-                height: 36px;
-                border-radius: 8px;
-
-                &.edit-btn {
-                  color: #28a745;
-                  
-                  &:hover {
-                    background-color: rgba(40, 167, 69, 0.1);
-                  }
-                }
-
-                &.view-btn {
-                  color: #4a90e2;
-                  
-                  &:hover {
-                    background-color: rgba(74, 144, 226, 0.1);
-                  }
-                }
-
-                &.delete-btn {
-                  color: #dc3545;
-                  
-                  &:hover {
-                    background-color: rgba(220, 53, 69, 0.1);
-                  }
-                }
-              }
-            }
+            background: rgba(212, 165, 116, 0.2);
+            transform: scale(1.1);
           }
         }
       }
     }
-
-    .empty-state {
-      text-align: center;
-      padding: 64px 32px;
-
-      mat-icon {
-        font-size: 64px;
-        width: 64px;
-        height: 64px;
-        color: #6c757d;
-        margin-bottom: 16px;
-      }
-
-      h3 {
-        color: #495057;
-        margin-bottom: 8px;
-      }
-
-      p {
-        color: #6c757d;
+    
+    // Loading State
+    .loading-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 80px 20px;
+      
+      mat-spinner {
         margin-bottom: 24px;
       }
-
+      
+      p {
+        font-size: 1.1rem;
+        color: $bakery-secondary;
+      }
+    }
+    
+    // Empty State
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 80px 20px;
+      text-align: center;
+      
+      .empty-icon {
+        width: 120px;
+        height: 120px;
+        background: linear-gradient(135deg, rgba(250, 246, 240, 0.5) 0%, rgba(244, 228, 193, 0.3) 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 24px;
+        
+        mat-icon {
+          font-size: 4rem;
+          width: 4rem;
+          height: 4rem;
+          color: rgba(212, 165, 116, 0.4);
+        }
+      }
+      
+      h3 {
+        font-size: 1.5rem;
+        color: $bakery-dark;
+        margin-bottom: 8px;
+      }
+      
+      p {
+        color: $bakery-secondary;
+        margin-bottom: 32px;
+        font-size: 1.1rem;
+      }
+      
       button {
-        background-color: #7c1d3b;
-        color: white;
+        border-radius: 28px;
+        padding: 12px 24px;
+        font-weight: 600;
+        background: linear-gradient(135deg, $bakery-primary 0%, $bakery-secondary 100%) !important;
+        color: white !important;
+      }
+    }
+    
+    // Sales List
+    .sales-list {
+      display: grid;
+      gap: 20px;
+      padding: 20px 0;
+      
+      .sale-card {
+        border-radius: 16px;
+        border: 1px solid rgba(212, 165, 116, 0.2);
+        box-shadow: 0 4px 16px rgba(93, 78, 55, 0.08);
+        transition: all 0.3s ease;
+        background: white;
+        
+        &:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 8px 24px rgba(93, 78, 55, 0.15);
+          border-color: rgba(212, 165, 116, 0.4);
+        }
+        
+        &.cancelled {
+          opacity: 0.7;
+          background: rgba(250, 246, 240, 0.3);
+        }
+        
+        .sale-content {
+          .sale-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            
+            .sale-code {
+              display: flex;
+              flex-direction: column;
+              gap: 8px;
+              
+              .code-badge {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                background: linear-gradient(135deg, $bakery-primary 0%, $bakery-secondary 100%);
+                color: white;
+                padding: 8px 16px;
+                border-radius: 20px;
+                font-weight: 600;
+                font-size: 0.9rem;
+                box-shadow: 0 2px 8px rgba(93, 78, 55, 0.2);
+                
+                mat-icon {
+                  font-size: 1.2rem;
+                  width: 1.2rem;
+                  height: 1.2rem;
+                }
+              }
+              
+              .sale-date {
+                font-size: 0.85rem;
+                color: $bakery-secondary;
+                text-align: center;
+              }
+            }
+            
+            .sale-status {
+              mat-chip {
+                font-weight: 600;
+                border-radius: 20px;
+                
+                &.status-completed {
+                  background: rgba(124, 179, 66, 0.15);
+                  color: $bakery-success;
+                  border: 1px solid rgba(124, 179, 66, 0.3);
+                }
+                
+                &.status-pending {
+                  background: rgba(255, 143, 0, 0.15);
+                  color: $bakery-warning;
+                  border: 1px solid rgba(255, 143, 0, 0.3);
+                }
+                
+                &.status-cancelled {
+                  background: rgba(211, 47, 47, 0.15);
+                  color: $bakery-danger;
+                  border: 1px solid rgba(211, 47, 47, 0.3);
+                }
+              }
+            }
+          }
+          
+          .sale-details {
+            margin-bottom: 20px;
+            
+            .detail-row {
+              display: flex;
+              align-items: center;
+              gap: 12px;
+              margin-bottom: 12px;
+              font-size: 0.95rem;
+              
+              mat-icon {
+                font-size: 1.1rem;
+                width: 1.1rem;
+                height: 1.1rem;
+                color: $bakery-primary;
+              }
+              
+              .label {
+                font-weight: 600;
+                color: $bakery-secondary;
+                min-width: 80px;
+              }
+              
+              .value {
+                color: $bakery-dark;
+                flex: 1;
+              }
+              
+              &.total-row {
+                border-top: 2px solid rgba(212, 165, 116, 0.2);
+                padding-top: 12px;
+                margin-top: 16px;
+                
+                .label,
+                .value.total {
+                  font-weight: 700;
+                  font-size: 1.1rem;
+                }
+                
+                .value.total {
+                  color: $bakery-success;
+                }
+              }
+            }
+          }
+          
+          .sale-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            
+            button {
+              width: 40px;
+              height: 40px;
+              border-radius: 10px;
+              
+              mat-icon {
+                font-size: 1.2rem;
+                width: 1.2rem;
+                height: 1.2rem;
+              }
+            }
+          }
+        }
       }
     }
   }
 }
 
 // Responsive Design
-@media (max-width: 1200px) {
-  .sales-container {
-    .stats-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-}
-
 @media (max-width: 768px) {
-  .sales-container {
+  .modern-sales-container {
     padding: 16px;
-
-    .header {
+    
+    .modern-header .header-content {
       flex-direction: column;
-      align-items: flex-start;
-      gap: 16px;
+      gap: 24px;
+      text-align: center;
+      padding: 20px 16px;
+      
+      .title-section .title-with-icon {
+        flex-direction: column;
+        gap: 16px;
+      }
+      
+      .header-actions {
+        justify-content: center;
+        width: 100%;
 
-      .header-content h1 {
-        font-size: 24px;
+        .action-btn {
+          flex: 1;
+        }
       }
     }
-
+    
     .stats-grid {
       grid-template-columns: 1fr;
     }
-
-    .filters-section {
-      .filters-container {
-        grid-template-columns: 1fr;
-      }
-
-      .action-buttons {
-        justify-content: center;
-        flex-wrap: wrap;
-      }
-    }
-
-    .table-container {
-      overflow-x: auto;
-
-      .sales-table {
-        min-width: 800px;
-      }
+    
+    .sales-list .sale-card .sale-content .sale-header {
+      flex-direction: column;
+      gap: 16px;
+      text-align: center;
     }
   }
 }
 
-@media (max-width: 480px) {
-  .sales-container {
-    padding: 12px;
+// Menu Actions Styles
+.mat-mdc-menu-panel {
+  .danger-action {
+    color: $bakery-danger !important;
+    
+    mat-icon {
+      color: $bakery-danger !important;
+    }
+    
+    &:hover {
+      background-color: rgba(211, 47, 47, 0.1) !important;
+    }
+  }
+  
+  .success-action {
+    color: $bakery-success !important;
+    
+    mat-icon {
+      color: $bakery-success !important;
+    }
+    
+    &:hover {
+      background-color: rgba(124, 179, 66, 0.1) !important;
+    }
+  }
+}
 
-    .filters-section {
-      padding: 16px;
+
+// Estilos para el filtro avanzado con colores de panadería
+::ng-deep app-advanced-filter {
+  .filter-container {
+    background: white !important;
+    border-radius: 16px !important;
+    box-shadow: 0 4px 16px rgba(93, 78, 55, 0.1) !important;
+    border: 1px solid rgba(212, 165, 116, 0.15) !important;
+    padding: 20px !important;
+    margin-bottom: 24px !important;
+
+    .search-field {
+      .mat-mdc-form-field {
+        .mat-mdc-text-field-wrapper {
+          background: rgba(250, 246, 240, 0.5) !important;
+          border-radius: 12px !important;
+        }
+
+        .mat-mdc-form-field-focus-overlay {
+          background: rgba(212, 165, 116, 0.1) !important;
+        }
+
+        &.mat-focused {
+          .mat-mdc-form-field-outline-thick {
+            color: $bakery-primary !important;
+          }
+
+          .mat-mdc-form-field-label {
+            color: $bakery-primary !important;
+          }
+        }
+
+        .mat-mdc-form-field-icon-prefix {
+          color: $bakery-primary !important;
+        }
+      }
     }
 
-    .stats-grid {
-      gap: 16px;
+    .filter-actions {
+      button {
+        background: linear-gradient(135deg, $bakery-primary 0%, $bakery-secondary 100%) !important;
+        color: white !important;
+        border-radius: 12px !important;
+        font-weight: 600 !important;
+        transition: all 0.3s ease !important;
 
-      .stat-card {
-        padding: 16px;
+        &:hover {
+          transform: translateY(-2px) !important;
+          box-shadow: 0 4px 12px rgba(93, 78, 55, 0.2) !important;
+        }
+      }
+    }
+
+    .status-filters {
+      .mat-mdc-chip {
+        border-radius: 20px !important;
+        font-weight: 600 !important;
+        transition: all 0.3s ease !important;
+
+        &.mat-mdc-chip-selected {
+          background: linear-gradient(135deg, $bakery-primary 0%, $bakery-secondary 100%) !important;
+          color: white !important;
+        }
+
+        &:not(.mat-mdc-chip-selected) {
+          background: rgba(250, 246, 240, 0.5) !important;
+          color: $bakery-secondary !important;
+          border: 1px solid rgba(212, 165, 116, 0.3) !important;
+
+          &:hover {
+            background: rgba(244, 228, 193, 0.5) !important;
+          }
+        }
       }
     }
   }

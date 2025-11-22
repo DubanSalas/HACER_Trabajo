@@ -1,0 +1,546 @@
+.customer-profile-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+
+  .loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    gap: 16px;
+
+    p {
+      color: #666;
+      font-size: 16px;
+    }
+  }
+
+  .profile-content {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .profile-header-card {
+    .profile-header {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      padding: 16px;
+
+      .profile-avatar {
+        .avatar-circle {
+          width: 100px;
+          height: 100px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 36px;
+          font-weight: bold;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+      }
+
+      .profile-info {
+        flex: 1;
+
+        h1 {
+          margin: 0 0 8px 0;
+          font-size: 28px;
+          font-weight: 600;
+          color: #333;
+        }
+
+        .customer-code,
+        .customer-email {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin: 4px 0;
+          color: #666;
+          font-size: 14px;
+
+          mat-icon {
+            font-size: 18px;
+            width: 18px;
+            height: 18px;
+          }
+        }
+
+        .customer-code {
+          font-weight: 500;
+          color: #667eea;
+        }
+      }
+    }
+  }
+
+  .profile-tabs {
+    ::ng-deep .mat-mdc-tab-body-content {
+      padding: 24px 0;
+    }
+  }
+
+  .tab-content-card {
+    mat-card-header {
+      margin-bottom: 24px;
+
+      mat-card-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 20px;
+        font-weight: 600;
+
+        mat-icon {
+          color: #667eea;
+        }
+      }
+    }
+
+    mat-card-content {
+      form {
+        .form-row {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          gap: 16px;
+          margin-bottom: 16px;
+        }
+
+        .form-field,
+        .full-width {
+          width: 100%;
+        }
+
+        .form-actions {
+          display: flex;
+          justify-content: flex-end;
+          margin-top: 24px;
+
+          button {
+            min-width: 200px;
+            height: 48px;
+            font-size: 16px;
+            font-weight: 500;
+
+            mat-icon {
+              margin-right: 8px;
+            }
+          }
+        }
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 24px;
+        margin-top: 24px;
+
+        .stat-item {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          padding: 20px;
+          background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+          border-radius: 12px;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+          transition: transform 0.2s;
+
+          &:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+          }
+
+          mat-icon {
+            font-size: 40px;
+            width: 40px;
+            height: 40px;
+            color: #667eea;
+          }
+
+          .stat-info {
+            display: flex;
+            flex-direction: column;
+
+            .stat-value {
+              font-size: 24px;
+              font-weight: 700;
+              color: #333;
+            }
+
+            .stat-label {
+              font-size: 14px;
+              color: #666;
+              margin-top: 4px;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .customer-profile-container {
+    padding: 16px;
+
+    .profile-header-card {
+      .profile-header {
+        flex-direction: column;
+        text-align: center;
+
+        .profile-info {
+          h1 {
+            font-size: 24px;
+          }
+        }
+      }
+    }
+
+    .tab-content-card {
+      mat-card-content {
+        form {
+          .form-row {
+            grid-template-columns: 1fr;
+          }
+
+          .form-actions {
+            button {
+              width: 100%;
+            }
+          }
+        }
+
+        .stats-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    }
+  }
+}
+
+// Estilos para Soporte y Reclamos
+.support-form {
+  .support-info-box {
+    display: flex;
+    gap: 16px;
+    padding: 20px;
+    background: #e3f2fd;
+    border-left: 4px solid #2196f3;
+    border-radius: 8px;
+    margin: 24px 0;
+
+    mat-icon {
+      color: #2196f3;
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
+    }
+
+    .info-content {
+      flex: 1;
+
+      strong {
+        display: block;
+        margin-bottom: 8px;
+        color: #1976d2;
+      }
+
+      ul {
+        margin: 8px 0;
+        padding-left: 20px;
+
+        li {
+          margin: 4px 0;
+          color: #555;
+        }
+      }
+
+      p {
+        margin: 8px 0 0 0;
+        color: #666;
+        font-size: 14px;
+      }
+    }
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 16px;
+    justify-content: flex-start;
+
+    button {
+      min-width: 180px;
+    }
+  }
+}
+
+.support-history {
+  margin-top: 48px;
+  padding-top: 32px;
+  border-top: 2px solid #e0e0e0;
+
+  h3 {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 24px;
+    color: #333;
+
+    mat-icon {
+      color: #667eea;
+    }
+  }
+
+  .tickets-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    .ticket-card {
+      border-left: 4px solid #667eea;
+      transition: all 0.3s;
+
+      &:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transform: translateX(4px);
+      }
+
+      .ticket-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #e0e0e0;
+
+        .ticket-info {
+          display: flex;
+          gap: 12px;
+          align-items: center;
+          flex-wrap: wrap;
+
+          .ticket-id {
+            font-weight: 700;
+            color: #667eea;
+            font-size: 16px;
+          }
+
+          .ticket-type {
+            padding: 4px 12px;
+            background: #f5f5f5;
+            border-radius: 12px;
+            font-size: 12px;
+            color: #666;
+          }
+
+          .ticket-status {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+
+            &.status-pendiente {
+              background: #fff3e0;
+              color: #f57c00;
+            }
+
+            &.status-en_proceso {
+              background: #e3f2fd;
+              color: #1976d2;
+            }
+
+            &.status-resuelto {
+              background: #e8f5e9;
+              color: #388e3c;
+            }
+
+            &.status-cerrado {
+              background: #f5f5f5;
+              color: #757575;
+            }
+          }
+        }
+
+        .ticket-date {
+          color: #999;
+          font-size: 13px;
+        }
+      }
+
+      .ticket-content {
+        h4 {
+          margin: 0 0 12px 0;
+          font-size: 16px;
+          font-weight: 600;
+          color: #333;
+        }
+
+        p {
+          margin: 0 0 16px 0;
+          color: #666;
+          line-height: 1.6;
+        }
+
+        .ticket-response {
+          display: flex;
+          gap: 12px;
+          padding: 16px;
+          background: #f9fbe7;
+          border-left: 3px solid #aed581;
+          border-radius: 8px;
+          margin-top: 16px;
+
+          mat-icon {
+            color: #7cb342;
+            font-size: 20px;
+            width: 20px;
+            height: 20px;
+          }
+
+          div {
+            flex: 1;
+
+            strong {
+              display: block;
+              margin-bottom: 8px;
+              color: #558b2f;
+            }
+
+            p {
+              margin: 0 0 8px 0;
+              color: #555;
+            }
+
+            .response-date {
+              font-size: 12px;
+              color: #999;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+.contact-options {
+  margin-top: 48px;
+  padding-top: 32px;
+  border-top: 2px solid #e0e0e0;
+
+  h3 {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 24px;
+    color: #333;
+
+    mat-icon {
+      color: #667eea;
+    }
+  }
+
+  .contact-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 24px;
+
+    .contact-item {
+      display: flex;
+      gap: 16px;
+      padding: 24px;
+      background: #ffffff;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      transition: all 0.3s;
+
+      &:hover {
+        border-color: #667eea;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+        transform: translateY(-4px);
+      }
+
+      mat-icon {
+        font-size: 32px;
+        width: 32px;
+        height: 32px;
+        color: #667eea;
+      }
+
+      div {
+        flex: 1;
+
+        strong {
+          display: block;
+          margin-bottom: 8px;
+          font-size: 16px;
+          color: #333;
+        }
+
+        p {
+          margin: 4px 0;
+          color: #666;
+          font-size: 14px;
+        }
+
+        span {
+          display: block;
+          margin-top: 4px;
+          font-size: 12px;
+          color: #999;
+        }
+
+        button {
+          margin-top: 12px;
+          width: 100%;
+        }
+      }
+    }
+  }
+}
+
+// Estilos para prioridades en el select
+::ng-deep {
+  .priority-low {
+    color: #4caf50 !important;
+  }
+
+  .priority-medium {
+    color: #ff9800 !important;
+  }
+
+  .priority-high {
+    color: #f44336 !important;
+  }
+}
+
+// Responsive para soporte
+@media (max-width: 768px) {
+  .support-history {
+    .tickets-list {
+      .ticket-card {
+        .ticket-header {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 12px;
+        }
+      }
+    }
+  }
+
+  .contact-options {
+    .contact-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+}

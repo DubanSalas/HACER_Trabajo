@@ -1,0 +1,127 @@
+<div class="customer-menu" *ngIf="!isLoading; else loadingTemplate">
+  <!-- Header Section -->
+  <div class="menu-header">
+    <h1>Nuestro Menú</h1>
+    <p>Descubre nuestros deliciosos platos preparados con los mejores ingredientes</p>
+  </div>
+
+  <!-- Search and Filters -->
+  <div class="menu-filters">
+    <div class="search-container">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Buscar productos...</mat-label>
+        <input matInput 
+               [(ngModel)]="searchTerm" 
+               (input)="onSearchChange()"
+               placeholder="Ej: pizza, hamburguesa, pollo">
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+    </div>
+
+    <div class="categories-container">
+      <mat-chip-set>
+        <mat-chip [class.selected]="selectedCategory === null" 
+                  (click)="selectCategory(null)">
+          Todos
+        </mat-chip>
+        <mat-chip *ngFor="let category of categories" 
+                  [class.selected]="selectedCategory === category"
+                  (click)="selectCategory(category)">
+          {{ category }}
+        </mat-chip>
+      </mat-chip-set>
+    </div>
+  </div>
+
+  <!-- Results Info -->
+  <div class="results-info" *ngIf="filteredProducts.length > 0">
+    <p>
+      Mostrando {{ filteredProducts.length }} 
+      {{ filteredProducts.length === 1 ? 'producto' : 'productos' }}
+      <span *ngIf="selectedCategory"> en {{ selectedCategory }}</span>
+      <span *ngIf="searchTerm"> para "{{ searchTerm }}"</span>
+    </p>
+  </div>
+
+  <!-- Products Grid -->
+  <div class="products-grid" *ngIf="filteredProducts.length > 0; else noResultsTemplate">
+    <mat-card *ngFor="let product of filteredProducts" class="product-card">
+      <div class="product-image" [routerLink]="['/customer/product', product.id]">
+        <img [src]="product.image" [alt]="product.name">
+        <div class="product-overlay">
+          <mat-icon>visibility</mat-icon>
+        </div>
+        <div class="product-badge" *ngIf="!product.isAvailable">
+          No disponible
+        </div>
+      </div>
+      
+      <mat-card-content>
+        <div class="product-info">
+          <div class="product-header">
+            <h3 class="product-name">{{ product.name }}</h3>
+            <span class="product-category">{{ product.category }}</span>
+          </div>
+          
+          <p class="product-description">{{ product.description }}</p>
+          
+          <div class="product-rating" *ngIf="product.rating">
+            <div class="stars">
+              <mat-icon *ngFor="let star of [1,2,3,4,5]" 
+                        [class.filled]="star <= product.rating!">
+                star
+              </mat-icon>
+            </div>
+            <span class="rating-text">{{ product.rating }} ({{ product.reviews }} reseñas)</span>
+          </div>
+          
+          <div class="product-footer">
+            <span class="product-price">S/{{ product.price.toFixed(2) }}</span>
+            <div class="product-actions">
+              <button mat-icon-button 
+                      [routerLink]="['/customer/product', product.id]"
+                      matTooltip="Ver detalles">
+                <mat-icon>info</mat-icon>
+              </button>
+              <button mat-raised-button 
+                      color="primary" 
+                      (click)="addToCart(product)"
+                      [disabled]="!product.isAvailable"
+                      class="add-to-cart-btn">
+                <mat-icon>add_shopping_cart</mat-icon>
+                {{ product.isAvailable ? 'Agregar' : 'No disponible' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
+
+<ng-template #noResultsTemplate>
+  <div class="no-results">
+    <div class="no-results-content">
+      <mat-icon class="no-results-icon">search_off</mat-icon>
+      <h2>No se encontraron productos</h2>
+      <p *ngIf="searchTerm">
+        No hay productos que coincidan con "{{ searchTerm }}"
+        <span *ngIf="selectedCategory"> en la categoría {{ selectedCategory }}</span>
+      </p>
+      <p *ngIf="!searchTerm && selectedCategory">
+        No hay productos disponibles en la categoría {{ selectedCategory }}
+      </p>
+      <button mat-button (click)="selectCategory(null); searchTerm = ''; filterProducts()">
+        <mat-icon>refresh</mat-icon>
+        Mostrar todos los productos
+      </button>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #loadingTemplate>
+  <div class="loading-container">
+    <mat-spinner></mat-spinner>
+    <p>Cargando menú...</p>
+  </div>
+</ng-template>

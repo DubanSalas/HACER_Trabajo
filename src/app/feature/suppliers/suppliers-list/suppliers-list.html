@@ -1,207 +1,408 @@
 <div class="suppliers-container">
-  <!-- Header -->
-  <div class="header">
-    <div class="header-info">
-      <h1>Gestión de Proveedores</h1>
-      <p>Gestiona tu red de proveedores y socios comerciales</p>
+  <!-- Professional Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="header-left">
+        <div class="page-icon">
+          <mat-icon>business</mat-icon>
+        </div>
+        <div class="page-info">
+          <h1>Gestión de Proveedores</h1>
+          <p>Administra los socios comerciales</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button mat-raised-button color="primary" (click)="navigateToCreate()">
+          <mat-icon>add</mat-icon>
+          Nuevo Proveedor
+        </button>
+        <button mat-stroked-button color="accent" (click)="generateReport()">
+          <mat-icon>description</mat-icon>
+          Generar Reporte
+        </button>
+      </div>
     </div>
-    <div class="header-buttons">
-      <button mat-raised-button class="report-btn" (click)="exportReport()">
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="stats-section" *ngIf="summary">
+    <div class="stats-container">
+      <mat-card class="stat-card primary">
+        <mat-card-content>
+          <div class="stat-content">
+            <div class="stat-number">{{ summary.totalSuppliers }}</div>
+            <div class="stat-label">Total Proveedores</div>
+            <mat-icon class="stat-icon">business</mat-icon>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card success">
+        <mat-card-content>
+          <div class="stat-content">
+            <div class="stat-number">{{ summary.activeSuppliers }}</div>
+            <div class="stat-label">Activos</div>
+            <mat-icon class="stat-icon">check_circle</mat-icon>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card warning">
+        <mat-card-content>
+          <div class="stat-content">
+            <div class="stat-number">{{ summary.suspendedSuppliers }}</div>
+            <div class="stat-label">Suspendidos</div>
+            <mat-icon class="stat-icon">pause_circle</mat-icon>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card danger">
+        <mat-card-content>
+          <div class="stat-content">
+            <div class="stat-number">{{ summary.inactiveSuppliers }}</div>
+            <div class="stat-label">Inactivos</div>
+            <mat-icon class="stat-icon">cancel</mat-icon>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Filtros Avanzados -->
+  <app-advanced-filter 
+    [config]="filterConfig"
+    searchPlaceholder="Buscar proveedores por empresa, contacto, email, teléfono..."
+    [showStatusFilter]="true"
+    (filtersChanged)="onFiltersChanged($event)">
+  </app-advanced-filter>
+
+  <!-- Suppliers List -->
+  <mat-card class="suppliers-list-section">
+    <mat-card-header>
+      <div class="list-header">
+        <div class="list-title">
+          <mat-icon>list</mat-icon>
+          <span>Lista de Proveedores</span>
+        </div>
+        <div class="list-subtitle">
+          Mostrando {{ filteredSuppliers.length }} de {{ suppliers.length }} proveedores
+        </div>
+      </div>
+    </mat-card-header>
+
+    <mat-card-content>
+      <!-- Loading State -->
+      <div *ngIf="loading" class="loading-state">
+        <mat-spinner></mat-spinner>
+        <p>Cargando proveedores...</p>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="!loading && filteredSuppliers.length === 0" class="empty-state">
+        <mat-icon>business_center</mat-icon>
+        <h3>No se encontraron proveedores</h3>
+        <p *ngIf="searchTerm">Intenta ajustar los filtros de búsqueda</p>
+        <p *ngIf="!searchTerm">No hay proveedores registrados</p>
+        <button mat-raised-button color="primary" (click)="navigateToCreate()">
+          <mat-icon>add</mat-icon>
+          Registrar Primer Proveedor
+        </button>
+      </div>
+
+      <!-- Suppliers Grid -->
+      <div *ngIf="!loading && filteredSuppliers.length > 0" class="suppliers-grid">
+        <div *ngFor="let supplier of filteredSuppliers; trackBy: trackBySupplierId" class="supplier-card" [class]="'status-' + supplier.status.toLowerCase()">
+          
+          <!-- Card Header -->
+          <div class="card-header">
+            <div class="supplier-avatar">
+              {{ getSupplierInitials(supplier.companyName) }}
+            </div>
+            <div class="supplier-status">
+              <mat-chip [class]="getStatusClass(supplier.status)">
+                {{ getStatusText(supplier.status) }}
+              </mat-chip>
+            </div>
+          </div>
+
+          <!-- Card Content -->
+          <div class="card-content">
+            <h3 class="company-name">{{ supplier.companyName }}</h3>
+            
+            <div class="supplier-category">
+              <mat-icon>category</mat-icon>
+              <span>{{ supplier.category }}</span>
+            </div>
+
+            <div class="supplier-details">
+              <div class="detail-item">
+                <mat-icon>person</mat-icon>
+                <div class="detail-content">
+                  <span class="detail-label">Contacto</span>
+                  <span class="detail-value">{{ supplier.contactName }}</span>
+                </div>
+              </div>
+
+              <div class="detail-item">
+                <mat-icon>phone</mat-icon>
+                <div class="detail-content">
+                  <span class="detail-label">Teléfono</span>
+                  <span class="detail-value">{{ supplier.phone }}</span>
+                </div>
+              </div>
+
+              <div class="detail-item">
+                <mat-icon>email</mat-icon>
+                <div class="detail-content">
+                  <span class="detail-label">Email</span>
+                  <span class="detail-value">{{ supplier.email }}</span>
+                </div>
+              </div>
+
+              <div class="detail-item">
+                <mat-icon>place</mat-icon>
+                <div class="detail-content">
+                  <span class="detail-label">Ubicación</span>
+                  <span class="detail-value">{{ supplier.district }}, {{ supplier.province }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card Actions -->
+          <div class="card-actions">
+            <button mat-icon-button color="primary" (click)="viewSupplier(supplier)" matTooltip="Ver detalles">
+              <mat-icon>visibility</mat-icon>
+            </button>
+            <button mat-icon-button color="accent" (click)="editSupplier(supplier)" matTooltip="Editar">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button [matMenuTriggerFor]="supplierMenu" matTooltip="Más opciones">
+              <mat-icon>more_vert</mat-icon>
+            </button>
+            <mat-menu #supplierMenu="matMenu">
+              <button mat-menu-item (click)="toggleStatus(supplier)">
+                <mat-icon>{{ supplier.status === 'A' ? 'block' : 'check_circle' }}</mat-icon>
+                <span>{{ supplier.status === 'A' ? 'Desactivar' : 'Activar' }}</span>
+              </button>
+              <button mat-menu-item (click)="viewHistory(supplier)">
+                <mat-icon>history</mat-icon>
+                <span>Ver Historial</span>
+              </button>
+              <button mat-menu-item (click)="generateReport(supplier)">
+                <mat-icon>description</mat-icon>
+                <span>Generar Reporte</span>
+              </button>
+            </mat-menu>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div><!-- Supp
+lier Detail Modal -->
+<div class="modal-overlay" *ngIf="showDetailModal" (click)="closeDetailModal()">
+  <div class="supplier-detail-modal" (click)="$event.stopPropagation()" *ngIf="selectedSupplier">
+    <!-- Modal Header -->
+    <div class="modal-header">
+      <div class="header-left">
+        <div class="supplier-avatar">
+          {{ getSupplierInitials(selectedSupplier.companyName) }}
+        </div>
+        <div class="supplier-info">
+          <h2>{{ selectedSupplier.companyName }}</h2>
+          <p class="contact-name">{{ selectedSupplier.contactName }}</p>
+          <mat-chip [class]="getStatusClass(selectedSupplier.status)">
+            <mat-icon>{{ selectedSupplier.status === 'A' ? 'check_circle' : 'cancel' }}</mat-icon>
+            {{ getStatusText(selectedSupplier.status) }}
+          </mat-chip>
+        </div>
+      </div>
+      <button mat-icon-button (click)="closeDetailModal()" class="close-button">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <!-- Modal Content -->
+    <div class="modal-content">
+      <div class="detail-cards">
+        <!-- Company Information -->
+        <mat-card class="info-card">
+          <mat-card-header>
+            <div class="card-header-content">
+              <mat-icon class="card-icon">business</mat-icon>
+              <div class="card-title">
+                <h3>Información de la Empresa</h3>
+              </div>
+            </div>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="info-grid">
+              <div class="info-item">
+                <mat-icon>business</mat-icon>
+                <div class="info-content">
+                  <span class="info-label">Nombre de la Empresa</span>
+                  <span class="info-value">{{ selectedSupplier.companyName }}</span>
+                </div>
+              </div>
+              <div class="info-item">
+                <mat-icon>person</mat-icon>
+                <div class="info-content">
+                  <span class="info-label">Persona de Contacto</span>
+                  <span class="info-value">{{ selectedSupplier.contactName }}</span>
+                </div>
+              </div>
+              <div class="info-item">
+                <mat-icon>category</mat-icon>
+                <div class="info-content">
+                  <span class="info-label">Categoría</span>
+                  <span class="info-value">{{ selectedSupplier.category }}</span>
+                </div>
+              </div>
+              <div class="info-item">
+                <mat-icon>payment</mat-icon>
+                <div class="info-content">
+                  <span class="info-label">Términos de Pago</span>
+                  <span class="info-value">{{ selectedSupplier.paymentTerms }}</span>
+                </div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Contact Information -->
+        <mat-card class="info-card">
+          <mat-card-header>
+            <div class="card-header-content">
+              <mat-icon class="card-icon">contact_phone</mat-icon>
+              <div class="card-title">
+                <h3>Información de Contacto</h3>
+              </div>
+            </div>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="info-grid">
+              <div class="info-item clickable" (click)="sendEmail(selectedSupplier)" [class.disabled]="!selectedSupplier.email">
+                <mat-icon>email</mat-icon>
+                <div class="info-content">
+                  <span class="info-label">Correo Electrónico</span>
+                  <span class="info-value">{{ selectedSupplier.email || 'No registrado' }}</span>
+                </div>
+                <mat-icon class="action-icon" *ngIf="selectedSupplier.email">open_in_new</mat-icon>
+              </div>
+              <div class="info-item clickable" (click)="callPhone(selectedSupplier)" [class.disabled]="!selectedSupplier.phone">
+                <mat-icon>phone</mat-icon>
+                <div class="info-content">
+                  <span class="info-label">Teléfono</span>
+                  <span class="info-value">{{ selectedSupplier.phone || 'No registrado' }}</span>
+                </div>
+                <mat-icon class="action-icon" *ngIf="selectedSupplier.phone">call</mat-icon>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Location Information -->
+        <mat-card class="info-card">
+          <mat-card-header>
+            <div class="card-header-content">
+              <mat-icon class="card-icon">place</mat-icon>
+              <div class="card-title">
+                <h3>Ubicación</h3>
+              </div>
+            </div>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="info-grid">
+              <div class="info-item">
+                <mat-icon>home</mat-icon>
+                <div class="info-content">
+                  <span class="info-label">Dirección</span>
+                  <span class="info-value">{{ selectedSupplier.address || 'No registrada' }}</span>
+                </div>
+              </div>
+              <div class="info-item">
+                <mat-icon>location_city</mat-icon>
+                <div class="info-content">
+                  <span class="info-label">Distrito</span>
+                  <span class="info-value">{{ selectedSupplier.district }}</span>
+                </div>
+              </div>
+              <div class="info-item">
+                <mat-icon>map</mat-icon>
+                <div class="info-content">
+                  <span class="info-label">Provincia</span>
+                  <span class="info-value">{{ selectedSupplier.province }}</span>
+                </div>
+              </div>
+              <div class="info-item">
+                <mat-icon>public</mat-icon>
+                <div class="info-content">
+                  <span class="info-label">Departamento</span>
+                  <span class="info-value">{{ selectedSupplier.department }}</span>
+                </div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Status Information -->
+        <mat-card class="info-card">
+          <mat-card-header>
+            <div class="card-header-content">
+              <mat-icon class="card-icon">info</mat-icon>
+              <div class="card-title">
+                <h3>Estado del Proveedor</h3>
+              </div>
+            </div>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="info-grid">
+              <div class="info-item">
+                <mat-icon>{{ selectedSupplier.status === 'A' ? 'check_circle' : 'cancel' }}</mat-icon>
+                <div class="info-content">
+                  <span class="info-label">Estado</span>
+                  <span class="info-value" [class]="getStatusClass(selectedSupplier.status)">
+                    {{ getStatusText(selectedSupplier.status) }}
+                  </span>
+                </div>
+              </div>
+              <div class="info-item">
+                <mat-icon>location_on</mat-icon>
+                <div class="info-content">
+                  <span class="info-label">Dirección Completa</span>
+                  <span class="info-value">{{ selectedSupplier.locationAddress }}</span>
+                </div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+    <!-- Modal Actions -->
+    <div class="modal-actions">
+      <button mat-raised-button color="primary" (click)="editFromModal()">
+        <mat-icon>edit</mat-icon>
+        Editar
+      </button>
+      <button mat-stroked-button (click)="generateSupplierReport(selectedSupplier)">
         <mat-icon>description</mat-icon>
         Reporte
       </button>
-      <button mat-raised-button class="send-report-btn" (click)="sendReport()">
-        <mat-icon>send</mat-icon>
-        Enviar Reporte
+      <button *ngIf="selectedSupplier.status === 'A'" mat-stroked-button color="warn" (click)="deleteFromModal()">
+        <mat-icon>block</mat-icon>
+        Desactivar
+      </button>
+      <button *ngIf="selectedSupplier.status !== 'A'" mat-stroked-button color="primary" (click)="restoreFromModal()">
+        <mat-icon>restore</mat-icon>
+        Reactivar
+      </button>
+      <button mat-stroked-button (click)="closeDetailModal()">
+        <mat-icon>close</mat-icon>
+        Cerrar
       </button>
     </div>
-  </div>
-
-  <!-- Stats Cards -->
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-content">
-        <span class="stat-label">Total Proveedores</span>
-        <span class="stat-value">{{ stats.total }}</span>
-      </div>
-      <div class="stat-icon blue">
-        <mat-icon>business</mat-icon>
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-content">
-        <span class="stat-label">Activos</span>
-        <span class="stat-value">{{ stats.activos }}</span>
-      </div>
-      <div class="stat-icon green">
-        <mat-icon>check_circle</mat-icon>
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-content">
-        <span class="stat-label">Inactivos</span>
-        <span class="stat-value">{{ stats.inactivos }}</span>
-      </div>
-      <div class="stat-icon red">
-        <mat-icon>cancel</mat-icon>
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-content">
-        <span class="stat-label">Suspendidos</span>
-        <span class="stat-value">{{ stats.suspendidos }}</span>
-      </div>
-      <div class="stat-icon orange">
-        <mat-icon>pause_circle</mat-icon>
-      </div>
-    </div>
-  </div>
-
-  <!-- Categories Section -->
-  <div class="categories-section">
-    <h2>Principales Categorías de Proveedores</h2>
-    <div class="categories-grid">
-      <div *ngFor="let category of categories" class="category-card">
-        <div class="category-icon">
-          <mat-icon>inventory_2</mat-icon>
-        </div>
-        <div class="category-info">
-          <span class="category-count">{{ category.count }}</span>
-          <span class="category-name">{{ category.name }}</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Filters Section -->
-  <div class="filters-section">
-    <div class="search-box">
-      <mat-icon>search</mat-icon>
-      <input 
-        type="text" 
-        placeholder="Buscar por empresa, contacto, email....." 
-        [(ngModel)]="searchTerm"
-        (input)="applyFilters()"
-      />
-    </div>
-    <select class="filter-select" [(ngModel)]="selectedCategory" (change)="applyFilters()">
-      <option value="">Todas las Categoría</option>
-      <option *ngFor="let category of categories" [value]="category.name">
-        {{ category.name }}
-      </option>
-    </select>
-    <select class="filter-select" [(ngModel)]="selectedStatus" (change)="applyFilters()">
-      <option value="">Todos los Activos</option>
-      <option value="A">Activos</option>
-      <option value="I">Inactivos</option>
-      <option value="S">Suspendidos</option>
-    </select>
-    <button
-      mat-raised-button
-      class="new-supplier-btn"
-      (click)="openSupplierForm()"
-    >
-      <mat-icon>add_circle</mat-icon>
-      Nuevo Proveedor
-    </button>
-  </div>
-
-  <!-- Table -->
-  <div class="table-container">
-    <table mat-table [dataSource]="filteredSuppliers" class="suppliers-table">
-      <ng-container matColumnDef="empresa">
-        <th mat-header-cell *matHeaderCellDef>EMPRESA</th>
-        <td mat-cell *matCellDef="let element">
-          <div class="empresa-cell">
-            <div class="empresa-name">{{ element.Company_Name }}</div>
-            <div class="empresa-id">ID: P{{ element.id_Supplier?.toString().padStart(3, '0') }}</div>
-          </div>
-        </td>
-      </ng-container>
-
-      <ng-container matColumnDef="contacto">
-        <th mat-header-cell *matHeaderCellDef>CONTACTO</th>
-        <td mat-cell *matCellDef="let element">
-          <div class="contacto-cell">
-            <div class="contacto-name">{{ element.Contact_Name }}</div>
-            <div class="contacto-address">{{ element.Address }}</div>
-          </div>
-        </td>
-      </ng-container>
-
-      <ng-container matColumnDef="categoria">
-        <th mat-header-cell *matHeaderCellDef>CATEGORÍA</th>
-        <td mat-cell *matCellDef="let element">
-          <span class="category-badge">{{ element.Category }}</span>
-        </td>
-      </ng-container>
-
-      <ng-container matColumnDef="comunicacion">
-        <th mat-header-cell *matHeaderCellDef>COMUNICACIÓN</th>
-        <td mat-cell *matCellDef="let element">
-          <div class="comunicacion-cell">
-            <div class="phone">{{ element.Phone }}</div>
-            <div class="email">{{ element.Email }}</div>
-          </div>
-        </td>
-      </ng-container>
-
-      <ng-container matColumnDef="terminos">
-        <th mat-header-cell *matHeaderCellDef>TÉRMINOS</th>
-        <td mat-cell *matCellDef="let element">{{ element.Payment_Terms }}</td>
-      </ng-container>
-
-      <ng-container matColumnDef="pedidos">
-        <th mat-header-cell *matHeaderCellDef>PEDIDOS</th>
-        <td mat-cell *matCellDef="let element">
-          <div class="pedidos-cell">
-            <div class="pedidos-count">45</div>
-            <div class="pedidos-amount">S/12,500</div>
-          </div>
-        </td>
-      </ng-container>
-
-      <ng-container matColumnDef="estado">
-        <th mat-header-cell *matHeaderCellDef>ESTADOS</th>
-        <td mat-cell *matCellDef="let element">
-          <span class="status-badge" [ngClass]="getStatusClass(element.Status)">
-            {{ getStatusText(element.Status) }}
-          </span>
-        </td>
-      </ng-container>
-
-      <ng-container matColumnDef="acciones">
-        <th mat-header-cell *matHeaderCellDef>ACCIONES</th>
-        <td mat-cell *matCellDef="let element" class="actions-cell">
-          <button
-            mat-icon-button
-            class="action-btn edit-btn"
-            (click)="editSupplier(element)"
-            matTooltip="Editar"
-          >
-            <mat-icon>edit</mat-icon>
-          </button>
-          <button
-            mat-icon-button
-            class="action-btn view-btn"
-            (click)="viewSupplier(element)"
-            matTooltip="Ver"
-          >
-            <mat-icon>visibility</mat-icon>
-          </button>
-          <button
-            mat-icon-button
-            class="action-btn delete-btn"
-            (click)="deleteSupplier(element)"
-            matTooltip="Eliminar"
-          >
-            <mat-icon>delete</mat-icon>
-          </button>
-        </td>
-      </ng-container>
-
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-    </table>
   </div>
 </div>

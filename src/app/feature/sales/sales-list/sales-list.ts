@@ -1,330 +1,291 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { Subject, takeUntil } from 'rxjs';
-import Swal from 'sweetalert2';
-
+import { Router } from '@angular/router';
+import { MaterialModule } from '../../../shared/material.module';
 import { SalesService } from '../../../core/services/sales.service';
-import { CustomerService } from '../../../core/services/customer.service';
-import { EmployeesService } from '../../../core/services/employees.service';
-import { SaleWithDetails, SaleStats, SaleFilters } from '../../../core/interfaces/sales-interfaces';
-import { Customer } from '../../../core/interfaces/customer-interfaces';
-import { Employee } from '../../../core/interfaces/employees-interfaces';
-import { SalesFormComponent } from '../sales-form/sales-form';
+import { NotificationService } from '../../../core/services/notification.service';
+import { SaleDTO, SaleSummary } from '../../../core/interfaces/sales-interfaces';
+import { FilterService, FilterConfig } from '../../../core/services/filter.service';
+import { AdvancedFilterComponent } from '../../../shared/components/advanced-filter/advanced-filter.component';
 
 @Component({
   selector: 'app-sales-list',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    MatIconModule,
-    MatButtonModule,
-    MatInputModule,
-    MatSelectModule,
-    MatDatepickerModule,
-    MatNativeDateModule,
-    MatProgressSpinnerModule,
-    SalesFormComponent
-  ],
+  imports: [CommonModule, FormsModule, MaterialModule, AdvancedFilterComponent],
   templateUrl: './sales-list.html',
   styleUrls: ['./sales-list.scss']
 })
-export class SalesListComponent implements OnInit, OnDestroy {
-  private destroy$ = new Subject<void>();
-
-  sales: SaleWithDetails[] = [];
-  filteredSales: SaleWithDetails[] = [];
-  customers: Customer[] = [];
-  employees: Employee[] = [];
-  stats: SaleStats = {
-    ventas_totales: 0,
-    ventas_hoy: 0,
-    completadas: 0,
-    pendientes: 0,
-    total_ventas: 0,
-    total_hoy: 0
-  };
-
+export class SalesListComponent implements OnInit {
+  sales: SaleDTO[] = [];
+  filteredSales: SaleDTO[] = [];
+  summary: SaleSummary | null = null;
   loading = false;
-  searchTerm = '';
-  viewMode: 'list' | 'grid' = 'list';
-  showForm = false;
-  selectedSale: SaleWithDetails | null = null;
+  filterConfig: FilterConfig;
 
   // Filtros
-  filters: SaleFilters = {
-    estado: '',
-    metodo_pago: '',
-    fecha_inicio: '',
-    fecha_fin: ''
-  };
+  statusOptions = [
+    { value: '', label: 'Todos los estados' },
+    { value: 'Completado', label: 'Completado' },
+    { value: 'Pendiente', label: 'Pendiente' },
+    { value: 'Cancelado', label: 'Cancelado' }
+  ];
 
-  estados = ['Pendiente', 'Completado', 'Cancelado'];
-  metodosPago = ['Efectivo', 'Tarjeta', 'Transferencia'];
+  paymentMethods: string[] = [];
 
   constructor(
     private salesService: SalesService,
-    private customersService: CustomerService,
-    private employeesService: EmployeesService
-  ) {}
+    private router: Router,
+    private filterService: FilterService,
+    private notificationService: NotificationService
+  ) {
+    this.filterConfig = this.filterService.getSalesFilterConfig();
+  }
 
   ngOnInit(): void {
-    this.loadInitialData();
-    this.subscribeToServices();
-  }
-
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-
-  private loadInitialData(): void {
     this.loadSales();
-    this.loadStats();
-    this.loadCustomers();
-    this.loadEmployees();
+    this.loadSummary();
   }
 
-  private subscribeToServices(): void {
-    this.salesService.sales$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(sales => {
-        this.sales = sales;
+  loadSales(): void {
+    this.loading = true;
+    console.log('🔄 Cargando ventas desde Oracle...');
+    this.salesService.getAll().subscribe({
+      next: (data) => {
+        console.log('✅ Ventas cargadas desde Oracle:', data.length);
+        this.sales = data;
+        this.extractPaymentMethods();
         this.applyFilters();
-      });
-
-    this.salesService.stats$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(stats => this.stats = stats);
-
-    this.salesService.loading$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(loading => this.loading = loading);
-  }
-
-  private loadSales(): void {
-    this.salesService.getSales().subscribe({
+        this.loading = false;
+      },
       error: (error) => {
-        console.error('Error loading sales:', error);
-        Swal.fire({
-          title: 'Error',
-          text: 'No se pudieron cargar las ventas',
-          icon: 'error',
-          confirmButtonColor: '#7c1d3b'
-        });
+        console.error('❌ Error al cargar ventas desde Oracle:', error);
+        this.loading = false;
+        alert('Error al cargar ventas. Verifica que el backend esté corriendo.');
       }
     });
   }
 
-  private loadStats(): void {
-    this.salesService.getStats().subscribe({
+  loadSummary(): void {
+    this.salesService.getSummary().subscribe({
+      next: (data) => {
+        console.log('✅ Resumen de ventas cargado desde Oracle:', data);
+        this.summary = data;
+      },
       error: (error) => {
-        console.error('Error loading stats:', error);
+        console.error('❌ Error al cargar resumen de ventas:', error);
       }
     });
   }
 
-  private loadCustomers(): void {
-    this.customersService.getCustomers().subscribe({
-      next: (customers: Customer[]) => this.customers = customers,
-      error: (error: any) => console.error('Error loading customers:', error)
-    });
-  }
-
-  private loadEmployees(): void {
-    this.employeesService.getEmployees().subscribe({
-      next: (employees) => this.employees = employees,
-      error: (error) => console.error('Error loading employees:', error)
-    });
+  extractPaymentMethods(): void {
+    const methodSet = new Set(this.sales.map(s => s.paymentMethod));
+    this.paymentMethods = Array.from(methodSet).sort();
   }
 
   applyFilters(): void {
-    let filtered = [...this.sales];
-
-    // Filtro por búsqueda
-    if (this.searchTerm.trim()) {
-      const term = this.searchTerm.toLowerCase();
-      filtered = filtered.filter(sale =>
-        sale.id_venta.toString().includes(term) ||
-        this.getCustomerName(sale.idCustomer).toLowerCase().includes(term) ||
-        this.getEmployeeName(sale.id_Employee).toLowerCase().includes(term)
-      );
-    }
-
-    // Filtros específicos
-    if (this.filters.estado) {
-      filtered = filtered.filter(sale => sale.estado === this.filters.estado);
-    }
-
-    if (this.filters.metodo_pago) {
-      filtered = filtered.filter(sale => sale.metodo_pago === this.filters.metodo_pago);
-    }
-
-    if (this.filters.fecha_inicio) {
-      filtered = filtered.filter(sale => sale.fecha_venta >= this.filters.fecha_inicio!);
-    }
-
-    if (this.filters.fecha_fin) {
-      filtered = filtered.filter(sale => sale.fecha_venta <= this.filters.fecha_fin!);
-    }
-
-    this.filteredSales = filtered;
+    // Inicialmente mostrar todas las ventas
+    this.filteredSales = [...this.sales];
   }
 
-  onSearch(): void {
-    this.applyFilters();
-  }
+  // Método para manejar cambios en filtros avanzados
+  onFiltersChanged(filters: any): void {
+    console.log('Filters changed:', filters);
 
-  onFilterChange(): void {
-    this.applyFilters();
-  }
+    // Aplicar filtros manualmente
+    this.filteredSales = this.sales.filter(sale => {
+      // Filtro por término de búsqueda
+      if (filters.searchTerm && filters.searchTerm.trim()) {
+        const searchTerm = filters.searchTerm.toLowerCase();
+        const matchesSearch =
+          sale.saleCode?.toLowerCase().includes(searchTerm) ||
+          sale.customerFullName?.toLowerCase().includes(searchTerm) ||
+          sale.employeeFullName?.toLowerCase().includes(searchTerm) ||
+          sale.paymentMethod?.toLowerCase().includes(searchTerm);
 
-  clearFilters(): void {
-    this.filters = {
-      estado: '',
-      metodo_pago: '',
-      fecha_inicio: '',
-      fecha_fin: ''
-    };
-    this.searchTerm = '';
-    this.applyFilters();
-  }
+        if (!matchesSearch) return false;
+      }
 
-  toggleViewMode(): void {
-    this.viewMode = this.viewMode === 'list' ? 'grid' : 'list';
-  }
+      // Filtro por estado
+      if (filters.status && filters.status !== '') {
+        if (sale.status !== filters.status) return false;
+      }
 
-  openCreateForm(): void {
-    this.selectedSale = null;
-    this.showForm = true;
-  }
-
-  openEditForm(sale: SaleWithDetails): void {
-    this.selectedSale = sale;
-    this.showForm = true;
-  }
-
-  viewSale(sale: SaleWithDetails): void {
-    const detallesHtml = sale.detalles.map(detalle => `
-      <tr>
-        <td>Producto ${detalle.id_Product}</td>
-        <td>${detalle.cantidad}</td>
-        <td>S/ ${detalle.precio_unitario.toFixed(2)}</td>
-        <td>S/ ${detalle.subtotal.toFixed(2)}</td>
-      </tr>
-    `).join('');
-
-    Swal.fire({
-      title: `Venta ${sale.id_venta}`,
-      html: `
-        <div class="sale-details">
-          <p><strong>Cliente:</strong> ${sale.cliente_nombre || 'N/A'}</p>
-          <p><strong>Empleado:</strong> ${sale.empleado_nombre || 'N/A'}</p>
-          <p><strong>Fecha:</strong> ${new Date(sale.fecha_venta).toLocaleDateString()}</p>
-          <p><strong>Método de Pago:</strong> ${sale.metodo_pago}</p>
-          <p><strong>Estado:</strong> ${sale.estado}</p>
-          <p><strong>Total:</strong> S/ ${sale.total.toFixed(2)}</p>
-          
-          <h4>Detalles de Productos:</h4>
-          <table style="width: 100%; border-collapse: collapse;">
-            <thead>
-              <tr style="background-color: #f5f5f5;">
-                <th style="padding: 8px; border: 1px solid #ddd;">Producto</th>
-                <th style="padding: 8px; border: 1px solid #ddd;">Cantidad</th>
-                <th style="padding: 8px; border: 1px solid #ddd;">Precio</th>
-                <th style="padding: 8px; border: 1px solid #ddd;">Subtotal</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${detallesHtml}
-            </tbody>
-          </table>
-        </div>
-      `,
-      width: '600px',
-      confirmButtonColor: '#7c1d3b'
+      return true;
     });
+
+    console.log('Filtered sales:', this.filteredSales.length, 'of', this.sales.length);
   }
 
-  deleteSale(sale: SaleWithDetails): void {
-    Swal.fire({
-      title: '¿Estás seguro?',
-      text: `¿Deseas eliminar la venta ${sale.id_venta}?`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#7c1d3b',
-      cancelButtonColor: '#6c757d',
-      confirmButtonText: 'Sí, eliminar',
-      cancelButtonText: 'Cancelar'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        this.salesService.deleteSale(sale.id_venta).subscribe({
-          next: () => {
-            Swal.fire({
-              title: 'Eliminado',
-              text: 'La venta ha sido eliminada correctamente',
-              icon: 'success',
-              confirmButtonColor: '#7c1d3b'
-            });
-          },
-          error: (error) => {
-            console.error('Error deleting sale:', error);
-            Swal.fire({
-              title: 'Error',
-              text: 'No se pudo eliminar la venta',
-              icon: 'error',
-              confirmButtonColor: '#7c1d3b'
-            });
-          }
-        });
+  getStatusClass(status: string): string {
+    switch (status.toLowerCase()) {
+      case 'completado':
+        return 'status-completed';
+      case 'pendiente':
+        return 'status-pending';
+      case 'cancelado':
+        return 'status-cancelled';
+      default:
+        return 'status-default';
+    }
+  }
+
+  getPaymentMethodIcon(method: string): string {
+    switch (method.toLowerCase()) {
+      case 'efectivo':
+        return '💵';
+      case 'tarjeta':
+        return '💳';
+      case 'yape':
+        return '📱';
+      case 'plin':
+        return '📲';
+      default:
+        return '💰';
+    }
+  }
+
+  formatPrice(price: number): string {
+    return new Intl.NumberFormat('es-PE', {
+      style: 'currency',
+      currency: 'PEN'
+    }).format(price);
+  }
+
+  formatCurrency(amount: number): string {
+    return this.formatPrice(amount);
+  }
+
+  formatDate(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-PE');
+  }
+
+  viewSale(sale: SaleDTO): void {
+    this.router.navigate(['/sales/detail', sale.idSale]);
+  }
+
+  viewSaleDetails(sale: SaleDTO): void {
+    this.router.navigate(['/sales/detail', sale.idSale]);
+  }
+
+  editSale(sale: SaleDTO): void {
+    this.router.navigate(['/sales/edit', sale.idSale]);
+  }
+
+  cancelSale(sale: SaleDTO): void {
+    if (confirm(`¿Estás seguro de que deseas cancelar la venta ${sale.saleCode}?`)) {
+      this.salesService.delete(sale.idSale).subscribe({
+        next: () => {
+          this.notificationService.saleCancelled(sale.saleCode);
+          this.loadSales();
+        },
+        error: (error: any) => {
+          console.error('Error cancelling sale:', error);
+          this.notificationService.operationError('cancelar', 'venta', error.error?.message);
+        }
+      });
+    }
+  }
+
+  deleteSale(sale: SaleDTO): void {
+    if (confirm(`¿Estás seguro de que deseas eliminar permanentemente la venta ${sale.saleCode}?`)) {
+      this.salesService.delete(sale.idSale).subscribe({
+        next: () => {
+          this.notificationService.saleCancelled(sale.saleCode);
+          this.loadSales();
+        },
+        error: (error: any) => {
+          console.error('Error deleting sale:', error);
+          this.notificationService.operationError('eliminar', 'venta', error.error?.message);
+        }
+      });
+    }
+  }
+
+  restoreSale(sale: SaleDTO): void {
+    if (confirm(`¿Estás seguro de que deseas restaurar la venta ${sale.saleCode}?`)) {
+      // Implementar lógica de restauración cuando esté disponible en el backend
+      this.salesService.restore(sale.idSale).subscribe({
+        next: () => {
+          this.notificationService.saleRestored(sale.saleCode);
+          this.loadSales();
+        },
+        error: (error: any) => {
+          console.error('Error restoring sale:', error);
+          this.notificationService.operationError('restaurar', 'venta', error.error?.message);
+        }
+      });
+    }
+  }
+
+  generateReport(): void {
+    this.salesService.generatePdfReport().subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'reporte-ventas.pdf';
+        a.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: (error) => {
+        console.error('Error generating report:', error);
       }
     });
   }
 
-  onFormClose(): void {
-    this.showForm = false;
-    this.selectedSale = null;
+  trackBySaleId(index: number, sale: SaleDTO): number {
+    return sale.idSale;
   }
 
-  onFormSuccess(): void {
-    this.showForm = false;
-    this.selectedSale = null;
+  viewReceipt(sale: SaleDTO): void {
+    this.router.navigate(['/sales/receipt', sale.idSale]);
+  }
+
+  printReceipt(sale: SaleDTO): void {
+    // Navegar a la boleta con parámetro de impresión automática
+    this.router.navigate(['/sales/receipt', sale.idSale], {
+      queryParams: { print: 'true' }
+    });
+  }
+
+  duplicateSale(sale: SaleDTO): void {
+    console.log('Duplicate sale:', sale);
+    // TODO: Implementar duplicación de venta
+  }
+
+  viewHistory(sale: SaleDTO): void {
+    console.log('View history for sale:', sale);
+    // TODO: Implementar historial de venta
+  }
+
+  clearFilters(): void {
+    this.filterService.clearFilters();
+    this.applyFilters();
+  }
+
+  refreshData(): void {
     this.loadSales();
-    this.loadStats();
+    this.loadSummary();
   }
 
-  getCustomerName(id: number): string {
-    const customer = this.customers.find(c => c.idCustomer === id);
-    return customer ? `${customer.name} ${customer.surname}` : 'N/A';
+  refreshSales(): void {
+    this.loading = true;
+    this.loadSales();
   }
 
-  getEmployeeName(id: number): string {
-    const employee = this.employees.find(e => e.id_Employee === id);
-    return employee ? `${employee.Name} ${employee.Surname}` : 'N/A';
+  // Método para filtrar directamente por estado
+  filterByStatus(status: string): void {
+    console.log('Filtering by status:', status);
+    this.filteredSales = status === ''
+      ? [...this.sales]
+      : this.sales.filter(sale => sale.status === status);
+    console.log('Filtered results:', this.filteredSales.length);
   }
 
-  getStatusClass(estado: string): string {
-    switch (estado) {
-      case 'Completado': return 'status-completed';
-      case 'Pendiente': return 'status-pending';
-      case 'Cancelado': return 'status-cancelled';
-      default: return '';
-    }
-  }
-
-  formatCurrency(amount: number): string {
-    return `S/ ${amount.toFixed(2)}`;
-  }
-
-  formatDate(date: string): string {
-    return new Date(date).toLocaleDateString('es-PE');
+  // Navigation methods
+  navigateToCreate(): void {
+    this.router.navigate(['/sales/create']);
   }
 }

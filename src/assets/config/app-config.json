@@ -1,0 +1,18 @@
+{
+  "apiUrl": "http://localhost:8085",
+  "appName": "DeliPedidos",
+  "version": "1.0.0",
+  "features": {
+    "enableNotifications": true,
+    "enableCache": true,
+    "enableRetry": true,
+    "maxRetries": 3,
+    "cacheTimeout": 300000
+  },
+  "pagination": {
+    "defaultPageSize": 10,
+    "pageSizeOptions": [5, 10, 25, 50, 100]
+  },
+  "dateFormat": "dd/MM/yyyy",
+  "currency": "PEN"
+}

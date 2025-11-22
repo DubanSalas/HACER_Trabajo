@@ -1,0 +1,85 @@
+<div class="reviews-container">
+  <div class="reviews-header">
+    <h3>Reseñas del Producto</h3>
+    <div class="rating-summary" *ngIf="stats">
+      <div class="average-rating">
+        <span class="rating-number">{{ stats.averageRating.toFixed(1) }}</span>
+        <div class="stars">
+          <mat-icon *ngFor="let star of [1,2,3,4,5]" 
+                    [class.filled]="star <= stats.averageRating">
+            {{ star <= stats.averageRating ? 'star' : 'star_border' }}
+          </mat-icon>
+        </div>
+        <span class="review-count">({{ stats.totalReviews }} reseñas)</span>
+      </div>
+    </div>
+  </div>
+
+  <mat-divider></mat-divider>
+
+  <!-- Formulario para nueva reseña -->
+  <div class="add-review" *ngIf="canAddReview">
+    <h4>Deja tu reseña</h4>
+    <form [formGroup]="reviewForm" (ngSubmit)="submitReview()">
+      <div class="rating-input">
+        <label>Calificación:</label>
+        <div class="star-rating">
+          <mat-icon *ngFor="let star of [1,2,3,4,5]"
+                    (click)="setRating(star)"
+                    [class.selected]="star <= selectedRating"
+                    class="star-button">
+            {{ star <= selectedRating ? 'star' : 'star_border' }}
+          </mat-icon>
+        </div>
+      </div>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Tu comentario</mat-label>
+        <textarea matInput 
+                  formControlName="comment"
+                  rows="4"
+                  placeholder="Cuéntanos tu experiencia con este producto..."></textarea>
+        <mat-error *ngIf="reviewForm.get('comment')?.hasError('required')">
+          El comentario es requerido
+        </mat-error>
+        <mat-error *ngIf="reviewForm.get('comment')?.hasError('minlength')">
+          Mínimo 10 caracteres
+        </mat-error>
+      </mat-form-field>
+
+      <button mat-raised-button color="primary" type="submit" [disabled]="reviewForm.invalid || selectedRating === 0">
+        <mat-icon>send</mat-icon>
+        Publicar Reseña
+      </button>
+    </form>
+  </div>
+
+  <mat-divider *ngIf="canAddReview"></mat-divider>
+
+  <!-- Lista de reseñas -->
+  <div class="reviews-list">
+    <div class="review-item" *ngFor="let review of reviews">
+      <div class="review-header">
+        <div class="reviewer-info">
+          <mat-icon class="avatar-icon">account_circle</mat-icon>
+          <span class="reviewer-name">{{ review.customerName }}</span>
+        </div>
+        <div class="review-rating">
+          <mat-icon *ngFor="let star of [1,2,3,4,5]" 
+                    [class.filled]="star <= review.rating"
+                    class="small-star">
+            {{ star <= review.rating ? 'star' : 'star_border' }}
+          </mat-icon>
+        </div>
+      </div>
+      <p class="review-comment">{{ review.comment }}</p>
+      <span class="review-date">{{ formatDate(review.reviewDate) }}</span>
+    </div>
+
+    <div class="no-reviews" *ngIf="reviews.length === 0">
+      <mat-icon>rate_review</mat-icon>
+      <p>Aún no hay reseñas para este producto</p>
+      <p class="subtitle">¡Sé el primero en dejar una reseña!</p>
+    </div>
+  </div>
+</div>

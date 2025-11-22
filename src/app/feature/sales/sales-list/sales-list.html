@@ -1,201 +1,288 @@
-<div class="sales-container">
-  <!-- Header -->
-  <div class="header">
+<div class="modern-sales-container">
+  <!-- Modern Header -->
+  <div class="modern-header">
     <div class="header-content">
-      <h1>Gestión de Ventas</h1>
-      <p class="subtitle">Registro completo de transacciones y ventas</p>
-    </div>
-    <div class="header-actions">
-      <button mat-raised-button class="report-btn">
-        <mat-icon>description</mat-icon>
-        Reporte
-      </button>
-    </div>
-  </div>
-
-  <!-- Stats Cards -->
-  <div class="stats-grid">
-    <div class="stat-card total">
-      <div class="stat-content">
-        <div class="stat-info">
-          <h3>Ventas Totales</h3>
-          <p class="stat-value">{{ formatCurrency(stats.total_ventas) }}</p>
-          <p class="stat-subtitle">{{ stats.ventas_totales }} transacciones</p>
-        </div>
-        <div class="stat-icon">
-          <mat-icon>attach_money</mat-icon>
+      <div class="title-section">
+        <div class="title-with-icon">
+          <div class="icon-wrapper">
+            <mat-icon>point_of_sale</mat-icon>
+          </div>
+          <div class="title-text">
+            <h1>Gestión de Ventas</h1>
+            <p>Administra las ventas y transacciones</p>
+          </div>
         </div>
       </div>
-    </div>
-
-    <div class="stat-card today">
-      <div class="stat-content">
-        <div class="stat-info">
-          <h3>Ventas Hoy</h3>
-          <p class="stat-value">{{ formatCurrency(stats.total_hoy) }}</p>
-          <p class="stat-subtitle">{{ stats.ventas_hoy }} ventas</p>
-        </div>
-        <div class="stat-icon">
-          <mat-icon>today</mat-icon>
-        </div>
-      </div>
-    </div>
-
-    <div class="stat-card completed">
-      <div class="stat-content">
-        <div class="stat-info">
-          <h3>Completadas</h3>
-          <p class="stat-value">{{ stats.completadas }}</p>
-          <p class="stat-subtitle">Ventas exitosas</p>
-        </div>
-        <div class="stat-icon">
-          <mat-icon>check_circle</mat-icon>
-        </div>
-      </div>
-    </div>
-
-    <div class="stat-card pending">
-      <div class="stat-content">
-        <div class="stat-info">
-          <h3>Pendientes</h3>
-          <p class="stat-value">{{ stats.pendientes }}</p>
-          <p class="stat-subtitle">Por procesar</p>
-        </div>
-        <div class="stat-icon">
-          <mat-icon>schedule</mat-icon>
-        </div>
+      <div class="header-actions">
+        <button mat-raised-button color="primary" class="action-btn primary-btn" (click)="navigateToCreate()">
+          <mat-icon>add</mat-icon>
+          Nueva Venta
+        </button>
+        <button mat-stroked-button color="accent" class="action-btn secondary-btn" (click)="generateReport()">
+          <mat-icon>description</mat-icon>
+          Generar Reporte
+        </button>
       </div>
     </div>
   </div>
 
-  <!-- Filters and Actions -->
-  <div class="filters-section">
-    <div class="search-container">
-      <mat-icon class="search-icon">search</mat-icon>
-      <input 
-        type="text" 
-        placeholder="Buscar por nombre..." 
-        [(ngModel)]="searchTerm"
-        (input)="onSearch()"
-        class="search-input">
-    </div>
-
-    <div class="filters-container">
-      <mat-form-field appearance="outline" class="filter-field">
-        <mat-label>Todos los Estados</mat-label>
-        <mat-select [(value)]="filters.estado" (selectionChange)="onFilterChange()">
-          <mat-option value="">Todos los Estados</mat-option>
-          <mat-option *ngFor="let estado of estados" [value]="estado">
-            {{ estado }}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="filter-field">
-        <mat-label>Método de Pago</mat-label>
-        <mat-select [(value)]="filters.metodo_pago" (selectionChange)="onFilterChange()">
-          <mat-option value="">Todos</mat-option>
-          <mat-option *ngFor="let metodo of metodosPago" [value]="metodo">
-            {{ metodo }}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="filter-field">
-        <mat-label>Fecha Inicio</mat-label>
-        <input matInput type="date" [(ngModel)]="filters.fecha_inicio" (change)="onFilterChange()">
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="filter-field">
-        <mat-label>Fecha Fin</mat-label>
-        <input matInput type="date" [(ngModel)]="filters.fecha_fin" (change)="onFilterChange()">
-      </mat-form-field>
-    </div>
-
-    <div class="action-buttons">
-      <button mat-icon-button (click)="toggleViewMode()" class="view-toggle">
-        <mat-icon>{{ viewMode === 'list' ? 'view_module' : 'view_list' }}</mat-icon>
-      </button>
-      <span class="view-label">Vista:</span>
-      <button mat-raised-button color="primary" (click)="openCreateForm()" class="new-sale-btn">
-        <mat-icon>add_circle</mat-icon>
-        Nueva Venta
-      </button>
-    </div>
-  </div>
-
-  <!-- Loading Spinner -->
-  <div *ngIf="loading" class="loading-container">
-    <mat-spinner diameter="50"></mat-spinner>
-    <p>Cargando ventas...</p>
-  </div>
-
-  <!-- Sales Table -->
-  <div *ngIf="!loading" class="table-container">
-    <table class="sales-table">
-      <thead>
-        <tr>
-          <th>ID VENTAS</th>
-          <th>CLIENTE</th>
-          <th>EMPLEADO</th>
-          <th>FECHA</th>
-          <th>MÉTODO DE PAGO</th>
-          <th>TOTAL</th>
-          <th>ESTADO</th>
-          <th>ACCIONES</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let sale of filteredSales" class="sale-row">
-          <td>
-            <div class="sale-id">
-              <mat-icon class="sale-icon">shopping_cart</mat-icon>
-              {{ sale.id_venta }}
+  <!-- Modern Stats Cards -->
+  <div class="stats-section" *ngIf="summary">
+    <div class="stats-grid">
+      <mat-card class="stat-card total-sales">
+        <mat-card-content>
+          <div class="stat-header-row">
+            <div class="stat-icon">
+              <mat-icon>receipt</mat-icon>
             </div>
-          </td>
-          <td>{{ getCustomerName(sale.idCustomer) }}</td>
-          <td>{{ getEmployeeName(sale.id_Employee) }}</td>
-          <td>{{ formatDate(sale.fecha_venta) }}</td>
-          <td>{{ sale.metodo_pago }}</td>
-          <td class="total-cell">{{ formatCurrency(sale.total) }}</td>
-          <td>
-            <span class="status-badge" [ngClass]="getStatusClass(sale.estado)">
-              {{ sale.estado }}
-            </span>
-          </td>
-          <td>
-            <div class="action-buttons">
-              <button mat-icon-button (click)="openEditForm(sale)" class="edit-btn" title="Editar">
-                <mat-icon>edit</mat-icon>
-              </button>
-              <button mat-icon-button (click)="viewSale(sale)" class="view-btn" title="Ver">
-                <mat-icon>visibility</mat-icon>
-              </button>
-              <button mat-icon-button (click)="deleteSale(sale)" class="delete-btn" title="Eliminar">
-                <mat-icon>delete</mat-icon>
-              </button>
+            <div class="stat-percentage">
+              <svg class="circular-progress" viewBox="0 0 36 36">
+                <path class="circle-bg"
+                  d="M18 2.0845
+                    a 15.9155 15.9155 0 0 1 0 31.831
+                    a 15.9155 15.9155 0 0 1 0 -31.831"
+                />
+                <path class="circle"
+                  [attr.stroke-dasharray]="100 + ', 100'"
+                  d="M18 2.0845
+                    a 15.9155 15.9155 0 0 1 0 31.831
+                    a 15.9155 15.9155 0 0 1 0 -31.831"
+                />
+                <text x="18" y="20.35" class="percentage">100%</text>
+              </svg>
             </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+          </div>
+          <div class="stat-info">
+            <div class="stat-value">{{ summary.totalSales }}</div>
+            <div class="stat-label">Total Ventas</div>
+          </div>
+        </mat-card-content>
+      </mat-card>
 
-    <!-- Empty State -->
-    <div *ngIf="filteredSales.length === 0" class="empty-state">
-      <mat-icon>shopping_cart</mat-icon>
-      <h3>No se encontraron ventas</h3>
-      <p>No hay ventas que coincidan con los filtros aplicados</p>
-      <button mat-raised-button color="primary" (click)="clearFilters()">
-        Limpiar Filtros
-      </button>
+      <mat-card class="stat-card today-sales">
+        <mat-card-content>
+          <div class="stat-header-row">
+            <div class="stat-icon">
+              <mat-icon>today</mat-icon>
+            </div>
+            <div class="stat-percentage">
+              <svg class="circular-progress" viewBox="0 0 36 36">
+                <path class="circle-bg"
+                  d="M18 2.0845
+                    a 15.9155 15.9155 0 0 1 0 31.831
+                    a 15.9155 15.9155 0 0 1 0 -31.831"
+                />
+                <path class="circle"
+                  [attr.stroke-dasharray]="(summary.todaySales / summary.totalSales * 100) + ', 100'"
+                  d="M18 2.0845
+                    a 15.9155 15.9155 0 0 1 0 31.831
+                    a 15.9155 15.9155 0 0 1 0 -31.831"
+                />
+                <text x="18" y="20.35" class="percentage">{{ (summary.todaySales / summary.totalSales * 100) | number:'1.0-0' }}%</text>
+              </svg>
+            </div>
+          </div>
+          <div class="stat-info">
+            <div class="stat-value">{{ summary.todaySales }}</div>
+            <div class="stat-label">Ventas Hoy</div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card revenue">
+        <mat-card-content>
+          <div class="stat-header-row">
+            <div class="stat-icon">
+              <mat-icon>attach_money</mat-icon>
+            </div>
+            <div class="stat-percentage">
+              <svg class="circular-progress" viewBox="0 0 36 36">
+                <path class="circle-bg"
+                  d="M18 2.0845
+                    a 15.9155 15.9155 0 0 1 0 31.831
+                    a 15.9155 15.9155 0 0 1 0 -31.831"
+                />
+                <path class="circle"
+                  [attr.stroke-dasharray]="100 + ', 100'"
+                  d="M18 2.0845
+                    a 15.9155 15.9155 0 0 1 0 31.831
+                    a 15.9155 15.9155 0 0 1 0 -31.831"
+                />
+                <text x="18" y="20.35" class="percentage">100%</text>
+              </svg>
+            </div>
+          </div>
+          <div class="stat-info">
+            <div class="stat-value">{{ formatCurrency(summary.totalRevenue) }}</div>
+            <div class="stat-label">Ingresos Totales</div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card pending">
+        <mat-card-content>
+          <div class="stat-header-row">
+            <div class="stat-icon">
+              <mat-icon>pending</mat-icon>
+            </div>
+            <div class="stat-percentage">
+              <svg class="circular-progress" viewBox="0 0 36 36">
+                <path class="circle-bg"
+                  d="M18 2.0845
+                    a 15.9155 15.9155 0 0 1 0 31.831
+                    a 15.9155 15.9155 0 0 1 0 -31.831"
+                />
+                <path class="circle"
+                  [attr.stroke-dasharray]="(summary.pendingSales / summary.totalSales * 100) + ', 100'"
+                  d="M18 2.0845
+                    a 15.9155 15.9155 0 0 1 0 31.831
+                    a 15.9155 15.9155 0 0 1 0 -31.831"
+                />
+                <text x="18" y="20.35" class="percentage">{{ (summary.pendingSales / summary.totalSales * 100) | number:'1.0-0' }}%</text>
+              </svg>
+            </div>
+          </div>
+          <div class="stat-info">
+            <div class="stat-value">{{ summary.pendingSales }}</div>
+            <div class="stat-label">Pendientes</div>
+          </div>
+        </mat-card-content>
+      </mat-card>
     </div>
   </div>
 
-  <!-- Sales Form Modal -->
-  <app-sales-form
-    *ngIf="showForm"
-    [sale]="selectedSale"
-    (close)="onFormClose()"
-    (success)="onFormSuccess()">
-  </app-sales-form>
+  <!-- Filtros Avanzados -->
+  <app-advanced-filter 
+    [config]="filterConfig"
+    searchPlaceholder="Buscar ventas por código, cliente, empleado..."
+    [showStatusFilter]="true"
+    [statusOptions]="statusOptions"
+    (filtersChanged)="onFiltersChanged($event)">
+  </app-advanced-filter>
+
+  <!-- Modern Sales List -->
+  <mat-card class="sales-list-card">
+    <mat-card-header class="list-header">
+      <div class="header-left">
+        <mat-icon class="list-icon">receipt_long</mat-icon>
+        <div class="header-text">
+          <mat-card-title>Lista de Ventas</mat-card-title>
+          <mat-card-subtitle>Mostrando {{ filteredSales.length }} de {{ sales.length }} ventas</mat-card-subtitle>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button mat-icon-button (click)="refreshSales()" matTooltip="Actualizar">
+          <mat-icon>refresh</mat-icon>
+        </button>
+      </div>
+    </mat-card-header>
+
+    <mat-card-content>
+      <!-- Loading State -->
+      <div *ngIf="loading" class="loading-state">
+        <mat-spinner diameter="50"></mat-spinner>
+        <p>Cargando ventas...</p>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="!loading && filteredSales.length === 0" class="empty-state">
+        <div class="empty-icon">
+          <mat-icon>receipt_long</mat-icon>
+        </div>
+        <h3>No se encontraron ventas</h3>
+        <p>Las ventas aparecerán aquí cuando se registren</p>
+        <button mat-raised-button color="primary" (click)="navigateToCreate()">
+          <mat-icon>add_shopping_cart</mat-icon>
+          Registrar Primera Venta
+        </button>
+      </div>
+
+      <!-- Sales List -->
+      <div *ngIf="!loading && filteredSales.length > 0" class="sales-list">
+        <mat-card *ngFor="let sale of filteredSales; trackBy: trackBySaleId" class="sale-card" [class.cancelled]="sale.status === 'Cancelado'">
+          <mat-card-content>
+            <div class="sale-content">
+              <!-- Sale Header -->
+              <div class="sale-header">
+                <div class="sale-code">
+                  <div class="code-badge">
+                    <mat-icon>receipt</mat-icon>
+                    <span>{{ sale.saleCode }}</span>
+                  </div>
+                  <div class="sale-date">{{ formatDate(sale.saleDate) }}</div>
+                </div>
+                <div class="sale-status">
+                  <mat-chip [class]="getStatusClass(sale.status)">{{ sale.status }}</mat-chip>
+                </div>
+              </div>
+
+              <!-- Sale Details -->
+              <div class="sale-details">
+                <div class="detail-row">
+                  <mat-icon>person</mat-icon>
+                  <span class="label">Cliente:</span>
+                  <span class="value">{{ sale.customerName }} {{ sale.customerSurname }}</span>
+                </div>
+                <div class="detail-row">
+                  <mat-icon>badge</mat-icon>
+                  <span class="label">Empleado:</span>
+                  <span class="value">{{ sale.employeeName }}</span>
+                </div>
+                <div class="detail-row">
+                  <mat-icon>payment</mat-icon>
+                  <span class="label">Pago:</span>
+                  <span class="value">{{ sale.paymentMethod }}</span>
+                </div>
+                <div class="detail-row total-row">
+                  <mat-icon>attach_money</mat-icon>
+                  <span class="label">Total:</span>
+                  <span class="value total">{{ formatCurrency(sale.total) }}</span>
+                </div>
+              </div>
+
+              <!-- Sale Actions -->
+              <div class="sale-actions">
+                <button mat-icon-button color="primary" (click)="viewSale(sale)" matTooltip="Ver detalles">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+                <button mat-icon-button color="accent" (click)="editSale(sale)" matTooltip="Editar">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button [matMenuTriggerFor]="saleMenu" matTooltip="Más opciones">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+                <mat-menu #saleMenu="matMenu">
+                  <button mat-menu-item (click)="viewReceipt(sale)">
+                    <mat-icon>receipt</mat-icon>
+                    <span>Ver Boleta</span>
+                  </button>
+                  <button mat-menu-item (click)="printReceipt(sale)">
+                    <mat-icon>print</mat-icon>
+                    <span>Imprimir Boleta</span>
+                  </button>
+                  <button mat-menu-item (click)="duplicateSale(sale)">
+                    <mat-icon>content_copy</mat-icon>
+                    <span>Duplicar Venta</span>
+                  </button>
+                  <button mat-menu-item (click)="viewHistory(sale)">
+                    <mat-icon>history</mat-icon>
+                    <span>Ver Historial</span>
+                  </button>
+                  <mat-divider></mat-divider>
+                  <button mat-menu-item (click)="deleteSale(sale)" class="danger-action">
+                    <mat-icon>delete</mat-icon>
+                    <span>Eliminar Venta</span>
+                  </button>
+                  <button mat-menu-item (click)="restoreSale(sale)" class="success-action" *ngIf="sale.status === 'Cancelado'">
+                    <mat-icon>restore</mat-icon>
+                    <span>Restaurar Venta</span>
+                  </button>
+                </mat-menu>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-card-content>
+  </mat-card>
 </div>

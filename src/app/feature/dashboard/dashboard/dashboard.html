@@ -1,80 +1,388 @@
-<div class="dashboard">
+<div class="dashboard-container">
+  <!-- Header -->
   <div class="dashboard-header">
     <div class="header-content">
-      <h1 class="dashboard-title">Dashboard Principal</h1>
-      <p class="dashboard-subtitle">Vista general de la negocio de panadería</p>
-    </div>
-    <div class="header-actions">
-      <button class="action-btn btn-secondary">Hoy</button>
-      <button class="action-btn btn-secondary">Esta Mes</button>
-      <button class="action-btn btn-primary">Este Año</button>
-    </div>
-  </div>
-
-  <!-- Stat Cards -->
-  <div class="stat-cards-grid">
-    <div *ngFor="let card of statCards" class="stat-card" [style.border-left-color]="card.color">
-      <div class="stat-icon" [style.background-color]="card.bgColor">
-        {{ card.icon }}
-      </div>
-      <div class="stat-content">
-        <p class="stat-label">{{ card.title }}</p>
-        <p class="stat-value">{{ card.value }}</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- Recent Sales and Top Products -->
-  <div class="dashboard-grid">
-    <div class="card">
-      <h2 class="card-title">Ventas Recientes</h2>
-      <div class="sales-list">
-        <div *ngFor="let sale of recentSales" class="sale-item">
-          <div class="sale-avatar">👤</div>
-          <div class="sale-info">
-            <p class="sale-name">{{ sale.name }}</p>
-            <p class="sale-products">{{ sale.products }} productos</p>
-          </div>
-          <div class="sale-amount-container">
-            <p class="sale-amount">{{ sale.amount }}</p>
-            <span class="sale-status">{{ sale.status }}</span>
+      <div class="header-left">
+        <div class="header-icon">
+          <mat-icon>dashboard</mat-icon>
+        </div>
+        <div class="header-title">
+          <h1>Panel de Control</h1>
+          <div class="date-info">
+            <mat-icon>calendar_today</mat-icon>
+            <span>{{ getCurrentDate() }}</span>
           </div>
         </div>
       </div>
-    </div>
-
-    <div class="card">
-      <h2 class="card-title">Productos Más Vendidos</h2>
-      <div class="products-list">
-        <div *ngFor="let product of topProducts" class="product-item">
-          <div class="product-avatar">🥖</div>
-          <div class="product-info">
-            <p class="product-name">{{ product.name }}</p>
-            <p class="product-sales">Stock: {{ product.sales }}</p>
-          </div>
-          <div class="product-count">{{ product.sales }}</div>
-          <span class="product-status">{{ product.status }}</span>
-        </div>
+      <div class="header-actions">
+        <button mat-fab extended color="primary" (click)="refreshDashboard()" class="refresh-btn">
+          <mat-icon>refresh</mat-icon>
+          Actualizar
+        </button>
       </div>
     </div>
   </div>
 
-  <!-- Stock Alerts -->
-  <div class="card">
-    <div class="card-header">
-      <h2 class="card-title">Alertas de Stock</h2>
-      <span class="alert-badge">4</span>
+  <!-- Loading State -->
+  <div class="loading-container" *ngIf="loading">
+    <mat-spinner></mat-spinner>
+    <p>Cargando datos del dashboard...</p>
+  </div>
+
+  <!-- Dashboard Content -->
+  <div class="dashboard-content" *ngIf="!loading">
+    
+    <!-- Summary Cards -->
+    <div class="summary-cards">
+      <!-- Total Ventas -->
+      <mat-card class="summary-card sales-card">
+        <mat-card-content>
+          <div class="card-header-row">
+            <div class="card-icon">
+              <mat-icon>shopping_cart</mat-icon>
+            </div>
+            <div class="card-percentage">
+              <svg class="circular-progress" viewBox="0 0 36 36">
+                <path class="circle-bg"
+                  d="M18 2.0845
+                    a 15.9155 15.9155 0 0 1 0 31.831
+                    a 15.9155 15.9155 0 0 1 0 -31.831"
+                />
+                <path class="circle"
+                  [attr.stroke-dasharray]="getCompletionRate() + ', 100'"
+                  d="M18 2.0845
+                    a 15.9155 15.9155 0 0 1 0 31.831
+                    a 15.9155 15.9155 0 0 1 0 -31.831"
+                />
+                <text x="18" y="20.35" class="percentage">{{ getCompletionRate() }}%</text>
+              </svg>
+            </div>
+          </div>
+          <div class="card-info">
+            <h3>Total Ventas</h3>
+            <p class="card-value">{{ formatCurrency(getTotalSalesAmount()) }}</p>
+            <div class="card-trend" [class.growth-positive]="getCompletionRate() >= 50" [class.growth-negative]="getCompletionRate() < 50">
+              <mat-icon>{{ getCompletionRate() >= 50 ? 'trending_up' : 'trending_down' }}</mat-icon>
+              <span>{{ getCompletionRate() }}% completadas</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Total Clientes -->
+      <mat-card class="summary-card customers-card">
+        <mat-card-content>
+          <div class="card-header-row">
+            <div class="card-icon">
+              <mat-icon>people</mat-icon>
+            </div>
+            <div class="card-percentage">
+              <svg class="circular-progress" viewBox="0 0 36 36">
+                <path class="circle-bg"
+                  d="M18 2.0845
+                    a 15.9155 15.9155 0 0 1 0 31.831
+                    a 15.9155 15.9155 0 0 1 0 -31.831"
+                />
+                <path class="circle"
+                  [attr.stroke-dasharray]="customersGrowthPercentage + ', 100'"
+                  d="M18 2.0845
+                    a 15.9155 15.9155 0 0 1 0 31.831
+                    a 15.9155 15.9155 0 0 1 0 -31.831"
+                />
+                <text x="18" y="20.35" class="percentage">{{ customersGrowthPercentage }}%</text>
+              </svg>
+            </div>
+          </div>
+          <div class="card-info">
+            <h3>Total Clientes</h3>
+            <p class="card-value">{{ dashboardSummary?.totalClientes || 0 }}</p>
+            <div class="card-trend growth-positive">
+              <mat-icon>trending_up</mat-icon>
+              <span>{{ dashboardSummary?.porcentajeClientesAyer || '0%' }} vs ayer</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Total Empleados -->
+      <mat-card class="summary-card employees-card">
+        <mat-card-content>
+          <div class="card-header-row">
+            <div class="card-icon">
+              <mat-icon>badge</mat-icon>
+            </div>
+            <div class="card-percentage">
+              <svg class="circular-progress" viewBox="0 0 36 36">
+                <path class="circle-bg"
+                  d="M18 2.0845
+                    a 15.9155 15.9155 0 0 1 0 31.831
+                    a 15.9155 15.9155 0 0 1 0 -31.831"
+                />
+                <path class="circle"
+                  [attr.stroke-dasharray]="100 + ', 100'"
+                  d="M18 2.0845
+                    a 15.9155 15.9155 0 0 1 0 31.831
+                    a 15.9155 15.9155 0 0 1 0 -31.831"
+                />
+                <text x="18" y="20.35" class="percentage">100%</text>
+              </svg>
+            </div>
+          </div>
+          <div class="card-info">
+            <h3>Total Empleados</h3>
+            <p class="card-value">{{ dashboardSummary?.totalEmpleados || 0 }}</p>
+            <div class="card-trend neutral">
+              <mat-icon>people_outline</mat-icon>
+              <span>Equipo activo</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Total Productos -->
+      <mat-card class="summary-card products-card">
+        <mat-card-content>
+          <div class="card-header-row">
+            <div class="card-icon">
+              <mat-icon>inventory_2</mat-icon>
+            </div>
+            <div class="card-percentage">
+              <svg class="circular-progress" viewBox="0 0 36 36">
+                <path class="circle-bg"
+                  d="M18 2.0845
+                    a 15.9155 15.9155 0 0 1 0 31.831
+                    a 15.9155 15.9155 0 0 1 0 -31.831"
+                />
+                <path class="circle"
+                  [attr.stroke-dasharray]="productsAvailablePercentage + ', 100'"
+                  d="M18 2.0845
+                    a 15.9155 15.9155 0 0 1 0 31.831
+                    a 15.9155 15.9155 0 0 1 0 -31.831"
+                />
+                <text x="18" y="20.35" class="percentage">{{ productsAvailablePercentage }}%</text>
+              </svg>
+            </div>
+          </div>
+          <div class="card-info">
+            <h3>Total Productos</h3>
+            <p class="card-value">{{ dashboardSummary?.totalProductos || 0 }}</p>
+            <div class="card-trend" [class.growth-positive]="productsAvailablePercentage >= 80" [class.growth-negative]="productsAvailablePercentage < 80">
+              <mat-icon>{{ productsAvailablePercentage >= 80 ? 'check_circle' : 'warning' }}</mat-icon>
+              <span>{{ productsAvailablePercentage }}% disponibles</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
     </div>
-    <div class="alerts-grid">
-      <div *ngFor="let alert of stockAlerts" class="alert-item">
-        <div class="alert-icon">⚠️</div>
-        <div class="alert-content">
-          <p class="alert-name">{{ alert.name }}</p>
-          <p class="alert-status">Stock actual</p>
-        </div>
-        <div class="alert-value">{{ alert.current }}</div>
-        <span class="alert-unit">{{ alert.unit }}</span> 
-      </div>
+
+    <!-- Main Content Grid -->
+    <div class="dashboard-grid">
+      
+      <!-- Ventas Recientes -->
+      <mat-card class="dashboard-card recent-sales">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>receipt_long</mat-icon>
+            Ventas Recientes
+          </mat-card-title>
+          <button mat-icon-button (click)="navigateToSales()">
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="table-container">
+            <table mat-table [dataSource]="recentSales" *ngIf="recentSales.length > 0">
+              <ng-container matColumnDef="code">
+                <th mat-header-cell *matHeaderCellDef>Código</th>
+                <td mat-cell *matCellDef="let sale">{{ sale.saleCode }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="customer">
+                <th mat-header-cell *matHeaderCellDef>Cliente</th>
+                <td mat-cell *matCellDef="let sale">{{ getCustomerName(sale) }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="total">
+                <th mat-header-cell *matHeaderCellDef>Total</th>
+                <td mat-cell *matCellDef="let sale">{{ formatCurrency(sale.total) }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="status">
+                <th mat-header-cell *matHeaderCellDef>Estado</th>
+                <td mat-cell *matCellDef="let sale">
+                  <span class="status-chip" [class]="getStatusChipClass(sale.status)">
+                    {{ getStatusLabel(sale.status) }}
+                  </span>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="['code', 'customer', 'total', 'status']"></tr>
+              <tr mat-row *matRowDef="let row; columns: ['code', 'customer', 'total', 'status']"></tr>
+            </table>
+
+            <div class="empty-state" *ngIf="recentSales.length === 0">
+              <mat-icon>receipt_long</mat-icon>
+              <p>No hay ventas recientes</p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Stock Bajo -->
+      <mat-card class="dashboard-card low-stock">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>warning</mat-icon>
+            Productos con Stock Bajo
+          </mat-card-title>
+          <button mat-icon-button (click)="navigateToStore()">
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="stock-list" *ngIf="lowStockItems.length > 0">
+            <div class="stock-item" *ngFor="let item of lowStockItems">
+              <div class="stock-info">
+                <div class="stock-icon" [class]="getUrgencyClass(getUrgencyLevel(item))">
+                  <mat-icon>{{ getUrgencyIcon(getUrgencyLevel(item)) }}</mat-icon>
+                </div>
+                <div class="stock-details">
+                  <h4>{{ item.productName }}</h4>
+                  <p>{{ item.category }} - {{ item.location }}</p>
+                </div>
+              </div>
+              <div class="stock-quantity">
+                <div class="progress-bar">
+                  <div class="progress-fill" 
+                       [style.width.%]="(item.currentStock / item.minimumStock) * 100"
+                       [class]="getUrgencyClass(getUrgencyLevel(item))">
+                  </div>
+                </div>
+                <span class="stock-numbers">{{ item.currentStock }} / {{ item.minimumStock }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="empty-state" *ngIf="lowStockItems.length === 0">
+            <mat-icon>check_circle</mat-icon>
+            <p>Todos los productos tienen stock adecuado</p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Clientes Recientes -->
+      <mat-card class="dashboard-card recent-customers">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>person_add</mat-icon>
+            Clientes Recientes
+          </mat-card-title>
+          <button mat-icon-button (click)="navigateToCustomers()">
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="customer-list" *ngIf="recentCustomers.length > 0">
+            <div class="customer-item" *ngFor="let customer of recentCustomers">
+              <div class="customer-avatar">
+                <mat-icon>account_circle</mat-icon>
+              </div>
+              <div class="customer-info">
+                <h4>{{ customer.fullName }}</h4>
+                <p>{{ customer.email }}</p>
+                <span class="customer-date">Registrado: {{ formatDate(customer.registerDate) }}</span>
+              </div>
+              <div class="customer-stats">
+                <mat-icon>shopping_bag</mat-icon>
+                <span>{{ customer.totalPurchases }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="empty-state" *ngIf="recentCustomers.length === 0">
+            <mat-icon>people</mat-icon>
+            <p>No hay clientes recientes</p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Empleados -->
+      <mat-card class="dashboard-card employees-summary">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>badge</mat-icon>
+            Empleados Activos
+          </mat-card-title>
+          <button mat-icon-button (click)="navigateToEmployees()">
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="employee-list" *ngIf="employeeSummary.length > 0">
+            <div class="employee-item" *ngFor="let employee of employeeSummary">
+              <div class="employee-avatar">
+                <div class="avatar-circle">{{ getEmployeeInitials(employee.fullName) }}</div>
+              </div>
+              <div class="employee-info">
+                <h4>{{ employee.fullName }}</h4>
+                <p class="employee-position">{{ employee.positionName }}</p>
+                <span class="employee-code">{{ employee.employeeCode }}</span>
+              </div>
+              <div class="employee-status">
+                <span class="status-chip" [class]="getStatusChipClass(employee.status)">
+                  {{ getStatusLabel(employee.status) }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="empty-state" *ngIf="employeeSummary.length === 0">
+            <mat-icon>badge</mat-icon>
+            <p>No hay empleados registrados</p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Proveedores -->
+      <mat-card class="dashboard-card suppliers-summary">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>local_shipping</mat-icon>
+            Proveedores Activos
+          </mat-card-title>
+          <button mat-icon-button (click)="navigateToSuppliers()">
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="supplier-list" *ngIf="supplierSummary.length > 0">
+            <div class="supplier-item" *ngFor="let supplier of supplierSummary">
+              <div class="supplier-avatar">
+                <div class="avatar-circle supplier">{{ getSupplierInitials(supplier.companyName) }}</div>
+              </div>
+              <div class="supplier-info">
+                <h4>{{ supplier.companyName }}</h4>
+                <p class="supplier-category">{{ supplier.category }}</p>
+                <div class="supplier-contact">
+                  <mat-icon>person</mat-icon>
+                  <span>{{ supplier.contactName }}</span>
+                </div>
+              </div>
+              <div class="supplier-status">
+                <span class="status-chip" [class]="getStatusChipClass(supplier.status)">
+                  {{ getStatusLabel(supplier.status) }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="empty-state" *ngIf="supplierSummary.length === 0">
+            <mat-icon>local_shipping</mat-icon>
+            <p>No hay proveedores registrados</p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
     </div>
   </div>
 </div>

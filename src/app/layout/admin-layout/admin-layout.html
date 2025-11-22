@@ -1,9 +1,28 @@
 <div class="admin-layout">
-  <app-header></app-header>  <!-- Header -->
-  <div class="layout-container">
-    <app-sidebar></app-sidebar>  <!-- Sidebar -->
-    <main class="main-content">
-      <router-outlet></router-outlet>  <!-- Aquí se cargarán las rutas hijas -->
-    </main>
-  </div>
+  <mat-sidenav-container class="sidenav-container">
+    <!-- Sidebar -->
+    <mat-sidenav 
+      #drawer 
+      class="sidenav" 
+      fixedInViewport
+      [attr.role]="'navigation'"
+      [mode]="'side'"
+      [opened]="!sidebarCollapsed">
+      <app-sidebar (sidebarToggle)="onSidebarToggle($event)"></app-sidebar>
+    </mat-sidenav>
+
+    <!-- Contenido principal -->
+    <mat-sidenav-content class="main-content">
+      <!-- Header -->
+      <app-header 
+        (sidebarToggle)="drawer.toggle()"
+        [sidebarCollapsed]="sidebarCollapsed">
+      </app-header>
+
+      <!-- Contenido de las páginas -->
+      <main class="page-content">
+        <router-outlet></router-outlet>
+      </main>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
 </div>

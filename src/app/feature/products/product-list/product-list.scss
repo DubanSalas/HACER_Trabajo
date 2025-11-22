@@ -1,0 +1,452 @@
+// Paleta de colores profesional de panadería
+$bakery-primary: #d4a574;
+$bakery-secondary: #8b6f47;
+$bakery-accent: #f4e4c1;
+$bakery-dark: #5d4e37;
+$bakery-light: #faf6f0;
+$bakery-success: #7cb342;
+$bakery-warning: #ff8f00;
+$bakery-danger: #d32f2f;
+
+.products-container {
+  padding: 0;
+  background: #f5f5f5;
+  min-height: 100vh;
+
+  // Header igual al dashboard
+  .page-header {
+    padding: 24px;
+    background: #f5f5f5;
+
+    .header-card {
+      .mat-mdc-card-content {
+        padding: 0 !important;
+      }
+
+      .header-content {
+        background: linear-gradient(135deg, $bakery-secondary 0%, $bakery-dark 100%);
+        color: white;
+        padding: 28px 32px;
+        border-radius: 20px;
+        box-shadow: 0 6px 24px rgba(93, 78, 55, 0.2);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        &::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: 
+            radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.05) 0%, transparent 50%),
+            radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+          pointer-events: none;
+        }
+
+        .title-section {
+          position: relative;
+          z-index: 1;
+
+          .page-title {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin: 0 0 8px 0;
+            font-size: 28px;
+            font-weight: 700;
+            color: white;
+
+            .title-icon {
+              font-size: 32px;
+              width: 32px;
+              height: 32px;
+            }
+          }
+
+          .page-subtitle {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 14px;
+            font-weight: 500;
+          }
+        }
+
+        .header-actions {
+          position: relative;
+          z-index: 1;
+          display: flex;
+          gap: 12px;
+
+          button {
+            background: rgba(255, 255, 255, 0.15) !important;
+            color: white !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            backdrop-filter: blur(10px);
+            font-weight: 600;
+            transition: all 0.3s ease;
+
+            &:hover {
+              background: rgba(255, 255, 255, 0.25) !important;
+              transform: translateY(-2px);
+              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Summary cards
+  .summary-section {
+    padding: 0 24px 24px;
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+
+      .summary-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+        border: none;
+
+        &:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        }
+
+        .mat-mdc-card-content {
+          padding: 24px !important;
+        }
+
+        .summary-content {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+
+          .summary-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+
+            mat-icon {
+              font-size: 28px;
+              width: 28px;
+              height: 28px;
+              color: white;
+            }
+          }
+
+          .summary-info {
+            flex: 1;
+
+            h3 {
+              margin: 0 0 8px 0;
+              font-size: 13px;
+              font-weight: 600;
+              color: #64748b;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+            }
+
+            .summary-value {
+              font-size: 32px;
+              font-weight: 800;
+              color: #1e293b;
+              line-height: 1;
+            }
+          }
+        }
+
+        &.total-card .summary-icon {
+          background: linear-gradient(135deg, $bakery-primary 0%, $bakery-secondary 100%);
+        }
+
+        &.active-card .summary-icon {
+          background: linear-gradient(135deg, $bakery-success 0%, darken($bakery-success, 10%) 100%);
+        }
+
+        &.warning-card .summary-icon {
+          background: linear-gradient(135deg, $bakery-warning 0%, darken($bakery-warning, 10%) 100%);
+        }
+
+        &.danger-card .summary-icon {
+          background: linear-gradient(135deg, $bakery-danger 0%, darken($bakery-danger, 10%) 100%);
+        }
+      }
+    }
+  }
+
+  // Products card
+  .products-card {
+    margin: 0 24px 24px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+    .mat-mdc-card-header {
+      padding: 24px 24px 16px;
+      border-bottom: 1px solid #f1f5f9;
+
+      .mat-mdc-card-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 20px;
+        font-weight: 700;
+        color: #1e293b;
+        margin: 0;
+
+        mat-icon {
+          color: $bakery-primary;
+        }
+      }
+
+      .mat-mdc-card-subtitle {
+        margin-top: 4px;
+        color: #64748b;
+        font-size: 14px;
+      }
+    }
+
+    .mat-mdc-card-content {
+      padding: 24px !important;
+    }
+
+    // Loading & Empty states
+    .loading-container,
+    .empty-state {
+      text-align: center;
+      padding: 60px 24px;
+
+      mat-spinner {
+        margin: 0 auto 20px;
+      }
+
+      .empty-icon {
+        font-size: 80px;
+        width: 80px;
+        height: 80px;
+        color: #cbd5e1;
+        margin: 0 auto 20px;
+      }
+
+      h3 {
+        margin: 0 0 8px 0;
+        font-size: 20px;
+        font-weight: 700;
+        color: #1e293b;
+      }
+
+      p {
+        margin: 0 0 24px 0;
+        color: #64748b;
+        font-size: 14px;
+      }
+    }
+
+    // Products grid
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
+
+      .product-card {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        overflow: hidden;
+
+        &:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+          border-color: $bakery-primary;
+        }
+
+        .product-header {
+          padding: 20px;
+          background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
+          border-bottom: 1px solid #e2e8f0;
+
+          .product-avatar {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, $bakery-primary 0%, $bakery-secondary 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            mat-icon {
+              color: white;
+              font-size: 24px;
+            }
+          }
+
+          .product-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 12px 0 4px 0;
+          }
+
+          .product-code {
+            font-size: 12px;
+            color: #64748b;
+            font-family: 'Courier New', monospace;
+          }
+
+          .product-status {
+            margin-top: 12px;
+
+            .mat-mdc-chip {
+              font-size: 11px;
+              font-weight: 600;
+              height: 24px;
+
+              &.active {
+                background: rgba(124, 179, 66, 0.1);
+                color: $bakery-success;
+              }
+
+              &.inactive {
+                background: rgba(148, 163, 184, 0.1);
+                color: #64748b;
+              }
+            }
+          }
+        }
+
+        .product-content {
+          padding: 20px;
+
+          .product-info {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+
+            .info-row {
+              display: flex;
+              align-items: center;
+              gap: 12px;
+              font-size: 14px;
+
+              .info-icon {
+                color: $bakery-primary;
+                font-size: 18px;
+                width: 18px;
+                height: 18px;
+                flex-shrink: 0;
+              }
+
+              .info-label {
+                color: #64748b;
+                font-weight: 500;
+                min-width: 90px;
+              }
+
+              .info-value {
+                color: #1e293b;
+                font-weight: 600;
+                flex: 1;
+
+                &.stock-normal {
+                  color: $bakery-success;
+                }
+
+                &.stock-low {
+                  color: $bakery-warning;
+                }
+
+                &.stock-out {
+                  color: $bakery-danger;
+                }
+              }
+
+              &.price-row {
+                border-top: 1px solid #f1f5f9;
+                padding-top: 12px;
+                margin-top: 8px;
+
+                .price-value {
+                  font-size: 20px;
+                  font-weight: 800;
+                  color: $bakery-success;
+                }
+              }
+            }
+          }
+        }
+
+        .product-actions {
+          padding: 16px 20px;
+          background: #fafafa;
+          border-top: 1px solid #e2e8f0;
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+
+          button {
+            flex: 1;
+            min-width: 80px;
+            font-size: 13px;
+            font-weight: 600;
+          }
+        }
+
+        &.inactive {
+          opacity: 0.6;
+        }
+
+        &.low-stock {
+          border-left: 4px solid $bakery-warning;
+        }
+
+        &.out-of-stock {
+          border-left: 4px solid $bakery-danger;
+        }
+      }
+    }
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .products-container {
+    .page-header .header-content {
+      flex-direction: column;
+      gap: 20px;
+      text-align: center;
+
+      .header-actions {
+        width: 100%;
+        flex-direction: column;
+
+        button {
+          width: 100%;
+        }
+      }
+    }
+
+    .summary-section .summary-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .products-card .products-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+}

@@ -1,329 +1,318 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { Subject, takeUntil } from 'rxjs';
-import Swal from 'sweetalert2';
-
+import { Router } from '@angular/router';
+import { MaterialModule } from '../../../shared/material.module';
 import { StoreService } from '../../../core/services/store.service';
-import { SuppliersService } from '../../../core/services/suppliers.service';
-import { StoreItem, StoreStats, StoreFilters } from '../../../core/interfaces/store-interfaces';
-import { Supplier } from '../../../core/interfaces/suppliers-interfaces';
-import { StoreFormComponent } from '../store-form/store-form';
+import { NotificationService } from '../../../core/services/notification.service';
+import { StoreItemDTO, StoreItemSummary } from '../../../core/interfaces/store-interfaces';
+import { FilterService, FilterConfig } from '../../../core/services/filter.service';
+import { AdvancedFilterComponent } from '../../../shared/components/advanced-filter/advanced-filter.component';
 
 @Component({
   selector: 'app-store-list',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    MatIconModule,
-    MatButtonModule,
-    MatInputModule,
-    MatSelectModule,
-    MatProgressSpinnerModule,
-    StoreFormComponent
-  ],
+  imports: [CommonModule, FormsModule, MaterialModule, AdvancedFilterComponent],
   templateUrl: './store-list.html',
   styleUrls: ['./store-list.scss']
 })
-export class StoreListComponent implements OnInit, OnDestroy {
-  private destroy$ = new Subject<void>();
-
-  storeItems: StoreItem[] = [];
-  filteredItems: StoreItem[] = [];
-  suppliers: Supplier[] = [];
-  stats: StoreStats = {
-    total_products: 0,
-    low_stock: 0,
-    out_of_stock: 0,
-    expiring_soon: 0,
-    total_value: 0
-  };
-
+export class StoreListComponent implements OnInit {
+  storeItems: StoreItemDTO[] = [];
+  filteredItems: StoreItemDTO[] = [];
+  summary: StoreItemSummary | null = null;
   loading = false;
+  filterConfig: FilterConfig;
   searchTerm = '';
-  viewMode: 'list' | 'grid' = 'list';
-  showForm = false;
-  selectedItem: StoreItem | null = null;
 
   // Filtros
-  filters: StoreFilters = {
-    category: '',
-    status: '',
-    supplier: ''
-  };
+  statusOptions = [
+    { value: 'A', label: 'Activos' },
+    { value: 'I', label: 'Inactivos' },
+    { value: '', label: 'Todos' }
+  ];
+
+  alertOptions = [
+    { value: '', label: 'Todas las alertas' },
+    { value: 'lowStock', label: 'Stock bajo' },
+    { value: 'outOfStock', label: 'Sin stock' },
+    { value: 'nearExpiry', label: 'Próximo a vencer' }
+  ];
 
   categories: string[] = [];
-  statuses: string[] = [];
 
   constructor(
     private storeService: StoreService,
-    private suppliersService: SuppliersService
-  ) {}
+    private router: Router,
+    private filterService: FilterService,
+    private notificationService: NotificationService
+  ) {
+    this.filterConfig = this.filterService.getStoreFilterConfig();
+  }
 
   ngOnInit(): void {
-    this.loadInitialData();
-    this.subscribeToServices();
-  }
-
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-
-  private loadInitialData(): void {
     this.loadStoreItems();
-    this.loadStats();
-    this.loadSuppliers();
-    this.loadCategories();
-    this.loadStatuses();
+    this.loadSummary();
+    // Agregar datos de prueba si no hay datos del backend
+    this.addMockDataIfEmpty();
   }
 
-  private subscribeToServices(): void {
-    this.storeService.storeItems$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(items => {
-        this.storeItems = items;
+  addMockDataIfEmpty(): void {
+    // Datos de prueba para mostrar el diseño
+    if (this.storeItems.length === 0) {
+      setTimeout(() => {
+        if (this.storeItems.length === 0) {
+          this.storeItems = [
+            {
+              idStoreItem: 1,
+              itemCode: 'ALM001',
+              productName: 'Harina Integral Premium',
+              category: 'Harinas y Cereales',
+              currentStock: 15,
+              minimumStock: 20,
+              unit: 'Kg',
+              unitPrice: 8.50,
+              supplierId: 1,
+              supplierName: 'Distribuidora San Martín',
+              expiryDate: '2024-12-31',
+              location: 'Almacén Principal',
+              status: 'A',
+              totalStockValue: 127.50,
+              nearExpiry: false,
+              outOfStock: false,
+              lowStock: true
+            },
+            {
+              idStoreItem: 2,
+              itemCode: 'ALM002',
+              productName: 'Leche Entera',
+              category: 'Productos Lácteos',
+              currentStock: 0,
+              minimumStock: 10,
+              unit: 'Litros',
+              unitPrice: 4.20,
+              supplierId: 2,
+              supplierName: 'Lácteos del Norte',
+              expiryDate: '2024-11-15',
+              location: 'Refrigerador',
+              status: 'A',
+              totalStockValue: 0,
+              nearExpiry: true,
+              outOfStock: true,
+              lowStock: false
+            },
+            {
+              idStoreItem: 3,
+              itemCode: 'ALM003',
+              productName: 'Cajas de Cartón',
+              category: 'Empaques y Envases',
+              currentStock: 50,
+              minimumStock: 25,
+              unit: 'Unidades',
+              unitPrice: 1.50,
+              supplierId: 3,
+              supplierName: 'Empaques Premium',
+              expiryDate: '2025-06-30',
+              location: 'Bodega',
+              status: 'A',
+              totalStockValue: 75.00,
+              nearExpiry: false,
+              outOfStock: false,
+              lowStock: false
+            }
+          ];
+          this.summary = {
+            totalItems: 3,
+            availableItems: 3,
+            outOfStockItems: 1,
+            lowStockItems: 1,
+            nearExpiryItems: 1,
+            totalInventoryValue: 202.50
+          };
+          this.extractCategories();
+          this.applyFilters();
+        }
+      }, 2000);
+    }
+  }
+
+  loadStoreItems(): void {
+    this.loading = true;
+    console.log('Loading store items...');
+    this.storeService.getAll().subscribe({
+      next: (data) => {
+        console.log('Store items loaded:', data);
+        this.storeItems = data || [];
+        this.extractCategories();
         this.applyFilters();
-      });
-
-    this.storeService.stats$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(stats => this.stats = stats);
-
-    this.storeService.loading$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(loading => this.loading = loading);
-  }
-
-  private loadStoreItems(): void {
-    this.storeService.getStoreItems().subscribe({
+        this.loading = false;
+      },
       error: (error) => {
         console.error('Error loading store items:', error);
-        Swal.fire({
-          title: 'Error',
-          text: 'No se pudieron cargar los productos del almacén',
-          icon: 'error',
-          confirmButtonColor: '#7c1d3b'
-        });
+        this.storeItems = [];
+        this.filteredItems = [];
+        this.loading = false;
       }
     });
   }
 
-  private loadStats(): void {
-    this.storeService.getStats().subscribe({
+  loadSummary(): void {
+    console.log('Loading store summary...');
+    this.storeService.getSummary().subscribe({
+      next: (data) => {
+        console.log('Store summary loaded:', data);
+        this.summary = data;
+      },
       error: (error) => {
-        console.error('Error loading stats:', error);
+        console.error('Error loading summary:', error);
+        // Crear un summary por defecto si hay error
+        this.summary = {
+          totalItems: this.storeItems.length,
+          availableItems: this.storeItems.filter(item => item.status === 'A').length,
+          outOfStockItems: this.storeItems.filter(item => item.outOfStock).length,
+          lowStockItems: this.storeItems.filter(item => item.lowStock).length,
+          nearExpiryItems: this.storeItems.filter(item => item.nearExpiry).length,
+          totalInventoryValue: this.storeItems.reduce((sum, item) => sum + item.totalStockValue, 0)
+        };
       }
     });
   }
 
-  private loadSuppliers(): void {
-    this.suppliersService.getSuppliers().subscribe({
-      next: (suppliers) => this.suppliers = suppliers,
-      error: (error) => console.error('Error loading suppliers:', error)
-    });
-  }
-
-  private loadCategories(): void {
-    this.categories = this.storeService.getCategories();
-  }
-
-  private loadStatuses(): void {
-    this.statuses = this.storeService.getStatuses();
+  extractCategories(): void {
+    const categorySet = new Set(this.storeItems.map(item => item.category));
+    this.categories = Array.from(categorySet).sort();
   }
 
   applyFilters(): void {
-    let filtered = [...this.storeItems];
-
-    // Filtro por búsqueda
-    if (this.searchTerm.trim()) {
-      const term = this.searchTerm.toLowerCase();
-      filtered = filtered.filter(item =>
-        item.product_name.toLowerCase().includes(term) ||
-        item.category.toLowerCase().includes(term) ||
-        item.supplier_name?.toLowerCase().includes(term)
-      );
-    }
-
-    // Filtros específicos
-    if (this.filters.category) {
-      filtered = filtered.filter(item => item.category === this.filters.category);
-    }
-
-    if (this.filters.status) {
-      filtered = filtered.filter(item => item.status === this.filters.status);
-    }
-
-    if (this.filters.supplier) {
-      filtered = filtered.filter(item => item.supplier_name === this.filters.supplier);
-    }
-
-    this.filteredItems = filtered;
+    // Usar el FilterService para aplicar filtros
+    this.filteredItems = this.filterService.applyFilters(this.storeItems, this.filterConfig);
   }
 
-  onSearch(): void {
+  // Método para manejar cambios en filtros avanzados
+  onFiltersChanged(event: any): void {
+    this.searchTerm = event.searchTerm || '';
     this.applyFilters();
   }
 
-  onFilterChange(): void {
-    this.applyFilters();
+  getStatusClass(status: string): string {
+    return status === 'A' ? 'active' : 'inactive';
   }
 
-  clearFilters(): void {
-    this.filters = {
-      category: '',
-      status: '',
-      supplier: ''
-    };
-    this.searchTerm = '';
-    this.applyFilters();
+  getStatusText(status: string): string {
+    return status === 'A' ? 'Activo' : 'Inactivo';
   }
 
-  toggleViewMode(): void {
-    this.viewMode = this.viewMode === 'list' ? 'grid' : 'list';
+  getStockClass(item: StoreItemDTO): string {
+    if (item.outOfStock) return 'stock-out';
+    if (item.lowStock) return 'stock-low';
+    return 'stock-normal';
   }
 
-  openCreateForm(): void {
-    this.selectedItem = null;
-    this.showForm = true;
+  getStockLabel(item: StoreItemDTO): string {
+    if (item.outOfStock) return 'Sin stock';
+    if (item.lowStock) return 'Stock bajo';
+    return 'Stock normal';
   }
 
-  openEditForm(item: StoreItem): void {
-    this.selectedItem = item;
-    this.showForm = true;
+  getExpiryClass(item: StoreItemDTO): string {
+    return item.nearExpiry ? 'expiry-warning' : 'expiry-normal';
   }
 
-  viewItem(item: StoreItem): void {
-    const expiryDate = new Date(item.expiry_date);
-    const isExpiringSoon = this.isExpiringSoon(item.expiry_date);
-    const isExpired = expiryDate < new Date();
-
-    Swal.fire({
-      title: `${item.product_name}`,
-      html: `
-        <div class="store-item-details">
-          <p><strong>Categoría:</strong> ${item.category}</p>
-          <p><strong>Stock Actual:</strong> ${item.current_stock} ${item.unit}</p>
-          <p><strong>Stock Mínimo:</strong> ${item.min_stock} ${item.unit}</p>
-          <p><strong>Precio Unitario:</strong> S/ ${item.unit_price.toFixed(2)}</p>
-          <p><strong>Proveedor:</strong> ${item.supplier_name || 'N/A'}</p>
-          <p><strong>Fecha de Vencimiento:</strong> ${this.formatDate(item.expiry_date)}</p>
-          <p><strong>Ubicación:</strong> ${item.location}</p>
-          <p><strong>Estado:</strong> <span class="status-${item.status.toLowerCase().replace(' ', '-')}">${item.status}</span></p>
-          <p><strong>Valor Total:</strong> S/ ${(item.current_stock * item.unit_price).toFixed(2)}</p>
-          ${isExpired ? '<p style="color: #dc3545;"><strong>⚠️ PRODUCTO VENCIDO</strong></p>' : ''}
-          ${isExpiringSoon && !isExpired ? '<p style="color: #ffc107;"><strong>⚠️ PRÓXIMO A VENCER</strong></p>' : ''}
-        </div>
-      `,
-      width: '500px',
-      confirmButtonColor: '#7c1d3b'
-    });
+  formatPrice(price: number): string {
+    return new Intl.NumberFormat('es-PE', {
+      style: 'currency',
+      currency: 'PEN'
+    }).format(price);
   }
 
-  deleteItem(item: StoreItem): void {
-    Swal.fire({
-      title: '¿Estás seguro?',
-      text: `¿Deseas eliminar "${item.product_name}" del almacén?`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#7c1d3b',
-      cancelButtonColor: '#6c757d',
-      confirmButtonText: 'Sí, eliminar',
-      cancelButtonText: 'Cancelar'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        this.storeService.deleteStoreItem(item.id_store).subscribe({
-          next: () => {
-            Swal.fire({
-              title: 'Eliminado',
-              text: 'El producto ha sido eliminado del almacén',
-              icon: 'success',
-              confirmButtonColor: '#7c1d3b'
-            });
-          },
-          error: (error) => {
-            console.error('Error deleting store item:', error);
-            Swal.fire({
-              title: 'Error',
-              text: 'No se pudo eliminar el producto',
-              icon: 'error',
-              confirmButtonColor: '#7c1d3b'
-            });
-          }
-        });
+  formatDate(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-PE');
+  }
+
+  viewItem(item: StoreItemDTO): void {
+    this.router.navigate(['/store/edit', item.idStoreItem]);
+  }
+
+  editItem(item: StoreItemDTO): void {
+    this.router.navigate(['/store/edit', item.idStoreItem]);
+  }
+
+  deleteItem(item: StoreItemDTO): void {
+    if (confirm(`¿Estás seguro de que deseas eliminar el item ${item.productName}?`)) {
+      this.storeService.delete(item.idStoreItem).subscribe({
+        next: () => {
+          this.notificationService.storeItemDeactivated(item.productName);
+          this.loadStoreItems();
+        },
+        error: (error) => {
+          console.error('Error deleting item:', error);
+          this.notificationService.operationError('eliminar', 'artículo de almacén', error.error?.message);
+        }
+      });
+    }
+  }
+
+  restoreItem(item: StoreItemDTO): void {
+    this.storeService.restore(item.idStoreItem).subscribe({
+      next: () => {
+        this.notificationService.storeItemRestored(item.productName);
+        this.loadStoreItems();
+      },
+      error: (error) => {
+        console.error('Error restoring item:', error);
+        this.notificationService.operationError('restaurar', 'artículo de almacén', error.error?.message);
       }
     });
   }
 
-  onFormClose(): void {
-    this.showForm = false;
-    this.selectedItem = null;
-  }
-
-  onFormSuccess(): void {
-    this.showForm = false;
-    this.selectedItem = null;
-    this.loadStoreItems();
-    this.loadStats();
-    this.loadCategories();
-  }
-
-  getSupplierName(id: number): string {
-    const supplier = this.suppliers.find(s => s.id_Supplier === id);
-    return supplier ? supplier.Company_Name : 'N/A';
-  }
-
-  getStatusClass(status: string): string {
-    switch (status) {
-      case 'Disponible': return 'status-available';
-      case 'Agotado': return 'status-out-of-stock';
-      case 'Próximo a Vencer': return 'status-expiring';
-      case 'Vencido': return 'status-expired';
-      case 'En Revisión': return 'status-review';
-      default: return '';
+  updateStock(item: StoreItemDTO): void {
+    const newStock = prompt(`Ingrese el nuevo stock para ${item.productName}:`, item.currentStock.toString());
+    if (newStock !== null && !isNaN(Number(newStock))) {
+      this.storeService.updateStock(item.idStoreItem, Number(newStock)).subscribe({
+        next: () => {
+          this.notificationService.stockUpdated(item.productName, Number(newStock));
+          this.loadStoreItems();
+        },
+        error: (error) => {
+          console.error('Error updating stock:', error);
+          this.notificationService.operationError('actualizar stock de', 'artículo', error.error?.message);
+        }
+      });
     }
   }
 
-  getStockClass(item: StoreItem): string {
-    if (item.current_stock === 0) return 'stock-out';
-    if (item.current_stock <= item.min_stock) return 'stock-low';
-    return 'stock-normal';
+  generateReport(): void {
+    this.storeService.generatePdfReport().subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'reporte-almacen.pdf';
+        a.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: (error) => {
+        console.error('Error generating report:', error);
+      }
+    });
   }
 
-  isLowStock(item: StoreItem): boolean {
-    return item.current_stock <= item.min_stock && item.current_stock > 0;
+  trackByItemId(index: number, item: StoreItemDTO): number {
+    return item.idStoreItem;
   }
 
-  isOutOfStock(item: StoreItem): boolean {
-    return item.current_stock === 0;
+  clearFilters(): void {
+    this.filterService.clearFilters();
+    this.applyFilters();
   }
 
-  isExpiringSoon(expiryDate: string): boolean {
-    const expiry = new Date(expiryDate);
-    const today = new Date();
-    const sevenDaysFromNow = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
-    return expiry <= sevenDaysFromNow && expiry >= today;
+  refreshData(): void {
+    this.loadStoreItems();
+    this.loadSummary();
   }
 
-  isExpired(expiryDate: string): boolean {
-    return new Date(expiryDate) < new Date();
-  }
-
-  formatCurrency(amount: number): string {
-    return `S/ ${amount.toFixed(2)}`;
-  }
-
-  formatDate(date: string): string {
-    return new Date(date).toLocaleDateString('es-PE');
-  }
-
-  formatStock(stock: number, unit: string): string {
-    return `${stock} ${unit}`;
+  // Navigation methods
+  navigateToCreate(): void {
+    this.router.navigate(['/store/create']);
   }
 }

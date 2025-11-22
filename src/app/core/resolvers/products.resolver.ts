@@ -1,15 +1,17 @@
 import { Injectable } from '@angular/core';
-import { Resolve, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
+import { Resolve } from '@angular/router';
 import { Observable } from 'rxjs';
 import { ProductsService } from '../services/products.service';
+import { ProductDTO } from '../interfaces/products-interfaces';
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
-export class ProductsResolver implements Resolve<any[]> {
+export class ProductsResolver implements Resolve<ProductDTO[]> {
+  
   constructor(private productsService: ProductsService) {}
 
-  resolve(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<any[]> {
-    return this.productsService.getProducts();
+  resolve(): Observable<ProductDTO[]> {
+    return this.productsService.getAll();
   }
 }

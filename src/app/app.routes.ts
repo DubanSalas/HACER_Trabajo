@@ -1,108 +1,110 @@
 import { Routes } from '@angular/router';
-import { AdminLayout } from './layout/admin-layout/admin-layout';
-import { Dashboard } from './feature/dashboard/dashboard/dashboard';
-
-// Resolver para diferentes componentes
-import { SuppliersResolver } from './core/resolvers/suppliers.resolver';
-import { ProductsResolver } from './core/resolvers/products.resolver';
-import { SalesResolver } from './core/resolvers/sales.resolver';
-import { InventoryResolver } from './core/resolvers/inventory.resolver';
-
-// Guard para proteger las rutas
-import { authGuard } from './core/guards/auth.guard';
+import { AuthGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
+  // Rutas de autenticación (públicas)
+  {
+    path: 'auth',
+    loadChildren: () => import('./feature/auth/auth.routes').then(m => m.AUTH_ROUTES)
+  },
+
+  // Portal del Cliente (público/protegido)
+  {
+    path: 'customer',
+    loadChildren: () => import('./feature/customer-portal/customer-portal.routes').then(m => m.customerPortalRoutes)
+  },
+  
+  // Ruta de login directa - redirige a selección de tipo de usuario
   {
     path: 'login',
+    redirectTo: '/auth/user-type',
+    pathMatch: 'full'
+  },
+
+  // Rutas de testing (desarrollo)
+  // {
+  //   path: 'test',
+  //   loadComponent: () =>
+  //     import('./test/test.component').then(m => m.TestComponent)
+  // },
+  {
+    path: 'customers-test',
     loadComponent: () =>
-      import('./feature/auth/login/login.component').then((m) => m.LoginComponent),
+      import('./feature/customer/customer-list/customer-list').then(m => m.CustomerListComponent)
   },
   {
-    path: 'test',
+    path: 'dashboard-test',
     loadComponent: () =>
-      import('./shared/components/connection-test/connection-test.component').then((m) => m.ConnectionTestComponent),
+      import('./feature/dashboard/dashboard/dashboard').then(m => m.DashboardComponent)
   },
-  {
-    path: 'simple-test',
-    loadComponent: () =>
-      import('./shared/components/simple-test/simple-test.component').then((m) => m.SimpleTestComponent),
-  },
-  {
-    path: 'login-test',
-    loadComponent: () =>
-      import('./shared/components/login-test/login-test.component').then((m) => m.LoginTestComponent),
-  },
-  {
-    path: 'bypass-login',
-    loadComponent: () =>
-      import('./shared/components/bypass-login/bypass-login.component').then((m) => m.BypassLoginComponent),
-  },
-  {
-    path: 'data-demo',
-    loadComponent: () =>
-      import('./shared/components/data-demo/data-demo.component').then((m) => m.DataDemoComponent),
-  },
+
+  // Ruta raíz redirige a la selección de tipo de usuario
   {
     path: '',
-    redirectTo: 'dashboard',
-    pathMatch: 'full',
+    redirectTo: '/auth/user-type',
+    pathMatch: 'full'
   },
+
+  // Rutas protegidas con AdminLayout
   {
     path: '',
-    component: AdminLayout,
-    canActivate: [authGuard],  // Solo acceso si está autenticado
+    loadComponent: () =>
+      import('./layout/admin-layout/admin-layout').then(m => m.AdminLayoutComponent),
+    canActivate: [AuthGuard],
     children: [
+      // Dashboard
       {
         path: 'dashboard',
-        component: Dashboard,  // Dashboard que está protegido por el guard
+        loadChildren: () => import('./feature/dashboard/dashboard.routes').then(m => m.DASHBOARD_ROUTES)
       },
-      {
-        path: 'suppliers',
-        loadComponent: () =>
-          import('./feature/suppliers/suppliers-list/suppliers-list').then((m) => m.SuppliersList),
-        resolve: { suppliers: SuppliersResolver },  // Resolver para Suppliers
-      },
-      {
-        path: 'employees',
-        loadComponent: () =>
-          import('./feature/employees/employees-list/employees-list').then((m) => m.EmployeesList),
-      },
+
+      // Gestión de Clientes
       {
         path: 'customers',
-        loadComponent: () =>
-          import('./feature/customer/customer-list/customer-list').then((m) => m.CustomerListComponent),
+        loadChildren: () => import('./feature/customer/customer.routes').then(m => m.CUSTOMER_ROUTES)
       },
+
+      // Gestión de Productos
       {
         path: 'products',
-        loadComponent: () =>
-          import('./feature/products/products-list/products-list').then((m) => m.ProductsList),
-        resolve: { products: ProductsResolver },  // Resolver para Products
+        loadChildren: () => import('./feature/products/products.routes').then(m => m.PRODUCTS_ROUTES)
       },
+
+      // Gestión de Ventas
       {
         path: 'sales',
-        loadComponent: () =>
-          import('./feature/sales/sales-list/sales-list').then((m) => m.SalesListComponent),
-        resolve: { sales: SalesResolver },  // Resolver para Sales
+        loadChildren: () => import('./feature/sales/sales.routes').then(m => m.SALES_ROUTES)
       },
+
+      // Gestión de Empleados
+      {
+        path: 'employees',
+        loadChildren: () => import('./feature/employees/employees.routes').then(m => m.EMPLOYEES_ROUTES)
+      },
+
+      // Gestión de Proveedores
+      {
+        path: 'suppliers',
+        loadChildren: () => import('./feature/suppliers/suppliers.routes').then(m => m.SUPPLIERS_ROUTES)
+      },
+
+      // Gestión de Inventario/Almacén
       {
         path: 'store',
-        loadComponent: () =>
-          import('./feature/store/store-list/store-list').then((m) => m.StoreListComponent),
+        loadChildren: () => import('./feature/store/store.routes').then(m => m.STORE_ROUTES)
       },
-      {
-        path: 'test-connection',
-        loadComponent: () =>
-          import('./shared/components/connection-test/connection-test.component').then((m) => m.ConnectionTestComponent),
-      },
-      {
-        path: '',
-        redirectTo: 'dashboard', // Redirige a dashboard por defecto
-        pathMatch: 'full',
-      },
-    ],
+
+      // Reportes
+      // {
+      //   path: 'reports',
+      //   loadChildren: () => import('./feature/reports/reports.routes').then(m => m.REPORTS_ROUTES)
+      // }
+    ]
   },
+
+  // Ruta wildcard - redirige a la selección de usuario si no encuentra la ruta
   {
     path: '**',
-    redirectTo: 'login', // Si la ruta no existe, redirige a login
-  },
+    redirectTo: '/auth/user-type'
+  }
 ];
